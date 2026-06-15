@@ -1,5 +1,5 @@
 # ==========================================
-# Python (Backend)
+# Python / Backend
 # ==========================================
 __pycache__/
 *.pyc
@@ -25,27 +25,26 @@ alembic/versions/*.pyc
 .coverage
 htmlcov/
 logs/
-*.pid
-*.sock
 
 # ==========================================
 # Node.js / pnpm (Frontend)
 # ==========================================
 node_modules/
 .pnpm-store/
-dist/
-dist-ssr/
-*.local
 fe/node_modules/
 fe/.pnpm-store/
 fe/dist/
+dist-ssr/
+*.local
 fe/.env.local
 fe/.env.*.local
-fe/pnpm-lock.yaml
 fe/package-lock.json
 fe/npm-debug.log*
 fe/yarn-debug.log*
 fe/yarn-error.log*
+
+# El lockfile de pnpm SÍ se sube (no lo ignores)
+# Asegúrate de NO tener "pnpm-lock.yaml" en esta lista
 
 # ==========================================
 # Docker
@@ -79,16 +78,6 @@ ehthumbs.db
 *.ds_store
 
 # ==========================================
-# Archivos de entorno y secretos
-# ==========================================
-.env
-.env.local
-.env.*.local
-*.key
-*.pem
-*.crt
-
-# ==========================================
 # Logs y bases de datos locales
 # ==========================================
 *.log
@@ -96,16 +85,11 @@ ehthumbs.db
 *.db
 
 # ==========================================
-# Otros
+# Otros archivos generados
 # ==========================================
 *.pyc
 *.pyo
-*.pyd
 __pycache__/
-*.so
-*.egg
 *.egg-info/
 dist/
 build/
-*.pid
-*.sock
