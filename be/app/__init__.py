@@ -1,0 +1,1 @@
+from app.routers import auth_router, users_router, clients_router, tecnicos_router

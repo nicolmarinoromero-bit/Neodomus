@@ -1,0 +1,67 @@
+# ==========================================
+# Python (Backend)
+# ==========================================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.db
+*.sqlite
+*.pid
+*.log
+.env
+.venv
+venv/
+ENV/
+env/
+alembic/versions/*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+logs/
+*.pid
+*.sock
+
+# ==========================================
+# Node / Frontend
+# ==========================================
+node_modules/
+dist/
+dist-ssr/
+*.local
+fe/node_modules/
+fe/dist/
+fe/.env.local
+fe/.env.*.local
+fe/pnpm-lock.yaml
+fe/package-lock.json
+
+# ==========================================
+# Editores / IDEs
+# ==========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+
+# ==========================================
+# OS
+# ==========================================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ==========================================
+# Docker (opcional, si no quieres subir volúmenes)
+# ==========================================
+mysql_data/
+redis_data/

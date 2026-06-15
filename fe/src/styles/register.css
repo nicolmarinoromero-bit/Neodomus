@@ -1,0 +1,311 @@
+/* ==========================================================================
+   register.css - Estilos para el formulario de registro (compacto)
+   ========================================================================== */
+
+@keyframes formEntrance {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.register-container {
+  position: relative !important;
+  width: 100% !important;
+  min-height: 100vh !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: flex-start !important;
+  padding: 4rem 20px 2rem 20px !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  background-attachment: scroll !important;
+  background-color: #000000 !important;
+}
+
+.register-form {
+  background: rgba(0, 0, 0, 0.45) !important;
+  backdrop-filter: blur(6px) !important;
+  padding: 1.5rem 1.8rem 1.2rem 1.8rem !important;
+  text-align: center !important;
+  width: 100% !important;
+  max-width: 440px !important;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7) !important;
+  border-radius: 35px !important;
+  border: 4px solid rgba(220, 220, 220, 0.55) !important;
+  animation: formEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+/* Avatar */
+.avatar-header-container {
+  display: flex !important;
+  justify-content: center !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.avatar-circle {
+  width: 50px !important;
+  height: 50px !important;
+  border: 2px solid #caa24d !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  position: relative !important;
+  color: #caa24d !important;
+}
+
+.user-icon-svg {
+  width: 26px !important;
+  height: 26px !important;
+}
+
+.avatar-plus-badge {
+  position: absolute !important;
+  bottom: -2px !important;
+  right: -2px !important;
+  width: 16px !important;
+  height: 16px !important;
+  background-color: #caa24d !important;
+  color: #000000 !important;
+  border-radius: 50% !important;
+  font-size: 11px !important;
+  font-weight: bold !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  line-height: 1 !important;
+}
+
+/* Título */
+.register-form h2 {
+  font-family: system-ui, -apple-system, sans-serif !important;
+  font-size: 1.4rem !important;
+  font-weight: bold !important;
+  margin: 0 0 1rem 0 !important;
+  color: #ffffff !important;
+  letter-spacing: 0.5px !important;
+}
+
+/* Grid de dos columnas */
+.form-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 0.7rem !important;
+  margin-bottom: 0.8rem !important;
+}
+
+/* Campos de entrada y selectores */
+.register-form input,
+.register-form select {
+  width: 100% !important;
+  padding: 8px 12px !important;
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  font-family: system-ui, -apple-system, sans-serif !important;
+  font-size: 0.85rem !important;
+  text-align: center !important;
+  outline: none !important;
+  box-sizing: border-box !important;
+  border-radius: 8px !important;
+  border: 1px solid #caa24d !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease !important;
+}
+
+.register-form input:focus,
+.register-form select:focus {
+  transform: scale(1.015) !important;
+  box-shadow: 0 0 10px rgba(202, 162, 77, 0.5) !important;
+  background-color: #fffdf9 !important;
+}
+
+.select-wrapper {
+  position: relative !important;
+  width: 100% !important;
+}
+
+/* Contenedor del campo de contraseña con botón de ojo dentro */
+.password-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.password-input-wrapper input {
+  padding-right: 36px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  color: #888;
+  transition: color 0.2s;
+}
+
+.password-toggle:hover {
+  color: #caa24d;
+}
+
+.password-toggle svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Lista de requisitos de contraseña */
+.password-requirements {
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 10px;
+  padding: 8px 12px !important;
+  margin: 8px 0 4px 0 !important;
+  text-align: left;
+  border-left: 3px solid #caa24d;
+}
+
+.password-requirements .requirement-title {
+  color: #caa24d;
+  margin-bottom: 4px;
+  font-weight: bold;
+  font-size: 11px;
+}
+
+.password-requirements ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.password-requirements li {
+  color: #e0e0e0;
+  font-size: 11px !important;
+  margin-bottom: 3px !important;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.password-requirements li.valid {
+  color: #4caf50;
+}
+
+.password-requirements li.invalid {
+  color: #ff6b6b;
+}
+
+/* Botón de registro */
+.btn-register-submit {
+  width: 60% !important;
+  max-width: 180px !important;
+  padding: 8px 16px !important;
+  margin: 0.3rem auto 0.6rem auto !important;
+  border-radius: 30px !important;
+  background-color: #caa24d !important;
+  color: #ffffff !important;
+  font-family: system-ui, -apple-system, sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 0.85rem !important;
+  cursor: pointer !important;
+  display: block !important;
+  box-shadow: 0 4px 12px rgba(202, 162, 77, 0.3) !important;
+  transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease !important;
+  border: none !important;
+}
+
+.btn-register-submit:hover:not(:disabled) {
+  background-color: #b38f3b !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 15px rgba(202, 162, 77, 0.4) !important;
+}
+
+.btn-register-submit:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+}
+
+/* Mensajes de error y éxito */
+.error,
+.success {
+  border-radius: 8px !important;
+  padding: 6px !important;
+  margin-bottom: 1rem !important;
+  font-size: 0.8rem !important;
+}
+
+.error {
+  background-color: rgba(255, 107, 107, 0.2);
+  color: #ff6b6b;
+  border-left: 3px solid #ff6b6b;
+}
+
+.success {
+  background-color: rgba(76, 175, 80, 0.2);
+  color: #4caf50;
+  border-left: 3px solid #4caf50;
+}
+
+/* Enlace inferior */
+.links {
+  margin-top: 0.2rem !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+  gap: 4px !important;
+  font-family: system-ui, -apple-system, sans-serif !important;
+  color: #cccccc !important;
+  font-size: 0.8rem !important;
+  width: 100% !important;
+}
+
+.links span {
+  white-space: nowrap !important;
+}
+
+.links .login-accent-link {
+  color: #caa24d !important;
+  text-decoration: none !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+  transition: color 0.2s ease !important;
+}
+
+.links .login-accent-link:hover {
+  color: #ffffff !important;
+  text-decoration: underline !important;
+}
+
+/* Responsive para móviles */
+@media (max-width: 480px) {
+  .form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.6rem !important;
+  }
+  .register-form {
+    padding: 1.2rem 1.2rem 1rem 1.2rem !important;
+  }
+  .btn-register-submit {
+    width: 100% !important;
+  }
+  .password-input-wrapper input {
+    padding-right: 36px;
+  }
+}
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}

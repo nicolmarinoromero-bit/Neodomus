@@ -1,0 +1,155 @@
+/* Estilos comunes para el perfil */
+.perfil-container {
+  min-height: 100vh;
+  background-size: cover;
+  background-position: center;
+  padding: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.perfil-wrapper {
+  display: flex;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  border: 1px solid #c9a24c;
+  overflow: hidden;
+  min-height: 500px;
+}
+
+/* Sidebar */
+.perfil-sidebar {
+  width: 280px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 30px 20px;
+  border-right: 1px solid #c9a24c;
+}
+
+.perfil-avatar {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.avatar-circle {
+  width: 80px;
+  height: 80px;
+  background: #c9a24c;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 15px;
+  font-size: 40px;
+  color: black;
+}
+
+.perfil-avatar h3 {
+  color: white;
+  font-size: 18px;
+}
+
+.perfil-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menu-item {
+  background: transparent;
+  border: none;
+  color: #ccc;
+  padding: 12px 15px;
+  border-radius: 10px;
+  text-align: left;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.menu-item:hover {
+  background: rgba(201, 162, 76, 0.2);
+  color: #c9a24c;
+}
+
+.menu-item.active {
+  background: #c9a24c;
+  color: black;
+  font-weight: bold;
+}
+
+.menu-icon {
+  font-size: 20px;
+}
+
+/* Main content */
+.perfil-main {
+  flex: 1;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+}
+
+.perfil-info-card h2 {
+  color: #c9a24c;
+  margin-bottom: 30px;
+  font-size: 24px;
+}
+
+.info-field {
+  margin-bottom: 20px;
+}
+
+.info-field label {
+  display: block;
+  color: #c9a24c;
+  font-weight: bold;
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.info-field p {
+  color: white;
+  font-size: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 10px 15px;
+  border-radius: 8px;
+  word-break: break-word;
+}
+
+.placeholder-content {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.placeholder-content h2 {
+  color: #c9a24c;
+  margin-bottom: 15px;
+}
+
+.placeholder-content p {
+  color: #aaa;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .perfil-wrapper {
+    flex-direction: column;
+  }
+  .perfil-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #c9a24c;
+  }
+  .perfil-main {
+    padding: 20px;
+  }
+}

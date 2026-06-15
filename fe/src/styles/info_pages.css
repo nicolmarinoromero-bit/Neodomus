@@ -1,0 +1,410 @@
+/* ==========================================================================
+   src/styles/info_pages.css - CONFIGURACIÓN CON ANIMACIONES DE SCROLL
+   ========================================================================== */
+
+/* --- 0. DEFINICIÓN DE ANIMACIONES NATIVAS --- */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* --- CONTENEDOR MAESTRO DE TODAS LAS SECCIONES INFORMATIVAS --- */
+.landing-sections-wrapper {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  background-color: #000000 !important;
+  position: relative !important;
+  box-sizing: border-box !important;
+  height: auto !important;
+  clear: both !important;
+}
+
+/* --- BLOQUE BASE PARA CADA PÁGINA INDEPENDIENTE --- */
+.info-section {
+  display: block !important;
+  width: 100% !important;
+  min-height: 100vh !important;
+  padding: 8rem 8% 6rem 8% !important;
+  color: #ffffff !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important; /* Fondo estático (no se mueve al hacer scroll) */
+  position: relative !important;
+  box-sizing: border-box !important;
+  z-index: 2 !important;
+}
+
+/* Separador sutil o filtro oscuro opcional para que los fondos resalten */
+.info-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4); /* Capa suave para mejorar contraste del texto */
+  z-index: -1;
+}
+
+/* ==========================================================================
+   1. SECCIÓN: SOBRE NOSOTROS
+   ========================================================================== */
+.about-layout {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 5rem !important;
+  margin-top: 3rem !important;
+  width: 100% !important;
+}
+
+.about-image-container {
+  flex: 1 !important;
+  max-width: 500px !important;
+  display: block !important;
+  
+  /* 🔥 Animación por Scroll: Entra desde la izquierda */
+  animation: fadeInLeft linear both;
+  animation-timeline: view();
+  animation-range: entry 10% cover 40%;
+}
+
+.about-image-container img {
+  width: 100% !important;
+  height: auto !important;
+  border-radius: 12px !important;
+  display: block !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+}
+
+.about-text-block {
+  flex: 1.2 !important;
+  background: rgba(0, 0, 0, 0.75) !important;
+  border: 1px solid #222 !important;
+  padding: 3rem !important;
+  border-radius: 24px !important;
+  box-sizing: border-box !important;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+  
+  /* 🔥 Animación por Scroll: Entra desde la derecha */
+  animation: fadeInRight linear both;
+  animation-timeline: view();
+  animation-range: entry 10% cover 40%;
+}
+
+.about-text-block h1 {
+  font-family: system-ui, -apple-system, sans-serif !important;
+  font-size: 3rem !important;
+  font-weight: bold !important;
+  color: #ffffff !important;
+  margin: 0 0 2rem 0 !important;
+  display: inline-block !important;
+  position: relative !important;
+  z-index: 1 !important;
+  text-transform: none !important;
+}
+
+.about-text-block h1::after {
+  content: '' !important;
+  position: absolute !important;
+  bottom: 2px !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 14px !important;
+  background-color: #caa24d !important;
+  z-index: -1 !important;
+}
+
+.about-text-block p {
+  font-family: system-ui, -apple-system, sans-serif !important;
+  font-size: 1.15rem !important;
+  line-height: 1.8 !important;
+  color: #ffffff !important;
+  margin: 0 0 1.5rem 0 !important;
+  font-weight: 400 !important;
+}
+
+.about-text-block p:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* ==========================================================================
+   2. SECCIÓN: POR QUÉ CONTRATAR
+   ========================================================================== */
+.why-title-container {
+  margin-bottom: 4rem !important;
+  display: block !important;
+  
+  /* 🔥 Animación por Scroll: El título aparece hacia arriba */
+  animation: fadeInUp linear both;
+  animation-timeline: view();
+  animation-range: entry 5% cover 30%;
+}
+
+.why-title-container h1 {
+  font-family: system-ui, -apple-system, sans-serif !important;
+  font-size: 3rem !important;
+  font-weight: bold !important;
+  color: #ffffff !important;
+  display: inline-block !important;
+  position: relative !important;
+  margin: 0 !important;
+  z-index: 2 !important;
+}
+
+.why-title-container h1::after {
+  content: '' !important;
+  position: absolute !important;
+  bottom: 4px !important;
+  left: 0 !important;
+  width: 60% !important;
+  height: 16px !important;
+  background-color: #caa24d !important;
+  z-index: -1 !important;
+}
+
+.why-custom-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 2.5rem !important;
+  margin-top: 3rem !important;
+  width: 100% !important;
+}
+
+/* 🔥 Las tarjetas emergen en bloque al hacer scroll */
+.why-custom-grid .card-gold-base {
+  animation: fadeInUp linear both;
+  animation-timeline: view();
+  animation-range: entry 10% cover 35%;
+}
+
+/* Sutil retraso visual simulado por CSS dinámico según posición */
+.why-custom-grid .card-gold-base:nth-child(1) { animation-range: entry 5% cover 30%; }
+.why-custom-grid .card-gold-base:nth-child(2) { animation-range: entry 12% cover 37%; }
+.why-custom-grid .card-gold-base:nth-child(3) { animation-range: entry 18% cover 44%; }
+
+.card-gold-base {
+  padding: 3rem 2rem !important;
+  border-radius: 24px !important;
+  font-family: system-ui, -apple-system, sans-serif !important;
+  font-size: 1.1rem !important;
+  line-height: 1.7 !important;
+  font-weight: 500 !important;
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.5) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: left !important;
+  box-sizing: border-box !important;
+  min-height: 180px !important;
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Efecto hover adicional */
+}
+
+.card-gold-base:hover {
+  transform: translateY(-5px) !important;
+  box-shadow: 0 15px 30px rgba(202, 162, 77, 0.2) !important;
+}
+
+.card-gold-style {
+  background-color: #caa24d !important;
+  color: #ffffff !important;
+}
+
+.card-dark-style {
+  background-color: rgba(0, 0, 0, 0.85) !important;
+  color: #ffffff !important;
+  border: 1px solid #caa24d !important;
+}
+
+/* ==========================================================================
+   3. SECCIÓN: BLOG
+   ========================================================================== */
+.blog-title-container {
+  margin-bottom: 4rem !important;
+  display: block !important;
+  
+  /* 🔥 Animación por Scroll: Título del blog */
+  animation: fadeInUp linear both;
+  animation-timeline: view();
+  animation-range: entry 5% cover 30%;
+}
+
+.blog-title-container h1 {
+  font-family: system-ui, -apple-system, sans-serif !important;
+  font-size: 3rem !important;
+  font-weight: bold !important;
+  color: #ffffff !important;
+  position: relative !important;
+  display: inline-block !important;
+  margin: 0 !important;
+  z-index: 2 !important;
+}
+
+.blog-title-container h1::after {
+  content: '' !important;
+  position: absolute !important;
+  bottom: 4px !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 16px !important;
+  background-color: #caa24d !important;
+  z-index: -1 !important;
+}
+
+.blog-custom-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 3rem !important;
+  width: 100% !important;
+}
+
+/* 🔥 Las columnas del blog aparecen elegantemente de abajo a arriba */
+.blog-item-box {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1.5rem !important;
+  
+  animation: fadeInUp linear both;
+  animation-timeline: view();
+  animation-range: entry 10% cover 40%;
+}
+
+.blog-item-box:nth-child(1) { animation-range: entry 5% cover 35%; }
+.blog-item-box:nth-child(2) { animation-range: entry 12% cover 42%; }
+.blog-item-box:nth-child(3) { animation-range: entry 19% cover 49%; }
+
+.blog-img-wrapper {
+  background-color: rgba(0, 0, 0, 0.9) !important;
+  border-radius: 20px !important;
+  padding: 1.5rem !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  height: 240px !important;
+  border: 1px solid #222 !important;
+  box-sizing: border-box !important;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+  transition: transform 0.3s ease;
+}
+
+.blog-item-box:hover .blog-img-wrapper {
+  transform: scale(1.02);
+}
+
+.blog-img-wrapper img {
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  display: block;
+}
+
+.blog-text-wrapper {
+  background: rgba(0, 0, 0, 0.75) !important;
+  border-radius: 20px !important;
+  padding: 1.8rem !important;
+  min-height: 140px !important;
+  border: 1px solid #222 !important;
+  display: flex !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+}
+
+.blog-text-wrapper p {
+  font-family: system-ui, -apple-system, sans-serif !important;
+  color: #ffffff !important;
+  font-size: 1rem !important;
+  line-height: 1.6 !important;
+  margin: 0 !important;
+  text-align: left !important;
+}
+
+/* ==========================================================================
+   4. OPTIMIZACIÓN RESPONSIVA ADAPTATIVA
+   ========================================================================== */
+@media (max-width: 1100px) {
+  .why-custom-grid, 
+  .blog-custom-grid {
+    gap: 1.5rem !important;
+  }
+  
+  .about-layout {
+    gap: 2.5rem !important;
+  }
+}
+
+@media (max-width: 992px) {
+  .info-section {
+    padding: 6rem 5% 4rem 5% !important;
+    min-height: auto !important;
+    background-attachment: scroll !important; /* Desactiva fixed en móviles para evitar tirones */
+  }
+
+  /* En pantallas móviles se unifican rangos para evitar desfases al hacer scroll rápido */
+  .about-image-container, .about-text-block, 
+  .why-custom-grid .card-gold-base, .blog-item-box {
+    animation-range: entry 5% cover 25% !important;
+  }
+
+  .about-layout {
+    flex-direction: column !important;
+    text-align: center !important;
+    gap: 3rem !important;
+  }
+
+  .about-image-container {
+    max-width: 70% !important;
+    margin: 0 auto !important;
+  }
+
+  .about-text-block h1::after {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
+
+  .why-custom-grid, 
+  .blog-custom-grid {
+    grid-template-columns: 1fr !important;
+    max-width: 500px !important;
+    margin: 2rem auto 0 auto !important;
+  }
+
+  .card-gold-base {
+    min-height: auto !important;
+    padding: 2.5rem 1.5rem !important;
+  }
+
+  .blog-title-container h1::after {
+    width: 100% !important;
+  }
+}

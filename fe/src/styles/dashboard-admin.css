@@ -1,0 +1,119 @@
+/* --- Dashboard Administrador - CSS Final --- */
+
+/* Contenedor principal */
+.admin-container {
+  padding: 2rem;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+  color: #fff;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.admin-container h1 {
+  font-size: 2.2rem;
+  margin-bottom: 2rem;
+  color: #d3ac4d;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Layout superior (Grid de tarjetas) */
+.grid-top {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Layout del cuerpo principal */
+.dashboard-grid-main {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 2rem;
+}
+
+/* Tarjetas de estadísticas (Glassmorphism) */
+.card {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid #d3ac4d;
+  border-radius: 20px;
+  padding: 1.5rem;
+  position: relative;
+  transition: transform 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(211, 172, 77, 0.2);
+}
+
+.card-img-box {
+  width: 45px;
+  height: 45px;
+  background: #d3ac4d;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.card-img-box img { width: 22px; }
+.card-text .big { font-size: 1.6rem; font-weight: 700; color: #fff; margin: 5px 0; }
+.btn-arrow { position: absolute; top: 1rem; right: 1rem; color: #d3ac4d; font-weight: bold; }
+
+/* Tarjetas de Inventario y Gestión */
+.inv-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid #444;
+  padding: 1rem;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  transition: 0.3s;
+}
+
+.inv-card:hover { border-color: #d3ac4d; background: rgba(211, 172, 77, 0.05); }
+
+/* Barra Lateral (Aside) */
+.side {
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid #444;
+  padding: 1.5rem;
+  border-radius: 20px;
+}
+
+.side h2 { color: #d3ac4d; font-size: 1.2rem; margin-bottom: 1rem; }
+.tech { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+.tech img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+.divider { border: 0; border-top: 1px solid #333; margin: 15px 0; }
+
+/* Botones y Citas */
+.cita-linea { padding: 8px 0; font-size: 0.9rem; }
+.hora { color: #d3ac4d; font-weight: bold; margin-right: 10px; }
+
+.ver-mas {
+  display: block;
+  margin-top: 1rem;
+  padding: 0.8rem;
+  background: #d3ac4d;
+  color: #000;
+  text-align: center;
+  border-radius: 10px;
+  font-weight: bold;
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.ver-mas:hover { transform: scale(1.02); }
+
+/* Responsividad */
+@media (max-width: 1024px) {
+  .dashboard-grid-main { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .admin-container { padding: 1rem; }
+}
