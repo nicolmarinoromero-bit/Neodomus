@@ -29,18 +29,32 @@ logs/
 *.sock
 
 # ==========================================
-# Node / Frontend
+# Node.js / pnpm (Frontend)
 # ==========================================
 node_modules/
+.pnpm-store/
 dist/
 dist-ssr/
 *.local
 fe/node_modules/
+fe/.pnpm-store/
 fe/dist/
 fe/.env.local
 fe/.env.*.local
 fe/pnpm-lock.yaml
 fe/package-lock.json
+fe/npm-debug.log*
+fe/yarn-debug.log*
+fe/yarn-error.log*
+
+# ==========================================
+# Docker
+# ==========================================
+mysql_data/
+redis_data/
+*.pid
+*.sock
+docker-compose.override.yml
 
 # ==========================================
 # Editores / IDEs
@@ -52,16 +66,46 @@ fe/package-lock.json
 *~
 .project
 .classpath
+.settings/
+*.iml
 
 # ==========================================
-# OS
+# Sistema Operativo
 # ==========================================
 .DS_Store
 Thumbs.db
 desktop.ini
+ehthumbs.db
+*.ds_store
 
 # ==========================================
-# Docker (opcional, si no quieres subir volúmenes)
+# Archivos de entorno y secretos
 # ==========================================
-mysql_data/
-redis_data/
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+*.crt
+
+# ==========================================
+# Logs y bases de datos locales
+# ==========================================
+*.log
+*.sqlite
+*.db
+
+# ==========================================
+# Otros
+# ==========================================
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.pid
+*.sock
