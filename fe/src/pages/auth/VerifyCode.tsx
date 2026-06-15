@@ -43,7 +43,8 @@ const VerifyCode = () => {
     }
   };
 
-  const handleResend = async () => {
+  const handleResend = async (e: React.MouseEvent) => {
+    e.preventDefault();
     if (countdown > 0) return;
     setResendLoading(true);
     setError('');
@@ -111,17 +112,26 @@ const VerifyCode = () => {
               />
             ))}
           </div>
-          <button type="submit" disabled={loading}>{loading ? 'Verificando...' : 'Confirmar'}</button>
+          <button type="submit" disabled={loading}>
+            {loading ? 'Verificando...' : 'Confirmar'}
+          </button>
+          
+          {/* Link de reenvío (ya no es un botón) */}
           <div className="resend-container">
-            <button
-              type="button"
+            <a
+              href="#"
               onClick={handleResend}
-              disabled={resendLoading || countdown > 0}
-              className="btn-resend"
+              className={`resend-link ${(resendLoading || countdown > 0) ? 'disabled' : ''}`}
+              style={{ pointerEvents: (resendLoading || countdown > 0) ? 'none' : 'auto', opacity: (resendLoading || countdown > 0) ? 0.6 : 1 }}
             >
-              {countdown > 0 ? `Reenviar en ${countdown}s` : (resendLoading ? 'Enviando...' : 'Reenviar código')}
-            </button>
+              {countdown > 0
+                ? `Reenviar en ${countdown}s`
+                : resendLoading
+                ? 'Enviando...'
+                : 'Reenviar código'}
+            </a>
           </div>
+
           <div className="links">
             <Link to="/login">Volver al inicio de sesión</Link>
           </div>

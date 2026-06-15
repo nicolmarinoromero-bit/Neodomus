@@ -21,7 +21,7 @@
   box-sizing: border-box !important;
 }
 
-/* --- 3. TARJETA DE LOGIN (BORDES RECTANGULARES) --- */
+/* --- 3. TARJETA DE LOGIN --- */
 .login-form {
   background: rgba(0, 0, 0, 0.45) !important;
   backdrop-filter: blur(6px) !important;
@@ -37,13 +37,11 @@
 
 .login-form h2 {
   color: #ffffff !important;
-  font-family: system-ui, -apple-system, sans-serif !important;
   font-size: 1.4rem !important;
-  font-weight: bold !important;
   margin-bottom: 20px !important;
 }
 
-/* --- 4. INPUTS ESTÁNDAR --- */
+/* --- 4. INPUTS --- */
 .login-form input {
   width: 100% !important;
   padding: 12px 20px !important;
@@ -63,7 +61,7 @@
   box-shadow: 0 0 5px rgba(202, 162, 77, 0.3) !important;
 }
 
-/* --- 5. CUADROS DE CÓDIGO (VERIFYCODE) --- */
+/* --- 5. CUADROS DE CÓDIGO (VerifyCode) --- */
 .code-inputs {
   display: flex !important;
   justify-content: center !important;
@@ -80,7 +78,6 @@
   border: 2px solid #ccc !important;
   background-color: #ffffff !important;
   color: #000 !important;
-  transition: all 0.3s ease !important;
 }
 
 .code-inputs input:focus {
@@ -106,39 +103,78 @@
   transform: translateY(-2px) !important;
 }
 
-/* --- 7. ENLACES E INFO --- */
-.links { margin-top: 15px !important; }
-
-.links a {
-  color: #cccccc !important;
-  text-decoration: underline !important;
-  font-size: 0.8rem !important;
+/* --- 7. ENLACES (FLEX con espacio entre ellos) --- */
+.links {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-top: 15px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
+.links a {
+  color: #ffffff !important;
+  text-decoration: underline !important;
+  font-size: 0.8rem !important;
+  transition: color 0.3s ease !important;
+  white-space: nowrap !important;
+}
+
+.links a:hover {
+  color: #caa24d !important;
+}
+
+/* --- 8. ENLACE DE REENVÍO (VerifyCode, VerifyEmail) --- */
 .resend-link {
-  background: transparent !important;
-  border: none !important;
+  display: block !important;
+  margin-top: 15px !important;
   color: #ffffff !important;
   text-decoration: underline !important;
   font-size: 0.8rem !important;
   cursor: pointer !important;
-  transition: color 0.3s ease !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  width: 100% !important;
+  text-align: center !important;
 }
 
 .resend-link:hover {
   color: #caa24d !important;
 }
 
-/* --- 8. COMPLEMENTOS PASSWORD --- */
-.password-input-wrapper { position: relative; width: 100%; margin-bottom: 1rem; }
-.password-toggle {
-  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-  background: transparent; border: none; cursor: pointer; color: #888;
+/* --- 9. MOSTRAR CONTRASEÑA --- */
+.password-input-wrapper {
+  position: relative;
+  width: 100%;
+  margin-bottom: 1rem;
 }
-.password-toggle:hover { color: #c9a24d; }
 
-/* --- 9. RESPONSIVE --- */
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #888;
+}
+
+.password-toggle:hover {
+  color: #c9a24d;
+}
+
+/* --- 10. RESPONSIVE --- */
 @media (max-width: 480px) {
   .login-container { min-height: 75vh !important; }
   .code-inputs input { width: 40px !important; height: 45px !important; font-size: 1.2rem !important; }
+  .links {
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+  }
+  .links a { white-space: normal; }
+  .resend-link { margin-top: 12px; }
 }

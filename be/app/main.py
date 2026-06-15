@@ -115,4 +115,4 @@ if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
 # PARA: Permite ejecutar la aplicación directamente con `python main.py`. Lee el puerto desde la variable de entorno PORT (o usa 8000 por defecto) y lanza el servidor uvicorn.
-# IMPACTO: Facilita el desarrollo local sin necesidad de escribir el comando `uvicorn` cada vez. En producción normalmente se ejecuta con `uvicorn app.main:app --host 0.0.0.0 --port $PORT`.
+# IMPACTO: Facilita el desarrollo local sin necesidad de escribir el comando `uvicorn` cada vez. En producción normalmente se ejecuta con `uvicorn app.main:app --host 0.0.0.0 --port $PORT`.<aqq<<<            

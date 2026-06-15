@@ -51,7 +51,8 @@ const VerifyEmail = () => {
     }
   };
 
-  const handleResend = async () => {
+  const handleResend = async (e: React.MouseEvent) => {
+    e.preventDefault();
     if (!canResend) return;
     setCanResend(false);
     setError('');
@@ -90,16 +91,22 @@ const VerifyEmail = () => {
           <button type="submit" disabled={loading}>
             {loading ? 'Verificando...' : 'Verificar'}
           </button>
+          
+          {/* Enlace de reenvío (estilo link) */}
           <div className="resend-container">
-            <button
-              type="button"
+            <a
+              href="#"
               onClick={handleResend}
-              disabled={!canResend}
-              className="btn-resend"
+              className={`resend-link ${!canResend ? 'disabled' : ''}`}
+              style={{
+                pointerEvents: !canResend ? 'none' : 'auto',
+                opacity: !canResend ? 0.6 : 1,
+              }}
             >
-              {canResend ? 'Reenviar código' : `Reenviar en ${countdown}s`}
-            </button>
+              {!canResend ? `Reenviar en ${countdown}s` : 'Reenviar código'}
+            </a>
           </div>
+
           <div className="links single-link">
             <Link to="/login">Volver al inicio de sesión</Link>
           </div>
