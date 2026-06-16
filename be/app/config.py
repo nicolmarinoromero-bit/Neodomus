@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     
     # --- Verificación de email y recuperación de contraseña ---
     VERIFICATION_TOKEN_EXPIRE_HOURS: int = 24
+    # 🔥 NUEVA variable en MINUTOS para el código de recuperación
+    PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: int = 10   # 10 minutos por defecto
+    # Opcional: se mantiene por compatibilidad, pero ya no se usa
     PASSWORD_RESET_TOKEN_EXPIRE_HOURS: int = 1
     
     # --- SMTP (Gmail) ---
