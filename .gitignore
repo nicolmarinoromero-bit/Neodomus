@@ -53,8 +53,6 @@ mysql_data/
 redis_data/
 *.pid
 *.sock
-docker-compose.override.yml
-
 # ==========================================
 # Editores / IDEs
 # ==========================================
