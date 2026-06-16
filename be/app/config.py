@@ -1,0 +1,49 @@
+import os
+from typing import Optional
+from pydantic_settings import BaseSettings
+from pydantic import ConfigDict
+
+
+class Settings(BaseSettings):
+    """
+    Configuración central de la aplicación.
+    Las variables se cargan desde el archivo .env y las variables de entorno del sistema.
+    """
+    
+    # --- Base de datos ---
+    DATABASE_URL: str = "mysql+pymysql://neodomus:neodomus123@db:3306/neodomus?charset=utf8mb4"
+    
+    # --- JWT y seguridad ---
+    SECRET_KEY: str = "clave_super_segura_para_desarrollo_cambiar_en_produccion"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    
+    # --- Verificación de email y recuperación de contraseña ---
+    VERIFICATION_TOKEN_EXPIRE_HOURS: int = 24
+    PASSWORD_RESET_TOKEN_EXPIRE_HOURS: int = 1
+    
+    # --- SMTP (Gmail) ---
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: str = ""
+    SMTP_PASSWORD: str = ""
+    
+    # --- Frontend URLs ---
+    FRONTEND_URL: str = "http://localhost:5173"
+    FRONTEND_VERIFY_EMAIL_PATH: str = "/verify-email"
+    FRONTEND_RESET_PASSWORD_PATH: str = "/reset-password"
+    
+    # --- Entorno ---
+    ENVIRONMENT: str = "development"  # development, staging, production
+    
+    model_config = ConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=True,
+        extra="ignore"
+    )
+
+
+# Instancia única para importar en otros módulos
+settings = Settings()
