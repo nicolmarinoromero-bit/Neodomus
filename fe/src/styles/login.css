@@ -22,23 +22,311 @@
 }
 
 /* --- 3. TARJETA DE LOGIN --- */
-.login-form {
-  background: rgba(0, 0, 0, 0.45) !important;
-  backdrop-filter: blur(6px) !important;
-  padding: 2rem !important;
-  text-align: center !important;
-  width: 90% !important;
-  max-width: 450px !important;
-  border-radius: 15px !important;
-  border: 6px solid rgba(220, 220, 220, 0.8) !important;
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7) !important;
-  animation: formEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+/* ==========================================================================
+   login.css - Edición Ultra-Compacta (Fondo Fijo Oscuro y Sin Scroll)
+   ========================================================================== */
+
+.login-container {
+  position: relative;
+  width: 100%;
+  min-height: calc(100vh - 70px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px; /* Reducido para ahorrar espacio vertical */
+  background-size: cover;
+  background-position: center;
+  box-sizing: border-box;
 }
 
+.login-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 0;
+}
+
+.login-form {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 410px; /* Un poco más angosto y elegante */
+  padding: 15px 25px 12px 25px; /* Espaciado interno mínimo para evitar scroll */
+  background: #000000 !important; /* Cuadro 100% Negro como lo pediste */
+  border: 1.5px solid #ffd700 !important; /* Delineado dorado/amarillito */
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.85);
+  box-sizing: border-box;
+  text-align: center;
+}
+
+/* Avatar circular superior más pequeño */
+.login-avatar-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+
+.login-avatar-circle {
+  width: 45px;
+  height: 45px;
+  border: 1.5px solid #ffd700;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.login-avatar-circle svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Títulos compactos */
 .login-form h2 {
+  color: #ffffff;
+  font-size: 1.45rem;
+  font-weight: 600;
+  margin: 0 0 2px 0;
+}
+
+.welcome-text {
+  color: #a5a5a5;
+  font-size: 11.5px;
+  margin: 0 0 14px 0;
+}
+
+.brand-gold {
+  color: #ffd700;
+  font-weight: 600;
+}
+
+/* Envoltura de inputs */
+.login-input-wrapper {
+  position: relative;
+  width: 100%;
+  margin-bottom: 10px; /* Menos separación entre cajas */
+  box-sizing: border-box;
+}
+
+.input-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.input-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* INPUTS: Corrección de color fija (Grisecito) al escribir, tocar o enfocar */
+.login-form input[type="email"],
+.login-form input[type="password"] {
+  width: 100% !important;
+  height: 38px !important; /* Reducido de 48px a 38px para que sea más pequeño */
+  padding: 0 40px 0 38px !important;
+  background: #111111 !important; /* Tu color grisecito de fondo */
+  border: 1px solid #252525 !important;
+  border-radius: 8px !important;
   color: #ffffff !important;
-  font-size: 1.4rem !important;
-  margin-bottom: 20px !important;
+  font-size: 12.5px !important;
+  box-sizing: border-box !important;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Fuerza el color grisecito si el campo está activo o seleccionado */
+.login-form input:focus,
+.login-form input:active,
+.login-form input:hover {
+  background-color: #111111 !important;
+  color: #ffffff !important;
+  border-color: #ffd700 !important; /* Cambia el borde a dorado al tocarlo */
+  outline: none;
+}
+
+/* Bloquea por completo el fondo blanco automático de Chrome/Edge al autocompletar o escribir */
+.login-form input:-webkit-autofill,
+.login-form input:-webkit-autofill:hover, 
+.login-form input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #ffffff !important;
+  box-shadow: 0 0 0px 1000px #111111 inset !important; /* Mantiene el grisecito */
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* ==========================================================================
+   BLOQUEO TOTAL DE FONDO BLANCO EN INPUTS (EMAIL Y PASSWORD)
+   ========================================================================== */
+
+/* 1. Forzar el color grisecito en estado normal, al pasar el mouse, al hacer clic y al escribir */
+.login-form input[type="email"],
+.login-form input[type="password"],
+.login-form input[type="text"] {
+  width: 100% !important;
+  height: 38px !important;
+  padding: 0 40px 0 38px !important;
+  background-color: #111111 !important; /* Tu color grisecito fijo */
+  border: 1px solid #252525 !important;
+  border-radius: 8px !important;
+  color: #ffffff !important;
+  font-size: 12.5px !important;
+  box-sizing: border-box !important;
+  transition: none !important; /* Eliminamos transiciones para que no parpadee en blanco */
+}
+
+/* 2. Mantener el grisecito cuando el cursor está adentro escribiendo (Focus y Active) */
+.login-form input[type="email"]:focus,
+.login-form input[type="email"]:active,
+.login-form input[type="password"]:focus,
+.login-form input[type="password"]:active {
+  background-color: #111111 !important; /* Se queda gris */
+  color: #ffffff !important;
+  border-color: #ffd700 !important; /* Solo cambia el borde a dorado */
+  outline: none !important;
+}
+
+/* 3. Bloqueo definitivo para el autocompletado e historial de contraseñas de Google Chrome, Edge, Safari, etc. */
+.login-form input:-webkit-autofill,
+.login-form input:-webkit-autofill:hover, 
+.login-form input:-webkit-autofill:focus,
+.login-form input:-webkit-autofill:active {
+  -webkit-text-fill-color: #ffffff !important;
+  box-shadow: 0 0 0px 1000px #111111 inset !important; /* Rellena el fondo con tu grisecito */
+  background-color: #111111 !important;
+}
+
+/* Ojo de la contraseña */
+.login-password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #666666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 0;
+}
+
+.login-password-toggle svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Botón de Ingreso más bajito */
+.btn-login-submit {
+  width: 100% !important;
+  height: 36px !important; /* Más compacto */
+  background: linear-gradient(180deg, #ffd942 0%, #cfa612 100%) !important;
+  color: #000000 !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  margin-top: 4px;
+}
+
+.btn-login-submit:disabled {
+  background: #2a2a2a !important;
+  color: #555555 !important;
+}
+
+/* Fila Opciones (Recordarme y Olvido) */
+.login-options-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 0 14px 0;
+  font-size: 11px;
+}
+
+.remember-me-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #aaaaaa;
+  cursor: pointer;
+}
+
+.remember-me-label input[type="checkbox"] {
+  accent-color: #ffd700;
+  width: 13px;
+  height: 13px;
+}
+
+.forgot-password-link {
+  color: #ffd700;
+  text-decoration: none;
+}
+
+.forgot-password-link:hover {
+  text-decoration: underline;
+}
+
+/* Separador super fino con círculo */
+.login-divider {
+  position: relative;
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 215, 0, 0.12);
+  margin: 14px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.divider-circle {
+  width: 5px;
+  height: 5px;
+  border: 1px solid #ffd700;
+  border-radius: 50%;
+  background: #000000;
+  position: absolute;
+}
+
+/* Sección inferior */
+.register-redirect-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 11.5px;
+}
+
+.no-account-text {
+  color: #777777;
+}
+
+.register-gold-link {
+  color: #ffd700;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.register-gold-link:hover {
+  text-decoration: underline;
+}
+
+/* Alertas de error compactas */
+.error-message {
+  background: rgba(255, 0, 0, 0.08);
+  color: #ff6b6b;
+  border: 1px solid rgba(255, 0, 0, 0.15);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  margin-bottom: 8px;
+  text-align: left;
 }
 
 /* --- 4. INPUTS --- */
@@ -126,25 +414,303 @@
 }
 
 /* --- 8. ENLACE DE REENVÍO (VerifyCode, VerifyEmail) --- */
-.resend-link {
-  display: block !important;
-  margin-top: 15px !important;
+/* ==========================================================================
+   verify-email.css - Edición Premium (Fondo Negro con Borde Dorado)
+   ========================================================================== */
+
+.verify-container {
+  position: relative;
+  width: 100%;
+  min-height: calc(100vh - 70px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 15px; /* Reducido levemente para consistencia */
+  background-size: cover;
+  background-position: center;
+  box-sizing: border-box;
+}
+
+.verify-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(5px);
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 0;
+}
+
+.verify-form {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 410px; /* Consistente con el ancho del login */
+  padding: 20px 25px 20px 25px;
+  background: #000000 !important; /* Cuadro 100% Negro como lo pediste */
+  border: 1.5px solid #ffd700 !important; /* Delineado dorado/amarillito */
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
+  box-sizing: border-box;
+  text-align: center;
+}
+
+/* Contenedor del Icono de Correo */
+.verify-icon-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.outer-circle {
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  padding: 6px;
+  border-radius: 50%;
+}
+
+.inner-circle {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  border: 1.5px solid #ffd700;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.15);
+}
+
+.mail-svg {
+  width: 24px;
+  height: 24px;
+}
+
+.check-badge {
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+  width: 13px;
+  height: 13px;
+  background: #ffd700;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2px;
+}
+
+/* Tipografía y Línea de Brillo */
+.verify-form h2 {
+  color: #ffffff;
+  font-size: 1.45rem;
+  font-weight: 600;
+  margin: 5px 0 0 0;
+}
+
+.glow-line {
+  width: 60px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #ffd700, transparent);
+  margin: 6px auto 14px auto;
+}
+
+.instruction-text {
+  color: #a0a0a0;
+  font-size: 12px;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.user-email {
+  color: #ffd700;
+  font-weight: 600;
+  font-size: 12.5px;
+}
+
+/* Grilla de los 6 Inputs OTP */
+.otp-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+/* INPUTS: Fondo Grisecito y corrección para evitar el color blanco */
+.otp-grid input {
+  width: 100%;
+  height: 42px; /* Altura más estilizada */
+  background: #111111 !important; /* Mismo grisecito del login */
+  border: 1px solid #252525 !important;
+  border-radius: 8px;
   color: #ffffff !important;
-  text-decoration: underline !important;
-  font-size: 0.8rem !important;
-  cursor: pointer !important;
-  background: transparent !important;
-  border: none !important;
-  padding: 0 !important;
-  width: 100% !important;
-  text-align: center !important;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 500;
+  box-sizing: border-box;
+  transition: all 0.2s ease-in-out;
 }
 
-.resend-link:hover {
-  color: #caa24d !important;
+/* Estilo al tocar o enfocar la cajita */
+.otp-grid input:focus,
+.otp-grid input:active,
+.otp-grid input:hover {
+  outline: none;
+  border-color: #ffd700 !important; /* Borde dorado al interactuar */
+  box-shadow: 0 0 6px rgba(255, 215, 0, 0.25);
+  background: #111111 !important;
 }
 
-/* --- 9. MOSTRAR CONTRASEÑA --- */
+/* Evitar color blanco por autocompletado de los navegadores */
+.otp-grid input:-webkit-autofill,
+.otp-grid input:-webkit-autofill:hover,
+.otp-grid input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #ffffff !important;
+  box-shadow: 0 0 0px 1000px #111111 inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Indicador de Expiración */
+.expiration-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  color: #777777;
+  font-size: 11px;
+  margin-bottom: 18px;
+}
+
+.shield-icon {
+  width: 12px;
+  height: 12px;
+}
+
+/* Botón Dorado Degradado con Contenido Totalmente Centrado */
+.btn-verify-submit {
+  width: 100%;
+  height: 38px;
+  background: linear-gradient(180deg, #ffd940 0%, #cca310 100%) !important;
+  color: #000000 !important;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Cambiado de space-between a center */
+  gap: 8px; /* Crea un espacio elegante de 8px entre el escudito y el texto */
+  padding: 0 16px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.btn-verify-submit:hover:not(:disabled) {
+  opacity: 0.95;
+}
+
+.btn-verify-submit:disabled {
+  background: #2a2a2a !important;
+  color: #555555 !important;
+  cursor: not-allowed;
+}
+
+.btn-shield {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0; /* Evita que el icono se deforme */
+}
+
+.btn-arrow {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* Separadores Centrales */
+.divider-section {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 16px 0 10px 0;
+}
+
+.divider-section::before,
+.divider-section::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.12);
+}
+
+.divider-text {
+  padding: 0 8px;
+  color: #777777;
+  font-size: 11px;
+}
+
+/* Acción de Reenvío */
+.resend-action-container {
+  margin-bottom: 20px;
+}
+
+.resend-action-link {
+  color: #ffd700;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.resend-action-link:hover {
+  text-decoration: underline;
+}
+
+.resend-action-link.disabled {
+  color: #555555;
+  opacity: 0.7;
+}
+
+.retry-icon {
+  width: 11px;
+  height: 11px;
+}
+
+/* Enlace Volver a Login */
+.back-to-login {
+  border-top: 1px solid #141414;
+  padding-top: 12px;
+}
+
+.back-link {
+  color: #999999;
+  text-decoration: none;
+  font-size: 11.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: color 0.2s ease;
+}
+
+.back-link:hover {
+  color: #ffffff;
+}
+
+.back-arrow {
+  font-size: 13px;
+}
+
+/* Alertas internas */
+.error-msg, .success-msg {
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  margin-bottom: 10px;
+  text-align: left;
+}
+.error-msg { background: rgba(255, 0, 0, 0.08); color: #ff6b6b; border: 1px solid rgba(255, 0, 0, 0.15); }
+.success-msg { background: rgba(0, 255, 0, 0.08); color: #2ecc71; border: 1px solid rgba(0, 255, 0, 0.15); }
+
+/* --- MOSTRAR CONTRASEÑA --- */
 .password-input-wrapper {
   position: relative;
   width: 100%;
@@ -163,18 +729,237 @@
 }
 
 .password-toggle:hover {
-  color: #c9a24d;
+  color: #ffd700;
 }
 
-/* --- 10. RESPONSIVE --- */
+/* --- RESPONSIVE --- */
 @media (max-width: 480px) {
-  .login-container { min-height: 75vh !important; }
-  .code-inputs input { width: 40px !important; height: 45px !important; font-size: 1.2rem !important; }
-  .links {
-    flex-direction: column;
-    gap: 10px;
-    align-items: center;
+  .verify-container { min-height: 80vh !important; }
+  .otp-grid input { height: 38px !important; font-size: 14px !important; }
+}
+
+/* ==========================================================================
+   ESTILOS ADICIONALES PARA RECUPERAR CONTRASEÑA (REPLICA EXACTA)
+   ========================================================================== */
+
+/* Círculo superior del avatar con candado superpuesto */
+.forgot-avatar-circle {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  border: 1.5px solid #ffd700;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.15);
+}
+
+.forgot-mail-svg {
+  width: 24px;
+  height: 24px;
+}
+
+.lock-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 15px;
+  height: 15px;
+  background: #ffd700;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3px;
+  box-sizing: border-box;
+}
+
+.lock-badge svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Texto instructivo superior */
+.forgot-instruction-text {
+  color: #a0a0a0;
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0 auto 16px auto;
+  max-width: 320px;
+}
+
+/* Botón Enviar Código totalmente centrado */
+.btn-forgot-submit {
+  width: 100% !important;
+  height: 38px !important;
+  background: linear-gradient(180deg, #ffd940 0%, #cca310 100%) !important;
+  color: #000000 !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px;
+  margin-top: 14px;
+  cursor: pointer;
+}
+
+.btn-forgot-submit:hover:not(:disabled) {
+  opacity: 0.95;
+}
+
+.btn-send-icon {
+  width: 14px;
+  height: 14px;
+  transform: rotate(-15deg); /* Le da el ángulo dinámico de la imagen */
+}
+
+/* Aviso de seguridad inferior */
+.forgot-security-notice {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px 0 16px 0;
+  padding: 0 10px;
+  text-align: left;
+}
+
+.notice-shield-icon {
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.forgot-security-notice p {
+  color: #777777;
+  font-size: 11.5px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* Enlace inferior Volver a Login */
+.forgot-back-to-login {
+  border-top: 1px solid rgba(255, 215, 0, 0.12);
+  padding-top: 12px;
+  margin-top: 10px;
+}
+
+.forgot-back-link {
+  background: transparent;
+  border: none;
+  color: #999999;
+  font-size: 11.5px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: color 0.2s ease;
+}
+
+.forgot-back-link:hover {
+  color: #ffffff;
+}
+
+.forgot-back-arrow {
+  font-size: 13px;
+}
+
+/* Alertas internas para esta vista */
+.success-message {
+  background: rgba(0, 255, 0, 0.06);
+  color: #2ecc71;
+  border: 1px solid rgba(0, 255, 0, 0.12);
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+/* Ajuste específico para que el botón de confirmación conserve la flecha a la derecha de forma prolija */
+.btn-verify-submit {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important; /* Mantiene el escudo y texto juntos, flecha al extremo */
+  padding: 0 16px !important;
+}
+
+.btn-verify-submit > span:not(.btn-arrow) {
+  flex-grow: 1;
+  text-align: center;
+  margin-left: -14px; /* Contrapeso perfecto por el tamaño del escudo para centrar el texto */
+}
+
+.btn-arrow {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* ==========================================================================
+   SOLUCIÓN DEFINITIVA PARA LAS CAJITAS OTP (APLICA A AMBOS COMPONENTES)
+   ========================================================================== */
+
+/* Contenedor de la grilla: se adapta al cuadro negro de 410px sin desbordar */
+.otp-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr); /* 6 columnas exactamente iguales */
+  gap: 6px !important; /* Espacio perfecto para que respiren sin estirarse */
+  width: 100% !important;
+  max-width: 320px !important; /* Forzamos un ancho máximo menor para que quepan dentro de los 410px */
+  margin: 0 auto 16px auto !important; /* Centra el bloque de las 6 cajitas horizontalmente */
+  box-sizing: border-box !important;
+}
+
+/* Ajuste individual de cada una de las 6 cajitas */
+.otp-grid input {
+  width: 100% !important; /* Ocupa el espacio asignado por su columna */
+  max-width: 44px !important; /* Evita que el input se infle o se estire hacia los lados */
+  height: 44px !important; /* Altura simétrica y elegante */
+  background: #111111 !important; /* Tu color grisecito de fondo que no cambia a blanco */
+  border: 1px solid #252525 !important;
+  border-radius: 8px !important;
+  color: #ffffff !important;
+  text-align: center !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  box-sizing: border-box !important;
+  padding: 0 !important; /* Quitamos cualquier relleno interno que deforme la cajita */
+  margin: 0 auto !important; /* Centra el input dentro de su espacio de columna */
+}
+
+/* Estilo de enfoque para ambas pantallas */
+.otp-grid input:focus,
+.otp-grid input:active {
+  outline: none !important;
+  border-color: #ffd700 !important; /* Cambia al borde dorado al escribir */
+  box-shadow: 0 0 6px rgba(255, 215, 0, 0.25) !important;
+  background: #111111 !important;
+}
+
+/* Bloqueo contra el autocompletado en blanco del navegador */
+.otp-grid input:-webkit-autofill,
+.otp-grid input:-webkit-autofill:hover,
+.otp-grid input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #ffffff !important;
+  box-shadow: 0 0 0px 1000px #111111 inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Responsivo para celulares muy pequeños */
+@media (max-width: 400px) {
+  .otp-grid {
+    gap: 4px !important;
+    max-width: 280px !important;
   }
-  .links a { white-space: normal; }
-  .resend-link { margin-top: 12px; }
+  .otp-grid input {
+    height: 38px !important;
+    max-width: 38px !important;
+    font-size: 14px !important;
+  }
 }

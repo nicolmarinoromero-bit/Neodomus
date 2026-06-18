@@ -1,0 +1,267 @@
+/* ==========================================================================
+   INTERFAZ: CÓDIGO DE SEGURIDAD (CORRECCIÓN TOTAL DE CAJITAS OTP)
+   ========================================================================== */
+
+/* Tarjeta contenedora principal (Fondo 100% negro y borde de oro) */
+.login-form {
+  background: #000000 !important;
+  border: 1px solid #ffd700 !important;
+  border-radius: 16px !important;
+  padding: 32px 24px !important;
+  width: 100% !important;
+  max-width: 410px !important; /* Ancho exacto fijado para la consistencia gráfica */
+  box-sizing: border-box !important;
+  text-align: center !important;
+  margin: 0 auto !important;
+}
+
+/* Avatar circular del sobre de correo y mini candado */
+.forgot-avatar-circle {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  border: 1px solid #ffd700;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: transparent;
+  margin: 0 auto 16px auto;
+}
+
+.forgot-mail-svg {
+  width: 24px;
+  height: 24px;
+}
+
+.lock-badge {
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 16px;
+  height: 16px;
+  background: #ffd700;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3px;
+  box-sizing: border-box;
+}
+
+/* Textos informativos principales */
+.login-form h2 {
+  color: #ffffff !important;
+  font-size: 24px !important;
+  font-weight: 600 !important;
+  margin: 0 0 10px 0 !important;
+}
+
+.forgot-instruction-text {
+  color: #a0a0a0 !important;
+  font-size: 12.5px !important;
+  line-height: 1.5 !important;
+  margin: 0 auto 20px auto !important;
+}
+
+.user-email {
+  color: #ffd700 !important;
+  font-weight: 600 !important;
+}
+
+/* 🛡️ EL ARREGLO MAESTRO: Bloqueador de desbordamiento horizontal */
+.otp-grid {
+  display: grid !important;
+  grid-template-columns: repeat(6, 1fr) !important; /* Fuerza 6 columnas proporcionales */
+  gap: 8px !important; /* Espaciado interno perfecto */
+  width: 100% !important;
+  max-width: 320px !important; /* Restringe el tamaño total para dejar márgenes perfectos adentro */
+  margin: 0 auto 16px auto !important; /* Centrado absoluto en el eje horizontal */
+  box-sizing: border-box !important;
+}
+
+/* Estilo individual y seguro para las 6 cajitas */
+.otp-grid input {
+  width: 100% !important; /* El ancho se adapta dinámicamente al grid */
+  max-width: 44px !important; /* Límite físico para que nunca se ensanchen */
+  height: 44px !important; /* Mantiene la proporción cuadrada */
+  background-color: #111111 !important; /* Fondo grisáceo oscuro constante */
+  border: 1px solid #252525 !important;
+  border-radius: 8px !important;
+  color: #ffffff !important;
+  text-align: center !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  padding: 0 !important; /* Elimina paddings que puedan deformar las cajitas */
+  box-sizing: border-box !important;
+}
+
+/* Comportamiento del cursor o foco activo */
+.otp-grid input:focus {
+  outline: none !important;
+  border-color: #ffd700 !important;
+  box-shadow: 0 0 5px rgba(255, 215, 0, 0.3) !important;
+  background-color: #111111 !important;
+}
+
+/* Previene la inyección de color blanco por parte del autocompletar de los navegadores */
+.otp-grid input:-webkit-autofill {
+  -webkit-text-fill-color: #ffffff !important;
+  box-shadow: 0 0 0px 1000px #111111 inset !important;
+}
+
+/* Contenedor del temporizador de expiración (10:00 min) */
+.expiration-container {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  color: #8c8c8c !important;
+  font-size: 11.5px !important;
+  margin-bottom: 22px !important;
+}
+
+.shield-icon {
+  width: 13px !important;
+  height: 13px !important;
+  color: #ffd700 !important;
+}
+
+/* Botón "Confirmar código" con distribución espacial balanceada */
+.btn-verify-submit {
+  width: 100% !important;
+  height: 38px !important;
+  background: linear-gradient(180deg, #ffd940 0%, #cca310 100%) !important;
+  color: #000000 !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important; /* Distribuye el contenido uniformemente */
+  padding: 0 16px !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
+}
+
+.btn-verify-submit > span:not(.btn-arrow) {
+  flex-grow: 1 !important;
+  text-align: center !important;
+  margin-left: -14px !important; /* Contrapeso milimétrico para el centrado absoluto del texto */
+}
+
+.btn-shield {
+  width: 14px !important;
+  height: 14px !important;
+  flex-shrink: 0 !important;
+}
+
+.btn-arrow {
+  font-size: 14px !important;
+  font-weight: bold !important;
+}
+
+/* Divisor estético inferior (Línea con el punto central dorado) */
+.login-divider {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 24px 0 14px 0 !important;
+  position: relative !important;
+}
+
+.login-divider::before {
+  content: "" !important;
+  width: 100% !important;
+  height: 1px !important;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 215, 0, 0.2) 50%, transparent 100%) !important;
+  position: absolute !important;
+}
+
+.divider-circle {
+  width: 5px !important;
+  height: 5px !important;
+  border: 1px solid #ffd700 !important;
+  border-radius: 50% !important;
+  background: #000000 !important;
+  z-index: 1 !important;
+}
+
+/* Bloque de reenvío de código */
+.resend-action-container {
+  margin-bottom: 22px !important;
+}
+
+.no-account-text {
+  color: #8c8c8c !important;
+  font-size: 12.5px !important;
+  margin: 0 0 6px 0 !important;
+}
+
+.resend-action-link {
+  color: #ffd700 !important;
+  text-decoration: none !important;
+  font-size: 12.5px !important;
+  font-weight: 500 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+.retry-icon {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+/* Enlace inferior para regresar al Login */
+.forgot-back-to-login {
+  border-top: 1px solid rgba(255, 215, 0, 0.1) !important;
+  padding-top: 14px !important;
+}
+
+.forgot-back-link {
+  background: transparent !important;
+  border: none !important;
+  color: #8c8c8c !important;
+  font-size: 12px !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+.forgot-back-link:hover {
+  color: #ffffff !important;
+}
+
+/* Estilos responsivos para que se vea genial en celulares */
+@media (max-width: 420px) {
+  .login-form {
+    max-width: 92% !important;
+    padding: 24px 16px !important;
+  }
+  /* --- BLOQUEO DE SEGURIDAD PARA LAS 6 CAJITAS --- */
+.otp-grid {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    max-width: 320px !important; /* Esto evita que se salgan del recuadro */
+    margin: 20px auto !important; /* Centrado automático */
+}
+
+.otp-grid input {
+    flex: 1 !important; /* Hace que todas midan lo mismo */
+    max-width: 45px !important; /* Tamaño máximo para que quepan las 6 */
+    height: 45px !important;
+    background: #111111 !important;
+    border: 1px solid #252525 !important;
+    border-radius: 8px !important;
+    text-align: center !important;
+    color: white !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+}
+}
