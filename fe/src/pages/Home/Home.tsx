@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '@components/layout/Navbar';
-import Footer from '@components/layout/Footer';
 import fondo from '@assets/images/FONDO.png';
 import '@styles/home.css';
 
@@ -21,7 +19,7 @@ const HomePage = () => {
 
   return (
     <>
-      <Navbar />
+
       
       {logoutMessage && <div className="logout-toast">{logoutMessage}</div>}
       
@@ -50,7 +48,6 @@ const HomePage = () => {
         </div>
       </main>
 
-      <Footer />
     </>
   );
 };

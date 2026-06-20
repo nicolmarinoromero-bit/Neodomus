@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@contexts/AuthContext';
 import api from '@services/api';
-import Navbar from '@components/layout/Navbar';
-import Footer from '@components/layout/Footer';
 import '@styles/login.css'; // Reutiliza estilos del login (ajusta si quieres uno específico)
 
 const ChangePassword = () => {
@@ -61,7 +59,6 @@ const ChangePassword = () => {
 
   return (
     <>
-      <Navbar />
       <div className="login-container">
         <form onSubmit={handleSubmit} className="login-form">
           <h2>Cambiar contraseña</h2>
@@ -99,7 +96,6 @@ const ChangePassword = () => {
           <button type="submit">Actualizar</button>
         </form>
       </div>
-      <Footer />
     </>
   );
 };

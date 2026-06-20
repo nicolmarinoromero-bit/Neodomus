@@ -14,9 +14,21 @@ body, html, main {
   padding: 0;
 }
 
+/* --- FONDO SIN DESENFOQUE PARA HOME --- */
+.home-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+}
+
 /* --- HERO Y CONTENEDOR PRINCIPAL --- */
 .hero {
-  height: 90vh;
+  min-height: calc(100vh - 85px);
   background-size: cover;
   background-position: center;
   position: relative;
@@ -27,8 +39,8 @@ body, html, main {
 }
 
 .overlay {
-  padding: 60px;
-  max-width: 680px; /* Ajustado ligeramente para permitir la fluidez del texto largo */
+  padding: 80px 60px;
+  max-width: 720px;
   z-index: 10;
   position: relative;
 }
@@ -41,7 +53,7 @@ body, html, main {
   font-size: 48px;
   font-weight: 900;
   color: white;
-  margin: 0 0 10px 0;
+  margin: 0 0 20px 0;
   line-height: 1.2;
   text-transform: uppercase;
   z-index: 2;
@@ -71,25 +83,25 @@ body, html, main {
 
 /* Eslogan Dorado en Negrita e Inter: "NEODOMUS más que tecnología, una evolución." */
 .overlay h3 {
-  font-family: 'Inter', system-ui, sans-serif !important;
-  color: #caa24d !important; /* Dorado idéntico de la marca */
-  margin: 25px 0 15px 0 !important;
-  font-size: 1.2rem !important;
-  font-weight: 700 !important; /* Negrita pronunciada como en la imagen */
-  font-style: normal !important; /* Removido el itálico para copiar el mockup */
-  letter-spacing: 0.5px !important;
-  line-height: 1.4 !important;
+  font-family: 'Inter', system-ui, sans-serif  ;
+  color: #caa24d  ;
+  margin: 30px 0 20px 0  ;
+  font-size: 1.2rem  ;
+  font-weight: 700  ;
+  font-style: normal  ;
+  letter-spacing: 0.5px  ;
+  line-height: 1.4  ;
 }
 
 /* Párrafo Descriptivo: Fuente Inter, Semi-bold, Blanco Nítido y Ajuste de Interlineado */
 .overlay p {
-  font-family: 'Inter', system-ui, sans-serif !important;
-  color: #ffffff !important; /* Blanco sólido limpio de la captura */
-  font-size: 1.05rem !important;
-  font-weight: 500 !important; /* Peso intermedio para la nitidez del renderizado */
-  line-height: 1.6 !important; /* Separación balanceada idéntica */
-  letter-spacing: 0.2px !important;
-  margin-bottom: 35px !important;
+  font-family: 'Inter', system-ui, sans-serif  ;
+  color: #ffffff  ; /* Blanco sólido limpio de la captura */
+  font-size: 1.05rem  ;
+  font-weight: 500  ; /* Peso intermedio para la nitidez del renderizado */
+  line-height: 1.6  ; /* Separación balanceada idéntica */
+  letter-spacing: 0.2px  ;
+  margin-bottom: 45px  ;
 }
 
 
@@ -205,11 +217,11 @@ body, html, main {
 
 /* --- RESPONSIVE HOME --- */
 @media (max-width: 768px) {
-  .overlay { padding: 30px; }
+  .overlay { padding: 60px 30px; }
   .main-title { font-size: 36px; }
   .main-title::before { height: 18px; width: 3.5ch; bottom: 2px; }
-  .overlay h3 { font-size: 1.1rem !important; }
-  .overlay p { font-size: 0.95rem !important; line-height: 1.5 !important; }
+  .overlay h3 { font-size: 1.1rem  ; margin: 25px 0 15px 0; }
+  .overlay p { font-size: 0.95rem  ; line-height: 1.5  ; margin-bottom: 35px; }
   .floor-lights-container { width: 100%; height: 40%; }
   .btn-continuar { padding: 5px 12px 5px 8px; gap: 8px; }
   .icon-circle { width: 18px; height: 18px; }

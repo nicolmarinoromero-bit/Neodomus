@@ -1,13 +1,13 @@
-import Navbar from '@components/layout/Navbar';
-import Footer from '@components/layout/Footer';
 import fondo2 from '@assets/images/Fondo2.png';
 import '@styles/info_pages.css';
 
 const WhyNeodomus = () => {
   return (
     <>
-      <Navbar />
-      <main className="info-page" style={{ backgroundImage: `url(${fondo2})` }}>
+            <div 
+          className="login-background-layer" 
+          style={{ backgroundImage: `url(${fondo2})` }} 
+        />
         <div className="why-title-container">
           <h1>Porque contratar NEODOMUS</h1>
         </div>
@@ -22,8 +22,6 @@ const WhyNeodomus = () => {
             Calidad garantizada: resultados eficientes y duraderos que generan valor.
           </div>
         </div>
-      </main>
-      <Footer />
     </>
   );
 };

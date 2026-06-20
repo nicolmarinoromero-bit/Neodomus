@@ -3,17 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from '@contexts/AuthContext';
 import App from './App';
-import '@styles/globals.css';
-import '@styles/home.css';
-import '@styles/navbar.css';
-import '@styles/footer.css';
-import '@styles/login.css';
-import '@styles/register.css';
-import '@styles/dashboard-admin.css';
-import '@styles/client-dashboard.css';
-import '@styles/technician-dashboard.css';
-import '@styles/info_pages.css';
-import '@styles/perfil.css';
+import './styles/navbar.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

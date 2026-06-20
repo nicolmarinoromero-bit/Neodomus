@@ -2,8 +2,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '@services/api';
-import Navbar from '@components/layout/Navbar';
-import Footer from '@components/layout/Footer';
 import '@styles/register.css';
 import fondoImg from '@assets/images/Fondo2.png';   
 import avatarImg from '@assets/images/registro.jpeg';    
@@ -158,15 +156,18 @@ const Register = () => {
 
   return (
     <>
-      <Navbar />
       <div className="register-container" style={{ backgroundImage: `url(${fondoImg})` }}>
         <form onSubmit={handleSubmit} className="register-form">
-          <div className="avatar-header-container">
-            <div className="avatar-circle">
-              <img src={avatarImg} alt="Avatar" className="avatar-image" />
-              <div className="avatar-plus-badge">+</div>
+          {/* Avatar Icon Superior */}
+          <div className="login-avatar-container">
+            <div className="login-avatar-circle">
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#ffd700" strokeWidth="1.5">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
             </div>
           </div>
+
 
           <h2>Crear cuenta</h2>
           
@@ -359,7 +360,6 @@ const Register = () => {
           </div>
         </form>
       </div>
-      <Footer />
     </>
   );
 };

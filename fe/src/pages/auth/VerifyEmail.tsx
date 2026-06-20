@@ -2,9 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import api from '@services/api';
-import Navbar from '@components/layout/Navbar';
-import Footer from '@components/layout/Footer';
-import '@styles/login.css';
+import '@styles/verify-email.css';
 import fondoImg from '@assets/images/Fondo2.png';
 
 const VerifyEmail = () => {
@@ -127,8 +125,13 @@ const VerifyEmail = () => {
 
   return (
     <>
-      <Navbar />
-      <div className="verify-container" style={{ backgroundImage: `url(${fondoImg})` }}>
+<div className="verify-page-wrapper">
+  <div
+    className="verify-background-layer"
+    style={{
+      backgroundImage: `url(${fondoImg})`,
+    }}
+     />
         <form onSubmit={handleVerify} className="verify-form">
           
           {/* Icono de Correo Estilizado */}
@@ -224,7 +227,6 @@ const VerifyEmail = () => {
 
         </form>
       </div>
-      <Footer />
     </>
   );
 };

@@ -2,8 +2,6 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '@components/layout/Navbar';
-import Footer from '@components/layout/Footer';
 import '@styles/perfil.css';
 import fondoImg from '@assets/images/Fondo2.png';
 
@@ -38,7 +36,6 @@ const ClientePerfil = () => {
 
   return (
     <>
-      <Navbar />
       <div className="perfil-container" style={{ backgroundImage: `url(${fondoImg})` }}>
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
@@ -115,7 +112,6 @@ const ClientePerfil = () => {
           </main>
         </motion.div>
       </div>
-      <Footer />
     </>
   );
 };

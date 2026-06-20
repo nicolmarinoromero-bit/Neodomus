@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react';
-import Navbar from '@components/layout/Navbar';
-import Footer from '@components/layout/Footer';
 import api from '@services/api';
 import '@styles/client-dashboard.css';
 import fondoImg from '@assets/images/Fondo2.png';
@@ -144,7 +142,6 @@ const ClientDashboard = () => {
 
   return (
     <>
-      <Navbar />
       {cartMessage && <div className="cart-toast">{cartMessage}</div>}
       <main className="productos-page" style={{ backgroundImage: `url(${fondoImg})`, backgroundSize: 'cover' }}>
         <section className="productos">
@@ -235,7 +232,6 @@ const ClientDashboard = () => {
           )}
         </section>
       </main>
-      <Footer />
     </>
   );
 };

@@ -2,11 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@contexts/AuthContext';
 import api from '@services/api';
-import Navbar from '@components/layout/Navbar';
-import Footer from '@components/layout/Footer';
-import '@styles/client-dashboard.css';
+import '@styles/productos-publicos.css';
 import fondoImg from '@assets/images/Fondo2.png';
-import carritoIcon from '@assets/images/Carrito.png';
 import buscadorIcon from '@assets/images/buscador.png';
 
 interface Producto {
@@ -24,6 +21,8 @@ interface Categoria {
   descripcion: string;
 }
 
+
+
 const ProductosPublicos = () => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -36,7 +35,9 @@ const ProductosPublicos = () => {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<number | null>(null);
   const [cartMessage, setCartMessage] = useState('');
-
+  const [cantidades, setCantidades] = useState<
+  Record<number, number>
+>({});
   // Cargar categorías
   useEffect(() => {
     const fetchCategorias = async () => {
@@ -110,6 +111,26 @@ const ProductosPublicos = () => {
     setTimeout(() => setCartMessage(''), 3000);
   };
 
+
+
+const disminuirCantidad = (id: number) => {
+  setCantidades(prev => ({
+    ...prev,
+    [id]: Math.max(
+      1,
+      (prev[id] || 1) - 1
+    ),
+  }));
+};
+
+  const aumentarCantidad = (id: number) => {
+  setCantidades(prev => ({
+    ...prev,
+    [id]: (prev[id] || 1) + 1,
+  }));
+};
+
+
   // Imagen basada en ID
   const getImagen = (producto: Producto) => {
     if (producto.imagen_url) return producto.imagen_url;
@@ -140,13 +161,14 @@ const ProductosPublicos = () => {
 
   return (
     <>
-      <Navbar />
       {cartMessage && <div className="cart-toast">{cartMessage}</div>}
       <main className="productos-page" style={{ backgroundImage: `url(${fondoImg})`, backgroundSize: 'cover' }}>
         <section className="productos">
           <div className="barra-superior">
             <div className="buscador">
-              <img src={buscadorIcon} alt="buscar" className="icono-buscar" />
+             <span className="icono-buscar">
+  🔍
+</span> 
               <input type="text" placeholder="Buscar producto" value={searchTerm} onChange={handleSearchChange} />
             </div>
             <div className="controls-right">
@@ -156,6 +178,8 @@ const ProductosPublicos = () => {
                 <option value={24}>24 por página</option>
               </select>
               <select
+
+              
                 className="select-categoria"
                 value={categoriaSeleccionada || ''}
                 onChange={(e) => setCategoriaSeleccionada(e.target.value ? Number(e.target.value) : null)}
@@ -172,6 +196,14 @@ const ProductosPublicos = () => {
             <div className="loading">No hay productos que coincidan.</div>
           ) : (
             <>
+            <div className="productos-header">
+  <div>
+    <h1>Productos</h1>
+    <p>
+      Encuentra todo lo que necesitas para tu hogar inteligente
+    </p>
+  </div>
+</div>
               <div className="productos-grid">
                 {currentProductos.map(producto => (
                   <div key={producto.id_producto} className="card-producto">
@@ -185,57 +217,106 @@ const ProductosPublicos = () => {
                     </div>
                     <div className="info-producto">
                       {/* 🔥 Nombre con estilos inline visibles */}
-                      <h3 style={{ color: '#fff', fontSize: '14px', marginBottom: '5px', fontWeight: 'bold' }}>
+                      <h3 className="nombre-producto">
                         {producto.nombre_producto}
                       </h3>
                       {producto.nombre_categoria && (
-                        <span style={{ color: '#ccc', fontSize: '12px', display: 'block', marginBottom: '5px' }}>
+                        <span className="categoria-producto">
                           {producto.nombre_categoria}
                         </span>
                       )}
                       {/* 🔥 Precio con estilo inline visible */}
-                      <div style={{ color: '#d3ac4d', fontWeight: 'bold', fontSize: '16px', margin: '8px 0' }}>
+                      <div className="precio-producto">
                         ${producto.precio_venta_producto.toLocaleString()}
                       </div>
                       <div className="acciones-producto">
-                        <button className="btn-comprar" onClick={() => handleAddToCart(producto.id_producto)}>
-                          COMPRAR
-                        </button>
-                        <img
-                          src={carritoIcon}
-                          alt="Carrito"
-                          className="icono-carrito"
-                          onClick={() => handleAddToCart(producto.id_producto)}
-                          style={{ cursor: 'pointer', width: '24px' }}
-                        />
-                      </div>
+
+
+  <div className="cantidad-control">
+
+    <button
+      type="button"
+      onClick={() =>
+        disminuirCantidad(producto.id_producto)
+      }
+    >
+      -
+    </button>
+
+    <span>
+      {cantidades[producto.id_producto] || 1}
+    </span>
+
+    <button
+      type="button"
+      onClick={() =>
+        aumentarCantidad(producto.id_producto)
+      }
+    >
+      +
+    </button>
+
+  </div>
+
+ <button
+  className="btn-agregar"
+  onClick={() =>
+    handleAddToCart(producto.id_producto)
+  }
+>
+  Agregar al carrito
+
+  <span className="icono-carrito-btn">
+    🛒
+  </span>
+</button>
+
+</div>
                     </div>
                   </div>
                 ))}
               </div>
               {totalPages > 1 && (
-                <div className="paginacion">
-                  <button onClick={() => handlePageChange(1)} disabled={currentPage === 1}>◀◀</button>
-                  <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>◀</button>
-                  {getPageNumbers().map((item, idx) => (
-                    <button
-                      key={idx}
-                      className={item === currentPage ? 'active' : ''}
-                      onClick={() => typeof item === 'number' && handlePageChange(item)}
-                      disabled={item === '...'}
-                    >
-                      {item}
-                    </button>
-                  ))}
-                  <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>▶</button>
-                  <button onClick={() => handlePageChange(totalPages)} disabled={currentPage === totalPages}>▶▶</button>
-                </div>
-              )}
+  <div className="paginacion">
+
+    <button
+      className="page-nav"
+      onClick={() => handlePageChange(currentPage - 1)}
+      disabled={currentPage === 1}
+    >
+      ◀
+    </button>
+
+    {getPageNumbers().map((item, idx) => (
+      <button
+        key={idx}
+        className={`page-number ${
+          item === currentPage ? 'active' : ''
+        }`}
+        onClick={() =>
+          typeof item === 'number' &&
+          handlePageChange(item)
+        }
+        disabled={item === '...'}
+      >
+        {item}
+      </button>
+    ))}
+
+    <button
+      className="page-nav"
+      onClick={() => handlePageChange(currentPage + 1)}
+      disabled={currentPage === totalPages}
+    >
+      ▶
+    </button>
+
+  </div>
+)}
             </>
           )}
         </section>
       </main>
-      <Footer />
     </>
   );
 };

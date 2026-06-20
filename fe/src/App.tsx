@@ -17,35 +17,35 @@ import ClientePerfil from '@pages/cliente/ClientePerfil';
 import AdminPerfil from '@pages/admin/AdminPerfil';
 import TecnicoPerfil from '@pages/tecnico/TecnicoPerfil';
 import ProductosPublicos from '@pages/public/ProductosPublicos';  // ← componente público
+import MainLayout from './components/layout/MainLayout';
 
 function App() {
   return (
     <Routes>
-      {/* Rutas públicas */}
-      <Route path="/" element={<HomePage />} />
-      <Route path="/info" element={<InfoSectionsContainer />} />
-      <Route path="/productos" element={<ProductosPublicos />} />  {/* ← ruta pública */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/verify-code" element={<VerifyCode />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/verify-email" element={<VerifyEmail />} />
+      {/* Ruta padre que aplica el layout global */}
+      <Route element={<MainLayout />}>
+        {/* Home con Navbar y Footer globales */}
+        <Route path="/" element={<HomePage />} />
+        {/* Rutas públicas */}
+        <Route path="/info" element={<InfoSectionsContainer />} />
+        <Route path="/productos" element={<ProductosPublicos />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/verify-code" element={<VerifyCode />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
 
-      {/* Rutas protegidas (requieren autenticación) */}
-      <Route element={<PrivateRoute />}>
-        {/* Dashboards por rol */}
-        <Route path="/dashboard/cliente" element={<ClientDashboard />} />
-        <Route path="/dashboard/admin" element={<AdminDashboard />} />
-        <Route path="/dashboard/tecnico" element={<TechnicianDashboard />} />
-
-        {/* Perfiles por rol */}
-        <Route path="/perfil/cliente" element={<ClientePerfil />} />
-        <Route path="/perfil/admin" element={<AdminPerfil />} />
-        <Route path="/perfil/tecnico" element={<TecnicoPerfil />} />
-
-        {/* Cambiar contraseña */}
-        <Route path="/cambiar-password" element={<ChangePassword />} />
+        {/* Rutas protegidas */}
+        <Route element={<PrivateRoute />}>
+          <Route path="/dashboard/cliente" element={<ClientDashboard />} />
+          <Route path="/dashboard/admin" element={<AdminDashboard />} />
+          <Route path="/dashboard/tecnico" element={<TechnicianDashboard />} />
+          <Route path="/perfil/cliente" element={<ClientePerfil />} />
+          <Route path="/perfil/admin" element={<AdminPerfil />} />
+          <Route path="/perfil/tecnico" element={<TecnicoPerfil />} />
+          <Route path="/cambiar-password" element={<ChangePassword />} />
+        </Route>
       </Route>
 
       {/* Redirección por defecto */}
