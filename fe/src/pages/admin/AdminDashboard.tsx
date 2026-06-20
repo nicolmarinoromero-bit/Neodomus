@@ -16,17 +16,12 @@ const containerVariants: Variants = {
   visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
 };
 
-const itemVariants: Variants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: { y: 0, opacity: 1, transition: { duration: 0.4, ease: "easeOut" as const } }
-};
-
 const AdminDashboard = () => {
   return (
     <>
+      <div className="admin-bg-layer" style={{ backgroundImage: `url(${fondo2})` }} />
       <motion.section
   className="admin-container"
-  style={{ backgroundImage: `url(${fondo2})` }}
   initial="hidden"
   animate="visible"
   variants={containerVariants}

@@ -1,8 +1,35 @@
-.perfil-page {
-   min-height: 100vh;
-  padding: 15px 40px 40px;
+/* Capa de fondo con desenfoque */
+.perfil-bg-layer {
+  position: fixed;
+  top: -15px;
+  left: -15px;
+  right: -15px;
+  bottom: -15px;
   background-size: cover;
   background-position: center;
+  filter: blur(15px);
+  z-index: -1;
+}
+
+.perfil-page {
+  min-height: 100vh;
+  padding: 15px 40px 40px;
+  position: relative;
+  z-index: 1;
+}
+
+.perfil-toast {
+  position: fixed;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #d4a54b;
+  color: #000;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-weight: 600;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
 .perfil-header {
@@ -41,12 +68,14 @@
 
 .perfil-avatar-section {
   text-align: center;
+  padding-top: 30px;
 }
 
 .perfil-avatar-wrapper {
   position: relative;
   width: fit-content;
   margin: auto;
+  margin-top: 25px;
 }
 
 .perfil-avatar {

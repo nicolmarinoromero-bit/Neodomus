@@ -1,11 +1,26 @@
 /* --- Dashboard Administrador - CSS Final --- */
 
+/* Capa de fondo con desenfoque */
+.admin-bg-layer {
+  position: fixed;
+  top: -15px;
+  left: -15px;
+  right: -15px;
+  bottom: -15px;
+  background-size: cover;
+  background-position: center;
+  filter: blur(15px);
+  z-index: -1;
+}
+
 /* Contenedor principal */
 .admin-container {
   min-height: 100vh;
   padding: 30px 40px;
-  background: #000000;
+  background: transparent;
   color: white;
+  position: relative;
+  z-index: 1;
 }
 
 .admin-container h1 {

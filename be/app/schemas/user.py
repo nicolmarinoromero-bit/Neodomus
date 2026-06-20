@@ -32,3 +32,9 @@ class UserOut(UserBase):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+class UserUpdate(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    telefono_usuario: Optional[int] = None

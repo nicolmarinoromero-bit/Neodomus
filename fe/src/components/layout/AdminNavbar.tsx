@@ -1,9 +1,27 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import logo from "@assets/images/Logo.jpg";
-import perfilIcon from "@assets/images/perfil.png";
+import defaultPerfil from "@assets/images/perfil.png";
 import "../../styles/admin-navbar.css";
 
 const AdminNavbar = () => {
+  const [, forceUpdate] = useState(0);
+
+  useEffect(() => {
+    const handler = () => forceUpdate(v => v + 1);
+    window.addEventListener('admin-profile-updated', handler);
+    return () => window.removeEventListener('admin-profile-updated', handler);
+  }, []);
+
+  const avatar = localStorage.getItem('adminAvatar') || defaultPerfil;
+  const userName = (() => {
+    try {
+      const stored = localStorage.getItem('user');
+      if (stored) return JSON.parse(stored).nombre || 'Administrador';
+    } catch {}
+    return 'Administrador';
+  })();
+
   return (
     <header className="admin-navbar">
       {/* Logo */}
@@ -39,13 +57,13 @@ const AdminNavbar = () => {
 
           <Link to="/perfil/admin" className="profile-section">
             <img
-              src={perfilIcon}
+              src={avatar}
               alt="Perfil"
               className="profile-image"
             />
 
             <div className="profile-info">
-              <h4>Administrador</h4>
+              <h4>{userName}</h4>
               <span>Admin</span>
             </div>
 
