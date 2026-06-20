@@ -18,6 +18,7 @@ import AdminPerfil from '@pages/admin/AdminPerfil';
 import TecnicoPerfil from '@pages/tecnico/TecnicoPerfil';
 import ProductosPublicos from '@pages/public/ProductosPublicos';  // ← componente público
 import MainLayout from './components/layout/MainLayout';
+import AdminLayout from './components/layout/AdminLayout';
 
 function App() {
   return (
@@ -37,16 +38,22 @@ function App() {
         <Route path="/verify-email" element={<VerifyEmail />} />
 
         {/* Rutas protegidas */}
-        <Route element={<PrivateRoute />}>
-          <Route path="/dashboard/cliente" element={<ClientDashboard />} />
-          <Route path="/dashboard/admin" element={<AdminDashboard />} />
-          <Route path="/dashboard/tecnico" element={<TechnicianDashboard />} />
-          <Route path="/perfil/cliente" element={<ClientePerfil />} />
-          <Route path="/perfil/admin" element={<AdminPerfil />} />
-          <Route path="/perfil/tecnico" element={<TecnicoPerfil />} />
-          <Route path="/cambiar-password" element={<ChangePassword />} />
-        </Route>
-      </Route>
+       <Route element={<PrivateRoute />}>
+    <Route path="/dashboard/cliente" element={<ClientDashboard />} />
+    <Route path="/dashboard/tecnico" element={<TechnicianDashboard />} />
+    <Route path="/perfil/cliente" element={<ClientePerfil />} />
+    <Route path="/perfil/tecnico" element={<TecnicoPerfil />} />
+    <Route path="/cambiar-password" element={<ChangePassword />} />
+  </Route>
+</Route>
+
+    {/* Layout de administrador (sin Navbar global) */}
+<Route element={<PrivateRoute />}>
+  <Route element={<AdminLayout />}>
+    <Route path="/dashboard/admin" element={<AdminDashboard />} />
+    <Route path="/perfil/admin" element={<AdminPerfil />} />
+  </Route>
+</Route>
 
       {/* Redirección por defecto */}
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,0 +1,130 @@
+/* ===== SIDEBAR ADMIN ===== */
+
+
+.admin-sidebar {
+  width: 280px;
+  min-width: 280px;
+
+  background: #000000;
+
+  border-right: 1px solid rgba(255,255,255,0.1);
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  padding: 25px 18px;
+}
+
+/* ===== NAV ===== */
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ===== LINKS ===== */
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  padding: 16px 18px;
+
+  color: #ffffff;
+
+  text-decoration: none;
+
+  border-radius: 14px;
+
+  transition: all 0.3s ease;
+
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+/* Hover */
+
+.sidebar-link:hover {
+  background: rgba(212, 166, 58, 0.08);
+
+  color: #d4a63a;
+}
+
+/* Activo */
+
+.sidebar-link.active {
+  background: rgba(212, 166, 58, 0.35);
+
+  color: #ffffff;
+
+  border: 1px solid rgba(212, 166, 58, 0.25);
+}
+
+/* ===== ICONOS ===== */
+
+.sidebar-icon {
+  font-size: 1.4rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-label {
+  white-space: nowrap;
+}
+
+/* ===== DIVISOR ===== */
+
+.sidebar-divider {
+  width: 100%;
+  height: 1px;
+
+  background: rgba(255,255,255,0.1);
+
+  margin: 25px 0;
+}
+
+/* ===== LOGOUT ===== */
+
+.sidebar-logout {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  background: transparent;
+
+  border: none;
+
+  color: white;
+
+  cursor: pointer;
+
+  padding: 16px 18px;
+
+  border-radius: 14px;
+
+  font-size: 1rem;
+  font-weight: 500;
+
+  transition: all 0.3s ease;
+}
+
+.sidebar-logout:hover {
+  background: rgba(255,255,255,0.05);
+
+  color: #d4a63a;
+}
+
+.sidebar-logout svg {
+  font-size: 1.4rem;
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 992px) {
+
+}

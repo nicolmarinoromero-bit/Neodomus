@@ -2,13 +2,10 @@
 
 /* Contenedor principal */
 .admin-container {
-  padding: 2rem;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
   min-height: 100vh;
-  color: #fff;
-  font-family: 'Segoe UI', sans-serif;
+  padding: 30px 40px;
+  background: #000000;
+  color: white;
 }
 
 .admin-container h1 {
@@ -116,4 +113,141 @@
 
 @media (max-width: 768px) {
   .admin-container { padding: 1rem; }
+}
+
+/* ===== BANNER ===== */
+
+.welcome-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  background: #000000;
+
+  border: 1px solid rgb(255, 187, 0);
+
+  border-radius: 20px;
+
+  overflow: hidden;
+
+  padding: 0;
+  margin-bottom: 25px;
+}
+
+.welcome-content {
+  padding: 40px;
+  flex: 1;
+}
+
+.welcome-content h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 15px;
+  color: white;
+}
+
+.welcome-content h1 span {
+  color: #d4a63a;
+}
+
+.welcome-content p {
+  color: #b0b0b0;
+  font-size: 1.15rem;
+  line-height: 1.7;
+  max-width: 550px;
+}
+
+.banner-image {
+  width: 45%;
+  height: 280px;
+}
+
+.banner-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ===== NOVEDADES ===== */
+
+.novedades-card {
+  background: #000000;
+
+  border: 1px solid rgb(255, 208, 0);
+
+  border-radius: 20px;
+
+  padding: 30px;
+}
+
+.novedades-card h2 {
+  color: white;
+  font-size: 1.9rem;
+  margin-bottom: 15px;
+}
+
+.novedad-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 24px 0;
+
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.novedad-item:last-child {
+  border-bottom: none;
+}
+
+.novedad-item h3 {
+  color: white;
+  font-size: 1.1rem;
+  margin-bottom: 5px;
+}
+
+.novedad-item p {
+  color: #9b9b9b;
+}
+
+.novedad-item span {
+  color: #9b9b9b;
+  font-size: 0.95rem;
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 1024px) {
+
+  .welcome-banner {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .banner-image img {
+    width: 350px;
+    margin-top: 20px;
+  }
+}
+
+.novedad-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.icon-circle {
+  width: 48px;
+  height: 48px;
+
+  border-radius: 50%;
+
+  background: rgba(212,166,58,0.08);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  color: #d4a63a;
+  font-size: 1.4rem;
 }
