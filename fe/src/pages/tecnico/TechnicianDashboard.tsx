@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react';
-import Navbar from '@components/layout/Navbar';
-import Footer from '@components/layout/Footer';
 import api from '@services/api';
 import '@styles/technician-dashboard.css';
 import fondoImg from '@assets/images/Fondo2.png';
@@ -29,6 +27,7 @@ const TechnicianDashboard = () => {
 
   const fetchCitas = async () => {
     setLoading(true);
+
     try {
       const res = await api.get('/tecnicos/mis-citas');
       setCitas(res.data);
@@ -39,9 +38,18 @@ const TechnicianDashboard = () => {
     }
   };
 
-  const actualizarEstado = async (id_cita: number, nuevoEstadoId: number) => {
+  const actualizarEstado = async (
+    id_cita: number,
+    nuevoEstadoId: number
+  ) => {
     try {
-      await api.put(`/tecnicos/citas/${id_cita}/estado`, { estado_id: nuevoEstadoId });
+      await api.put(
+        `/tecnicos/citas/${id_cita}/estado`,
+        {
+          estado_id: nuevoEstadoId
+        }
+      );
+
       fetchCitas();
       setModalOpen(false);
     } catch (err) {
@@ -55,96 +63,273 @@ const TechnicianDashboard = () => {
     setModalOpen(true);
   };
 
-  const citasProgramadas = citas.filter(c => c.estado === 'programada');
-  const citasCanceladas = citas.filter(c => c.estado === 'cancelada');
-  const citasCompletadas = citas.filter(c => c.estado === 'completada');
+  const citasProgramadas = citas.filter(
+    c => c.estado === 'programada'
+  );
+
+  const citasCompletadas = citas.filter(
+    c => c.estado === 'completada'
+  );
+
+  const citasPendientes = citas.filter(
+    c => c.estado === 'programada'
+  );
+
+  const proximaCita =
+    citasProgramadas.length > 0
+      ? citasProgramadas[0]
+      : null;
 
   return (
     <>
-      <Navbar />
       <main
         className="technician-container"
         style={{
-          backgroundImage: `url(${fondoImg})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          minHeight: '100vh',
-          padding: '30px'
+          minHeight: '100vh'
         }}
       >
-        <h1>Citas del día</h1>
-        {loading ? (
-          <div className="loading-message">Cargando citas...</div>
-        ) : (
-          <div className="cards">
-            <div className="card">
-              <h2>Programadas</h2>
-              {citasProgramadas.length === 0 ? (
-                <p className="empty-message">No hay citas programadas</p>
-              ) : (
-                citasProgramadas.map(cita => (
-                  <div key={cita.id_cita} className="item">
-                    <span>✔ {cita.hora_cita} - {cita.cliente}</span>
-                    <button className="btn-arrow" onClick={() => openModal(cita)}>➜</button>
-                  </div>
-                ))
-              )}
+
+        <div className="dashboard-wrapper">
+
+          <div className="dashboard-header">
+            <div>
+              <h1>¡Bienvenido, Técnico!</h1>
+              <p>
+                Aquí tienes un resumen de tu jornada de hoy.
+              </p>
             </div>
-            <div className="card">
-              <h2>Completadas</h2>
-              {citasCompletadas.length === 0 ? (
-                <p className="empty-message">No hay citas completadas</p>
-              ) : (
-                citasCompletadas.map(cita => (
-                  <div key={cita.id_cita} className="item">
-                    <span>✔ {cita.hora_cita} - {cita.cliente}</span>
-                    <button className="btn-arrow" onClick={() => openModal(cita)}>➜</button>
-                  </div>
-                ))
-              )}
-            </div>
-            <div className="card">
-              <h2>Canceladas</h2>
-              {citasCanceladas.length === 0 ? (
-                <p className="empty-message">No hay citas canceladas</p>
-              ) : (
-                citasCanceladas.map(cita => (
-                  <div key={cita.id_cita} className="item">
-                    <span>✖ {cita.hora_cita} - {cita.cliente}</span>
-                    <button className="btn-arrow" onClick={() => openModal(cita)}>➜</button>
-                  </div>
-                ))
-              )}
+
+            <div className="date-card">
+              {new Date().toLocaleDateString()}
             </div>
           </div>
-        )}
+
+          <div className="stats-grid">
+
+            <div className="stat-card">
+              <h3>Citas de hoy</h3>
+              <span className="stat-number">
+                {citas.length}
+              </span>
+            </div>
+
+            <div className="stat-card">
+              <h3>Completadas</h3>
+              <span className="stat-number">
+                {citasCompletadas.length}
+              </span>
+            </div>
+
+            <div className="stat-card">
+              <h3>Pendientes</h3>
+              <span className="stat-number">
+                {citasPendientes.length}
+              </span>
+            </div>
+
+            <div className="stat-card">
+              <h3>Calificación</h3>
+              <span className="stat-number">
+                5.0
+              </span>
+            </div>
+
+          </div>
+
+          {loading ? (
+            <div className="loading-message">
+              Cargando citas...
+            </div>
+          ) : (
+            <div className="dashboard-content">
+
+              <div className="citas-panel">
+
+                <div className="panel-header">
+                  <h2>Citas del día</h2>
+                </div>
+
+                {citas.length === 0 ? (
+                  <p>No hay citas para hoy.</p>
+                ) : (
+                  citas.map((cita) => (
+                    <div
+                      key={cita.id_cita}
+                      className="appointment-card"
+                    >
+                      <div className="appointment-time">
+                        {cita.hora_cita}
+                      </div>
+
+                      <div className="appointment-info">
+                        <h3>{cita.cliente}</h3>
+
+                        <p>
+                          {cita.descripcion ||
+                            'Servicio técnico'}
+                        </p>
+
+                        <small>
+                          {cita.direccion}
+                        </small>
+                      </div>
+
+                      <div>
+                        <span
+                          className={`status-badge ${cita.estado}`}
+                        >
+                          {cita.estado}
+                        </span>
+
+                        <button
+                          className="details-btn"
+                          onClick={() =>
+                            openModal(cita)
+                          }
+                        >
+                          Ver
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+
+              </div>
+
+              <div className="next-appointment">
+
+                <h2>Próxima cita</h2>
+
+                {proximaCita ? (
+                  <>
+                    <div className="next-date">
+                      {proximaCita.hora_cita}
+                    </div>
+
+                    <h3>
+                      {proximaCita.cliente}
+                    </h3>
+
+                    <p>
+                      {proximaCita.descripcion}
+                    </p>
+
+                    <p>
+                      {proximaCita.direccion}
+                    </p>
+
+                    <button
+                      className="btn-location"
+                      onClick={() =>
+                        openModal(proximaCita)
+                      }
+                    >
+                      Ver detalles
+                    </button>
+                  </>
+                ) : (
+                  <p>
+                    No hay citas programadas.
+                  </p>
+                )}
+
+              </div>
+
+            </div>
+          )}
+
+          <div className="reminder-card">
+            Tienes {citasPendientes.length} citas
+            pendientes por completar hoy.
+          </div>
+
+        </div>
       </main>
 
       {modalOpen && selectedCita && (
-        <div className="modal-overlay" onClick={() => setModalOpen(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="modal-overlay"
+          onClick={() => setModalOpen(false)}
+        >
+          <div
+            className="modal-content"
+            onClick={(e) =>
+              e.stopPropagation()
+            }
+          >
             <h3>Detalle de cita</h3>
-            <p><strong>Cliente:</strong> {selectedCita.cliente}</p>
-            <p><strong>Dirección:</strong> {selectedCita.direccion}</p>
-            <p><strong>Teléfono:</strong> {selectedCita.telefono}</p>
-            <p><strong>Fecha/Hora:</strong> {selectedCita.fecha_cita} {selectedCita.hora_cita}</p>
-            <p><strong>Estado actual:</strong> {selectedCita.estado}</p>
-            {selectedCita.descripcion && <p><strong>Descripción:</strong> {selectedCita.descripcion}</p>}
+
+            <p>
+              <strong>Cliente:</strong>{' '}
+              {selectedCita.cliente}
+            </p>
+
+            <p>
+              <strong>Dirección:</strong>{' '}
+              {selectedCita.direccion}
+            </p>
+
+            <p>
+              <strong>Teléfono:</strong>{' '}
+              {selectedCita.telefono}
+            </p>
+
+            <p>
+              <strong>Fecha:</strong>{' '}
+              {selectedCita.fecha_cita}
+            </p>
+
+            <p>
+              <strong>Hora:</strong>{' '}
+              {selectedCita.hora_cita}
+            </p>
+
+            <p>
+              <strong>Estado:</strong>{' '}
+              {selectedCita.estado}
+            </p>
+
             <div className="modal-buttons">
-              <button onClick={() => actualizarEstado(selectedCita.id_cita, 3)} className="btn-estado">
-                Marcar completada
+
+              <button
+                className="btn-estado"
+                onClick={() =>
+                  actualizarEstado(
+                    selectedCita.id_cita,
+                    3
+                  )
+                }
+              >
+                Completar
               </button>
-              <button onClick={() => actualizarEstado(selectedCita.id_cita, 4)} className="btn-estado cancelar">
-                Marcar cancelada
+
+              <button
+                className="btn-estado cancelar"
+                onClick={() =>
+                  actualizarEstado(
+                    selectedCita.id_cita,
+                    4
+                  )
+                }
+              >
+                Cancelar
               </button>
-              <button onClick={() => setModalOpen(false)} className="btn-cerrar">
+
+              <button
+                className="btn-cerrar"
+                onClick={() =>
+                  setModalOpen(false)
+                }
+              >
                 Cerrar
               </button>
+
             </div>
           </div>
         </div>
       )}
-      <Footer />
     </>
   );
 };

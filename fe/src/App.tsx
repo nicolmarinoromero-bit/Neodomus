@@ -19,6 +19,7 @@ import TecnicoPerfil from '@pages/tecnico/TecnicoPerfil';
 import ProductosPublicos from '@pages/public/ProductosPublicos';  // ← componente público
 import MainLayout from './components/layout/MainLayout';
 import AdminLayout from './components/layout/AdminLayout';
+import TechnicianLayout from './components/layout/TechnicianLayout';
 
 function App() {
   return (
@@ -37,13 +38,19 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
 
-        {/* Rutas protegidas */}
+        {/* Rutas protegidas (cliente) */}
        <Route element={<PrivateRoute />}>
     <Route path="/dashboard/cliente" element={<ClientDashboard />} />
-    <Route path="/dashboard/tecnico" element={<TechnicianDashboard />} />
     <Route path="/perfil/cliente" element={<ClientePerfil />} />
-    <Route path="/perfil/tecnico" element={<TecnicoPerfil />} />
     <Route path="/cambiar-password" element={<ChangePassword />} />
+  </Route>
+</Route>
+
+    {/* Layout de técnico (sin Navbar global) */}
+<Route element={<PrivateRoute />}>
+  <Route element={<TechnicianLayout />}>
+    <Route path="/dashboard/tecnico" element={<TechnicianDashboard />} />
+    <Route path="/perfil/tecnico" element={<TecnicoPerfil />} />
   </Route>
 </Route>
 
