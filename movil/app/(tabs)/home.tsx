@@ -1,9 +1,9 @@
 import { View, Text } from "react-native";
 
-export default function ModalScreen() {
+export default function Home() {
   return (
     <View>
-      <Text>Modal</Text>
+      <Text>Home</Text>
     </View>
   );
 }

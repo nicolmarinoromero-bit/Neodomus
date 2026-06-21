@@ -1,48 +1,30 @@
+// QUE HACE:
+// Importa Tabs para la navegación inferior.
 import { Tabs } from "expo-router";
-import React from "react";
 
-import { HapticTab } from "@/components/haptic-tab";
-import { IconSymbol } from "@/components/ui/icon-symbol";
-import { Colors } from "@/constants/theme";
-import { useColorScheme } from "@/hooks/use-color-scheme";
-
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
+// QUE HACE:
+// Layout de pestañas.
+//
+// PARA QUE SIRVE:
+// Mostrar Inicio y Productos.
+export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarActiveTintColor:
-          Colors[colorScheme ?? "light"].tint,
-      }}
+    }}
     >
       <Tabs.Screen
-        name="index"
+        name="home"
         options={{
-          title: "Inicio",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol
-              size={28}
-              name="house.fill"
-              color={color}
-            />
-          ),
+        title: "Inicio",
         }}
       />
 
       <Tabs.Screen
-        name="explore"
+        name="productos"
         options={{
-          title: "Productos",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol
-              size={28}
-              name="shippingbox.fill"
-              color={color}
-            />
-          ),
+        title: "Productos",
         }}
       />
     </Tabs>
