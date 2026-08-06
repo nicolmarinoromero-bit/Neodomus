@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@contexts/AuthContext';
 import '@styles/login.css';
-import fondoImg from '@assets/images/Fondo2.png';
 
 
 const Login = () => {
@@ -21,7 +20,7 @@ const Login = () => {
       if (rol === 'administrador' || rol === 'admin') {
         navigate('/dashboard/admin', { replace: true });
       } else if (rol === 'cliente') {
-        navigate('/dashboard/cliente', { replace: true });
+        navigate('/productos', { replace: true });
       } else if (rol === 'tecnico') {
         navigate('/dashboard/tecnico', { replace: true });
       }
@@ -44,13 +43,7 @@ const Login = () => {
   return (
     <>
       
-      {/* Contenedor principal con el fondo desenfocado */}
-      <div className="login-page-wrapper">
-        <div 
-          className="login-background-layer" 
-          style={{ backgroundImage: `url(${fondoImg})` }} 
-        />
-
+      {/* Tarjeta del formulario (se muestra dentro del modal sobre el catálogo) */}
         <form onSubmit={handleSubmit} className="login-card">
           
           {/* Avatar Icon Superior */}
@@ -135,7 +128,6 @@ const Login = () => {
           </div>
 
         </form>
-      </div>
       
     </>
   );

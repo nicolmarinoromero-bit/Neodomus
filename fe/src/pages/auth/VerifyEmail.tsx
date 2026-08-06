@@ -3,7 +3,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import api from '@services/api';
 import '@styles/verify-email.css';
-import fondoImg from '@assets/images/Fondo2.png';
 
 const VerifyEmail = () => {
   const [searchParams] = useSearchParams();
@@ -125,13 +124,7 @@ const VerifyEmail = () => {
 
   return (
     <>
-<div className="verify-page-wrapper">
-  <div
-    className="verify-background-layer"
-    style={{
-      backgroundImage: `url(${fondoImg})`,
-    }}
-     />
+      {/* Tarjeta del formulario (se muestra dentro del modal sobre el catálogo) */}
         <form onSubmit={handleVerify} className="verify-form">
           
           {/* Icono de Correo Estilizado */}
@@ -226,7 +219,6 @@ const VerifyEmail = () => {
           </div>
 
         </form>
-      </div>
     </>
   );
 };

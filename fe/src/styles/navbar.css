@@ -29,7 +29,6 @@
 .neodomus-header .logo {
   display: flex;
   align-items: center;
-  gap: 12px;
 }
 
 .neodomus-header .logo img {
@@ -42,14 +41,6 @@
 
 .neodomus-header .logo img:hover {
   transform: scale(1.05);
-}
-
-.neodomus-header .brand-name {
-  color: white;
-  text-decoration: none;
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: 1px;
 }
 
 /* ==========================================================
@@ -146,27 +137,6 @@
 }
 
 /* ==========================================================
-   PERFIL
-========================================================== */
-
-.neodomus-header .perfil-link {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: white;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.neodomus-header .perfil-link img {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 2px solid white;
-  object-fit: cover;
-}
-
-/* ==========================================================
    RESPONSIVE
 ========================================================== */
 
@@ -193,10 +163,6 @@
 }
 
 @media (max-width: 576px) {
-  .neodomus-header .brand-name {
-    font-size: 1.2rem;
-  }
-
   .neodomus-header .menu {
     flex-direction: column;
   }
@@ -206,4 +172,134 @@
     width: 180px;
     text-align: center;
   }
+}
+
+/* ==========================================================
+   USER MENU / DROPDOWN
+========================================================== */
+
+.neodomus-header .user-menu {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.neodomus-header .user-welcome {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 14px;
+  transition: background 0.2s ease;
+}
+
+.neodomus-header .user-welcome:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.neodomus-header .welcome-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+  min-width: 0;
+}
+
+.neodomus-header .welcome-greeting {
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 500;
+  font-size: 0.72rem;
+  text-transform: capitalize;
+  letter-spacing: 0.4px;
+  margin-bottom: 2px;
+}
+
+.neodomus-header .welcome-name {
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.05rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.01em;
+}
+
+.neodomus-header .user-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 2.5px solid #fff;
+  object-fit: cover;
+  cursor: pointer;
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.neodomus-header .user-avatar:hover {
+  transform: scale(1.1);
+  border-color: #d4a54b;
+  box-shadow: 0 0 0 4px rgba(212, 165, 75, 0.25), 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.neodomus-header .user-dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  min-width: 220px;
+  background: #1e1e1e;
+  border: 1px solid rgba(212, 165, 75, 0.35);
+  border-radius: 18px;
+  box-shadow: 0 20px 56px rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  overflow: hidden;
+  animation: dropdownFade 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dropdownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.neodomus-header .dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 15px 20px;
+  border: none;
+  background: transparent;
+  color: #ebebeb;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: left;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.neodomus-header .dropdown-item:hover {
+  background: rgba(212, 165, 75, 0.12);
+  color: #d4a54b;
+}
+
+.neodomus-header .dropdown-item svg {
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+
+.neodomus-header .dropdown-logout {
+  color: #e5484d;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.neodomus-header .dropdown-logout:hover {
+  background: rgba(229, 72, 77, 0.12);
+  color: #ff7a7a;
 }

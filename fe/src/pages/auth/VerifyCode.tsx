@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '@services/api';
 import '@styles/verifyCode.css';
-import fondoImg from '@assets/images/Fondo2.png';
 
 const VerifyCode = () => {
   const [searchParams] = useSearchParams();
@@ -101,52 +100,35 @@ const VerifyCode = () => {
 
   if (!email) {
     return (
-      <div className="verify-page-wrapper">
+      /* Tarjeta del formulario (se muestra dentro del modal sobre el catálogo) */
+      <div className="verify-card">
+        <h2>Error</h2>
 
-        <div
-          className="verify-background-layer"
-          style={{
-            backgroundImage: `url(${fondoImg})`,
-          }}
-        />
+        <p className="forgot-instruction-text">
+          No se proporcionó un correo electrónico válido.
+        </p>
 
-        <div className="verify-card">
-          <h2>Error</h2>
-
-          <p className="forgot-instruction-text">
-            No se proporcionó un correo electrónico válido.
-          </p>
-
-          <div className="forgot-back-to-login">
-            <button
-              type="button"
-              onClick={() =>
-                navigate('/forgot-password')
-              }
-              className="forgot-back-link"
-            >
-              ← Volver
-            </button>
-          </div>
+        <div className="forgot-back-to-login">
+          <button
+            type="button"
+            onClick={() =>
+              navigate('/forgot-password')
+            }
+            className="forgot-back-link"
+          >
+            ← Volver
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="verify-page-wrapper">
-
-      <div
-        className="verify-background-layer"
-        style={{
-          backgroundImage: `url(${fondoImg})`,
-        }}
-      />
-
-      <form
-        onSubmit={handleVerify}
-        className="verify-card"
-      >
+    /* Tarjeta del formulario (se muestra dentro del modal sobre el catálogo) */
+    <form
+      onSubmit={handleVerify}
+      className="verify-card"
+    >
         <div className="login-avatar-container">
           <div className="forgot-avatar-circle">
             <svg
@@ -356,7 +338,6 @@ const VerifyCode = () => {
           </button>
         </div>
       </form>
-    </div>
   );
 };
 

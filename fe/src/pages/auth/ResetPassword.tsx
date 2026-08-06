@@ -4,8 +4,6 @@ import api from '@services/api';
 
 import '@styles/resetpassword.css';
 
-import fondoImg from '@assets/images/Fondo2.png';
-
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
@@ -17,6 +15,21 @@ const ResetPassword = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const [passwordErrors, setPasswordErrors] = useState({
+    length: false,
+    lowercase: false,
+    uppercase: false,
+    number: false,
+    special: false,
+  });
+
+  const allPasswordValid =
+    passwordErrors.length &&
+    passwordErrors.lowercase &&
+    passwordErrors.uppercase &&
+    passwordErrors.number &&
+    passwordErrors.special;
 
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -46,9 +59,9 @@ const ResetPassword = () => {
       return;
     }
 
-    if (newPassword.length < 6) {
+    if (!allPasswordValid) {
       setError(
-        'La contraseña debe tener al menos 6 caracteres'
+        'La contraseña no cumple los requisitos.'
       );
       return;
     }
@@ -87,57 +100,40 @@ const ResetPassword = () => {
 
   if (!token) {
     return (
-      <div className="reset-page-wrapper">
+      /* Tarjeta del formulario (se muestra dentro del modal sobre el catálogo) */
+      <div className="reset-card">
 
-        <div
-          className="reset-background-layer"
-          style={{
-            backgroundImage: `url(${fondoImg})`,
-          }}
-        />
+        <h2>Enlace inválido</h2>
 
-        <div className="reset-card">
-
-          <h2>Enlace inválido</h2>
-
-          <div className="error-message">
-            El enlace ha expirado o no es válido.
-          </div>
-
-          <button
-            className="btn-reset-submit"
-            onClick={() =>
-              navigate('/forgot-password')
-            }
-          >
-            Solicitar nuevamente
-          </button>
-
+        <div className="error-message">
+          El enlace ha expirado o no es válido.
         </div>
+
+        <button
+          className="btn-reset-submit"
+          onClick={() =>
+            navigate('/forgot-password')
+          }
+        >
+          Solicitar nuevamente
+        </button>
+
       </div>
     );
   }
 
   return (
-    <div className="reset-page-wrapper">
+    /* Tarjeta del formulario (se muestra dentro del modal sobre el catálogo) */
+    <form
+      onSubmit={handleSubmit}
+      className="reset-card"
+    >
 
-      <div
-        className="reset-background-layer"
-        style={{
-          backgroundImage: `url(${fondoImg})`,
-        }}
-      />
+      <div className="reset-avatar-circle">
 
-      <form
-        onSubmit={handleSubmit}
-        className="reset-card"
-      >
+        🔒
 
-        <div className="reset-avatar-circle">
-
-          🔒
-
-        </div>
+      </div>
 
         <h2>Nueva contraseña</h2>
 
@@ -165,9 +161,16 @@ const ResetPassword = () => {
             }
             placeholder="Nueva contraseña"
             value={newPassword}
-            onChange={(e) =>
-              setNewPassword(e.target.value)
-            }
+            onChange={(e) => {
+              setNewPassword(e.target.value);
+              setPasswordErrors({
+                length: e.target.value.length >= 8,
+                lowercase: /[a-z]/.test(e.target.value),
+                uppercase: /[A-Z]/.test(e.target.value),
+                number: /[0-9]/.test(e.target.value),
+                special: /[!@#$%^&*(),.?":{}|<>]/.test(e.target.value),
+              });
+            }}
             required
             disabled={loading}
             autoComplete="new-password"
@@ -182,6 +185,29 @@ const ResetPassword = () => {
           >
             
           </button>
+        </div>
+
+        <div className="password-requirements">
+          <p className="requirement-title">
+            La contraseña debe contener:
+          </p>
+          <ul>
+            <li className={passwordErrors.length ? 'valid' : 'invalid'}>
+              {passwordErrors.length ? '✓' : '✗'} Mínimo 8 caracteres
+            </li>
+            <li className={passwordErrors.lowercase ? 'valid' : 'invalid'}>
+              {passwordErrors.lowercase ? '✓' : '✗'} Una letra minúscula
+            </li>
+            <li className={passwordErrors.uppercase ? 'valid' : 'invalid'}>
+              {passwordErrors.uppercase ? '✓' : '✗'} Una letra mayúscula
+            </li>
+            <li className={passwordErrors.number ? 'valid' : 'invalid'}>
+              {passwordErrors.number ? '✓' : '✗'} Un número
+            </li>
+            <li className={passwordErrors.special ? 'valid' : 'invalid'}>
+              {passwordErrors.special ? '✓' : '✗'} Un carácter especial
+            </li>
+          </ul>
         </div>
 
         <div className="reset-input-wrapper">
@@ -219,7 +245,7 @@ const ResetPassword = () => {
         <button
           type="submit"
           className="btn-reset-submit"
-          disabled={loading}
+          disabled={loading || !allPasswordValid}
         >
           {loading
             ? 'Actualizando...'
@@ -227,7 +253,6 @@ const ResetPassword = () => {
         </button>
 
       </form>
-    </div>
   );
 };
 

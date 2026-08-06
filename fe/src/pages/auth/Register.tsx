@@ -2,9 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '@services/api';
-import '@styles/register.css';
-import fondoImg from '@assets/images/Fondo2.png';   
-import avatarImg from '@assets/images/registro.jpeg';    
+import '@styles/register.css';    
      
 
 interface FormData {
@@ -156,7 +154,7 @@ const Register = () => {
 
   return (
     <>
-      <div className="register-container" style={{ backgroundImage: `url(${fondoImg})` }}>
+      {/* Tarjeta del formulario (se muestra dentro del modal sobre el catálogo) */}
         <form onSubmit={handleSubmit} className="register-form">
           {/* Avatar Icon Superior */}
           <div className="login-avatar-container">
@@ -359,7 +357,6 @@ const Register = () => {
             <Link to="/login" className="login-accent-link">Iniciar Sesión</Link>
           </div>
         </form>
-      </div>
     </>
   );
 };

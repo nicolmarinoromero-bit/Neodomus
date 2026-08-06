@@ -1,345 +1,501 @@
+/* ==========================================================================
+   PRODUCTOS PÚBLICOS - Catálogo Neodomus
+   Diseño moderno tipo e-commerce con tarjetas elegantes y hover.
+   ========================================================================== */
+
 .productos-page {
+  position: relative;
   min-height: 100vh;
-  padding: 30px;
+  padding: 40px;
   background-size: cover;
   background-position: center;
-  .productos-page::after {
-  content: "";
-
-  position: fixed;
-  inset: 0;
-
-  background: rgba(0,0,0,.75);
-
-  z-index: -1;
-}
+  overflow: hidden;
 }
 
+/* Fondo desenfocado del catálogo */
 .productos-page::before {
   content: "";
-
-  position: fixed;
+  position: absolute;
   inset: 0;
-
   background-image: inherit;
   background-size: cover;
   background-position: center;
-
-  filter: blur(15px);
-  transform: scale(1.1);
-
-  z-index: -2;
+  filter: blur(14px) brightness(0.65);
+  transform: scale(1.05);
+  z-index: 0;
 }
 
 .productos {
-  max-width: 1800px;
-  margin: auto;
+  position: relative;
+  z-index: 2;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+
+/* ============================================================
+   CABECERA
+   ============================================================ */
+
+.productos-header {
+  margin-bottom: 30px;
+  border-left: 4px solid #ffd700;
+  padding-left: 18px;
 }
 
 .productos-header h1 {
-  color: white;
-  font-size: 48px;
-  margin-bottom: 10px;
+  color: #ffffff;
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin: 0 0 6px 0;
+  line-height: 1.1;
 }
 
 .productos-header p {
-  color: #bdbdbd;
-  margin-bottom: 30px;
+  color: #c9c9c9;
+  font-size: 16px;
+  margin: 0;
 }
 
-/* BUSCADOR */
+/* ============================================================
+   BARRA SUPERIOR (buscador + controles)
+   ============================================================ */
 
 .barra-superior {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
   gap: 20px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
 }
 
 .buscador {
-  width: 320px;
+  flex: 1 1 280px;
+  max-width: 380px;
   height: 50px;
-  border: 1px solid #444;
-  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
   display: flex;
   align-items: center;
-  padding: 0 15px;
-  background: rgba(0,0,0,.5);
+  padding: 0 16px;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.buscador:focus-within {
+  border-color: rgba(255, 215, 0, 0.7);
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.12);
 }
 
 .buscador input {
   flex: 1;
+  width: 100%;
   background: transparent;
   border: none;
-  color: white;
-  margin-left: 10px;
   outline: none;
+  color: #ffffff;
+  font-size: 15px;
+}
+
+.buscador input::placeholder {
+  color: #a0a0a0;
 }
 
 .icono-buscar {
-  font-size: 18px;
-  margin-right: 10px;
-    width: 30px;
-  height: 30px;
+  width: 18px;
+  height: 18px;
   object-fit: contain;
-  margin-left: 8px;
-  filter: brightness(0) invert(1);
+  margin-right: 10px;
+  opacity: 0.85;
 }
 
 .controls-right {
   display: flex;
-  gap: 15px;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .select-paginas,
 .select-categoria {
   height: 50px;
-  padding: 0 20px;
-  border-radius: 12px;
-  background: #111;
-  color: white;
-  border: 1px solid #333;
+  padding: 0 18px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.45);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  cursor: pointer;
+  font-size: 14px;
+  outline: none;
+  backdrop-filter: blur(8px);
+  transition: border-color 0.3s;
 }
 
-/* GRID */
+.select-paginas:focus,
+.select-categoria:focus {
+  border-color: rgba(255, 215, 0, 0.7);
+}
+
+.select-paginas option,
+.select-categoria option {
+  background: #111111;
+  color: #ffffff;
+}
+
+/* ============================================================
+   GRID DE PRODUCTOS
+   ============================================================ */
 
 .productos-grid {
   display: grid;
-  grid-template-columns: repeat(4,1fr);
-  gap: 25px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 28px;
 }
 
-/* CARD */
+/* ============================================================
+   CARD DE PRODUCTO
+   ============================================================ */
 
 .card-producto {
-  background: rgba(0,0,0,.85);
-  border: 1px solid rgba(211,172,77,.3);
-  border-radius: 18px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, rgba(24, 24, 24, 0.9), rgba(12, 12, 12, 0.95));
+  border: 1px solid rgba(211, 172, 77, 0.25);
+  border-radius: 20px;
   overflow: hidden;
-  transition: .3s;
+  transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
 }
 
 .card-producto:hover {
-  transform: translateY(-5px);
-  border-color: #d3ac4d;
+  transform: translateY(-8px);
+  border-color: rgba(211, 172, 77, 0.55);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(211, 172, 77, 0.15);
 }
 
+/* Contenedor de imagen */
 .img-contenedor {
-  height: 220px;
-  background: #0e0e0e;
+  position: relative;
+  height: 240px;
+  background: radial-gradient(circle at 50% 35%, rgba(52, 52, 52, 0.9) 0%, rgba(10, 10, 10, 0.9) 75%);
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow: hidden;
+}
+
+.img-contenedor::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 40%;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.35) 100%);
+  pointer-events: none;
+}
+
+.producto-img-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 22px;
 }
 
 .img-producto {
-  max-width: 85%;
-  max-height: 180px;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
+  filter: drop-shadow(0 14px 20px rgba(0, 0, 0, 0.4));
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
+
+.card-producto:hover .img-producto {
+  transform: scale(1.08);
+}
+
+/* ============================================================
+   BOTÓN FAVORITOS (corazón)
+   ============================================================ */
+
+.btn-favorito {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.55);
+  color: #ffffff;
+  cursor: pointer;
+  z-index: 5;
+  backdrop-filter: blur(6px);
+  transition: transform 0.25s, background 0.25s, border-color 0.25s, color 0.25s;
+}
+
+.btn-favorito svg {
+  width: 20px;
+  height: 20px;
+  fill: transparent;
+  stroke: currentColor;
+  transition: fill 0.25s, stroke 0.25s;
+}
+
+.btn-favorito:hover {
+  transform: scale(1.12);
+  border-color: rgba(255, 77, 109, 0.6);
+  color: #ff4d6d;
+}
+
+.btn-favorito.activo {
+  border-color: rgba(255, 77, 109, 0.7);
+  background: rgba(255, 77, 109, 0.2);
+  color: #ff4d6d;
+}
+
+.btn-favorito.activo svg {
+  fill: currentColor;
+  stroke: currentColor;
+}
+
+/* ============================================================
+   INFO DEL PRODUCTO
+   ============================================================ */
 
 .info-producto {
-  padding: 20px;
+  padding: 18px 20px 22px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
-.info-producto h3 {
-  color: white;
-  font-size: 18px;
-  margin-bottom: 5px;
+.nombre-producto {
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.35;
+  margin: 0;
+  margin-bottom: 10px;
+  min-height: 2.4em; /* Alto uniforme para nombres de 1-2 líneas */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.info-producto span {
-  color: #9c9c9c;
-  font-size: 14px;
+.categoria-producto {
+  align-self: flex-start;
+  color: #d3ac4d;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  background: rgba(211, 172, 77, 0.1);
+  border: 1px solid rgba(211, 172, 77, 0.35);
+  border-radius: 999px;
+  padding: 4px 12px;
+  margin-bottom: 14px;
 }
 
 .precio-producto {
-  color: #d3ac4d;
-  font-size: 28px;
-  font-weight: bold;
-  margin: 15px 0;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 12px;
 }
 
-/* ACCIONES */
+.precio-monto {
+  color: #ffd700;
+  font-size: 25px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.precio-sufijo {
+  color: #9c9c9c;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+/* ============================================================
+   ACCIONES: cantidad + agregar al carrito
+   ============================================================ */
 
 .acciones-producto {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  margin-top: 15px;
+  gap: 12px;
+  align-items: stretch;
+  margin-top: 14px;
 }
 
 .cantidad-control {
   display: flex;
-  width: fit-content;
+  align-items: center;
+  border: 1px solid #3a3a3a;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.35);
 }
 
 .cantidad-control button {
-  width: 35px;
-  height: 35px;
-  border: 1px solid #444;
+  width: 36px;
+  height: 42px;
+  border: none;
   background: transparent;
-  color: white;
+  color: #ffffff;
   cursor: pointer;
+  font-size: 16px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.cantidad-control button:hover {
+  background: rgba(211, 172, 77, 0.25);
+  color: #ffd700;
 }
 
 .cantidad-control span {
-  width: 40px;
+  width: 36px;
+  height: 42px;
   display: flex;
   justify-content: center;
   align-items: center;
-  color: white;
-  border-top: 1px solid #444;
-  border-bottom: 1px solid #444;
+  color: #ffffff;
+  font-weight: 600;
+  border-left: 1px solid #2e2e2e;
+  border-right: 1px solid #2e2e2e;
 }
 
 .btn-agregar {
   flex: 1;
-
-  margin-left: 10px;
-
-  height: 42px;
-
-  border-radius: 10px;
-
-  background: #d3ac4d;
-
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   border: none;
-
-  color: white;
-
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ffd700 0%, #d3ac4d 100%);
+  color: #111111;
   font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform 0.25s, box-shadow 0.25s, filter 0.25s;
+  box-shadow: 0 6px 18px rgba(211, 172, 77, 0.25);
 }
 
 .btn-agregar:hover {
-  opacity: .9;
+  transform: translateY(-2px);
+  filter: brightness(1.07);
+  box-shadow: 0 10px 24px rgba(211, 172, 77, 0.4);
 }
 
-/* PAGINACION */
+.btn-agregar:active {
+  transform: translateY(0);
+}
+
+.icono-carrito {
+  width: 18px;
+  height: 18px;
+}
+
+/* ============================================================
+   PAGINACIÓN
+   ============================================================ */
 
 .paginacion {
   display: flex;
   justify-content: center;
   align-items: center;
-
   gap: 10px;
-
-  margin-top: 40px;
+  margin-top: 45px;
 }
 
 .paginacion button {
-  width: 42px;
-  height: 42px;
-
-  border-radius: 10px;
-
-  border: 1px solid #d3ac4d;
-
-  background: rgba(0,0,0,.8);
-
-  color: white;
-
+  min-width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(211, 172, 77, 0.4);
+  background: rgba(0, 0, 0, 0.55);
+  color: #ffffff;
   cursor: pointer;
-
-  transition: .3s;
+  font-size: 15px;
+  font-weight: 600;
+  transition: background 0.25s, color 0.25s, transform 0.25s;
 }
 
-.paginacion button:hover {
+.paginacion button:hover:not(:disabled) {
   background: #d3ac4d;
-  color: black;
+  color: #111111;
+  transform: translateY(-2px);
+}
+
+.paginacion button:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 .paginacion .active {
-  background: #d3ac4d;
-  color: black;
+  background: linear-gradient(135deg, #ffd700 0%, #d3ac4d 100%);
+  color: #111111;
+  border-color: transparent;
 }
 
-/* RESPONSIVE */
+.paginacion .page-number {
+  padding: 0 14px;
+}
 
-@media(max-width:1400px){
-  .productos-grid{
-    grid-template-columns:repeat(3,1fr);
+.page-nav {
+  font-size: 22px;
+  line-height: 1;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 1400px) {
+  .productos-grid {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
-@media(max-width:1000px){
-  .productos-grid{
-    grid-template-columns:repeat(2,1fr);
+@media (max-width: 1000px) {
+  .productos-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .productos-header h1 {
+    font-size: 32px;
   }
 }
 
-@media(max-width:700px){
-
-  .barra-superior{
-    flex-direction:column;
+@media (max-width: 700px) {
+  .productos-page {
+    padding: 20px;
   }
 
-  .productos-grid{
-    grid-template-columns:1fr;
+  .barra-superior {
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  .buscador{
-    width:100%;
+  .buscador {
+    max-width: 100%;
   }
-}
 
-.icono-carrito {
-  width: 22px;
-  height: 22px;
+  .productos-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
 
-  object-fit: contain;
-
-  cursor: pointer;
-}
-
-.carrito-btn {
-  width: 42px;
-  height: 42px;
-
-  border: 1px solid #d3ac4d;
-
-  border-radius: 10px;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  background: transparent;
-
-  cursor: pointer;
-}
-
-.productos-page{
-  position: relative;
-  min-height: 100vh;
-  overflow: hidden;
-}
-
-.productos-page::before{
-  content: "";
-
-  position: absolute;
-  inset: 0;
-
-  background-image: inherit;
-
-  backdrop-filter: blur(10px);
-
-  z-index: 0;
-}
-
-.productos{
-  position: relative;
-  z-index: 2;
-}
-
-
-.icono-carrito-btn {
-  width: 30px;
-  height: 30px;
-  object-fit: contain;
-  margin-left: 8px;
-  filter: brightness(0) invert(1);
+  .img-contenedor {
+    height: 210px;
+  }
 }

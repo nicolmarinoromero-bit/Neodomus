@@ -15,6 +15,7 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  refreshUserProfile: () => Promise<void>;
 }
 
 interface LoginResponse {
@@ -24,7 +25,17 @@ interface LoginResponse {
   rol?: string;
   role?: string;
   nombre?: string;
+  first_name?: string;
+  last_name?: string;
   id?: number;
+}
+
+interface ClientProfile {
+  first_name: string;
+  last_name: string;
+  email: string;
+  telefono_cliente?: number | null;
+  address?: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -34,6 +45,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [rol, setRol] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const refreshUserProfile = async () => {
+    try {
+      const res = await api.get<ClientProfile>('/clients/me');
+      const profile = res.data;
+      const firstName = profile.first_name || '';
+      const lastName = profile.last_name || '';
+      const fullName = (firstName && lastName) ? `${firstName} ${lastName}` : user?.nombre || '';
+      
+      const updatedUser: User = {
+        ...user!,
+        nombre: fullName.trim(),
+        correo: profile.email || user?.correo || '',
+      };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+    } catch (error) {
+      console.error('Error refreshing user profile:', error);
+    }
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('access_token');
@@ -45,6 +76,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setRol(parsedUser.rol);
         setIsAuthenticated(true);
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        // Refrescar perfil para obtener nombre real
+        refreshUserProfile();
       } catch (error) {
         console.error('Error parsing user', error);
         localStorage.removeItem('access_token');
@@ -64,9 +97,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       localStorage.setItem('access_token', data.access_token);
       localStorage.setItem('refresh_token', data.refresh_token);
+      
+      // Usar first_name y last_name del API si están disponibles, sino fallback a nombre o email
+      const firstName = data.first_name || '';
+      const lastName = data.last_name || '';
+      const fullName = (firstName && lastName) ? `${firstName} ${lastName}` : (data.nombre || email.split('@')[0]);
+      
       const userData: User = {
         id: data.id || 0,
-        nombre: data.nombre || email.split('@')[0],
+        nombre: fullName.trim(),
         correo: email,
         rol: userRol,
       };
@@ -75,6 +114,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setRol(userRol);
       setIsAuthenticated(true);
       api.defaults.headers.common['Authorization'] = `Bearer ${data.access_token}`;
+      
+      // Obtener nombre real del perfil
+      await refreshUserProfile();
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -92,7 +134,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, rol, isAuthenticated, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, rol, isAuthenticated, loading, login, logout, refreshUserProfile }}>
       {children}
     </AuthContext.Provider>
   );

@@ -3,7 +3,6 @@ import "../../styles/forgot-password.css";
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '@services/api';
-import fondoImg from '@assets/images/Fondo2.png';
 
 
 const ForgotPassword = () => {
@@ -39,14 +38,9 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="page-wrapper">
-      {/* Capa de fondo desenfocada */}
-      <div className="background-layer" style={{ backgroundImage: `url(${fondoImg})` }}
-      />
-      
-      <main className="main-content">
-        <form onSubmit={handleSubmit} className="forgot-card">
-          {/* Icono Superior */}
+    /* Tarjeta del formulario (se muestra dentro del modal sobre el catálogo) */
+    <form onSubmit={handleSubmit} className="forgot-card">
+      {/* Icono Superior */}
           <div className="forgot-avatar-circle">
             <svg className="forgot-mail-svg" viewBox="0 0 24 24" fill="none" stroke="#ffd700" strokeWidth="1.5">
               <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
@@ -93,10 +87,6 @@ const ForgotPassword = () => {
             </button>
           </div>
         </form>
-      </main>
-
-      
-    </div>
   );
 };
 
