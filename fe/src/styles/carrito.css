@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    CARRITO DE COMPRAS - Neodomus
    Diseño oscuro con acentos dorados, consistente con el catálogo.
    ========================================================================== */
@@ -6,15 +6,14 @@
 .carrito-page {
   position: relative;
   min-height: 100vh;
-  padding: 40px;
-  background: #000000;
 }
 
 .carrito-main {
   position: relative;
   z-index: 2;
-  max-width: 1200px;
+  max-width: 1500px;
   margin: 0 auto;
+  padding: 40px 48px 80px;
 }
 
 .carrito-back-btn {
@@ -30,6 +29,8 @@
   font-weight: 600;
   cursor: pointer;
   transition: background 0.25s, color 0.25s, transform 0.25s;
+  align-self: flex-start;
+  flex-shrink: 0;
 }
 
 .carrito-back-btn:hover {
@@ -39,14 +40,23 @@
 }
 
 .carrito-header {
-  margin: 26px 0 30px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin: 0 0 34px;
   border-left: 4px solid #ffd700;
   padding-left: 18px;
 }
 
+.carrito-header > div {
+  min-width: 0;
+}
+
 .carrito-header h1 {
   color: #ffffff;
-  font-size: 38px;
+  font-size: 40px;
   font-weight: 700;
   margin: 0 0 6px;
 }
@@ -118,14 +128,14 @@
 .carrito-layout {
   display: grid;
   grid-template-columns: 1.6fr 1fr;
-  gap: 30px;
+  gap: 34px;
   align-items: start;
 }
 
 .carrito-items {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 .carrito-item {
@@ -135,7 +145,7 @@
   background: linear-gradient(180deg, rgba(24, 24, 24, 0.9), rgba(12, 12, 12, 0.95));
   border: 1px solid rgba(211, 172, 77, 0.25);
   border-radius: 18px;
-  padding: 16px 18px;
+  padding: 20px 24px;
   transition: border-color 0.3s, box-shadow 0.3s;
 }
 
@@ -293,7 +303,7 @@
   background: linear-gradient(180deg, rgba(24, 24, 24, 0.95), rgba(12, 12, 12, 0.98));
   border: 1px solid rgba(211, 172, 77, 0.3);
   border-radius: 20px;
-  padding: 26px;
+  padding: 30px;
 }
 
 .carrito-resumen h2 {
@@ -422,8 +432,8 @@
 }
 
 @media (max-width: 700px) {
-  .carrito-page {
-    padding: 20px;
+  .carrito-main {
+    padding: 26px 16px 60px;
   }
 
   .carrito-item {

@@ -19,6 +19,7 @@ import TecnicoPerfil from '@pages/tecnico/TecnicoPerfil';
 import ProductosPublicos from '@pages/public/ProductosPublicos';
 import ProductoDetalle from '@pages/public/ProductoDetalle';
 import CarritoPage from '@pages/public/CarritoPage';
+import Notificaciones from '@pages/public/Notificaciones';
 import TerminosUso from '@pages/legal/TerminosUso';
 import PoliticaPrivacidad from '@pages/legal/PoliticaPrivacidad';
 import PoliticaCookies from '@pages/legal/PoliticaCookies';
@@ -37,6 +38,7 @@ function App() {
           <Route path="/productos" element={<ProductosPublicos />} />
           <Route path="/producto/:id" element={<ProductoDetalle />} />
           <Route path="/carrito" element={<CarritoPage />} />
+          <Route path="/notificaciones" element={<Notificaciones />} />
           <Route path="/home" element={<HomePage />} />
           <Route path="/info" element={<InfoSectionsContainer />} />
           <Route path="/ayuda" element={<AyudaPage />} />

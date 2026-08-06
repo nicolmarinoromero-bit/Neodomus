@@ -28,7 +28,7 @@ interface LegalPageProps {
 
 const LegalPage = ({ icono, titulo, actualizacion, secciones, numeradas = true }: LegalPageProps) => {
   return (
-    <div className="legal-page">
+    <div className="legal-page app-glass">
       <main className="legal-main">
         <div className="legal-card">
           <header className="legal-header">

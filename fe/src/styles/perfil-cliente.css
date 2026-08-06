@@ -1,4 +1,4 @@
-/* ═══ Perfil de cliente · Neodomus ═══════════════════════════════ */
+﻿/* ═══ Perfil de cliente · Neodomus ═══════════════════════════════ */
 
 :root {
   --pf-oro: #d4a54b;
@@ -13,17 +13,16 @@
 /* ── Layout general ─────────────────────────────────────────── */
 .perfil-layout {
   min-height: 100vh;
-  padding: 24px;
   position: relative;
-  background: #000000;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 .perfil-shell {
   position: relative;
-  z-index: 1;
-  max-width: 1080px;
+  z-index: 2;
+  max-width: 1500px;
   margin: 0 auto;
+  padding: 40px 48px 80px;
   display: grid;
   grid-template-columns: 280px 1fr;
   gap: 22px;
@@ -186,17 +185,20 @@
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 18px;
+  border-left: 4px solid #ffd700;
+  padding-left: 18px;
 }
 
 .pf-content-title {
-  color: var(--pf-texto);
-  font-size: 1.65rem;
-  font-weight: 700;
+  color: #ffffff;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   margin: 0;
 }
 
 .pf-content-subtitle {
-  color: var(--pf-muted);
+  color: #c9c9c9;
   font-size: 0.88rem;
   margin: 6px 0 0;
 }
@@ -219,6 +221,10 @@
 }
 
 .pf-tab {
+  background: var(--pf-card);
+  border: 1px solid var(--pf-borde, rgba(255, 255, 255, 0.09));
+  border-radius: 20px;
+  padding: 28px;
   animation: pf-fade 0.25s ease;
 }
 
@@ -1584,11 +1590,12 @@
 }
 
 @media (max-width: 560px) {
-  .perfil-layout {
-    padding: 14px;
+  .perfil-shell {
+    padding: 26px 16px 60px;
   }
 
-  .pf-card {
+  .pf-card,
+  .pf-tab {
     padding: 18px;
   }
 
@@ -1615,15 +1622,14 @@
 .tecnicos-page {
   min-height: 100vh;
   position: relative;
-  background: #000000;
 }
 
 .tecnicos-main {
   position: relative;
-  z-index: 1;
-  max-width: 1200px;
+  z-index: 2;
+  max-width: 1500px;
   margin: 0 auto;
-  padding: 44px 22px 90px;
+  padding: 40px 48px 80px;
 }
 
 .tecnicos-header {
@@ -1631,8 +1637,10 @@
   flex-direction: column;
   gap: 18px;
   margin-bottom: 28px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--pf-borde);
+  border-left: 4px solid #ffd700;
+  padding-left: 18px;
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 .tecnicos-back-btn {
@@ -1662,14 +1670,15 @@
 }
 
 .tecnicos-title {
-  color: var(--pf-texto);
-  font-size: 1.9rem;
-  font-weight: 700;
+  color: #ffffff;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   margin: 0 0 6px;
 }
 
 .tecnicos-subtitle {
-  color: var(--pf-muted);
+  color: #c9c9c9;
   font-size: 0.95rem;
   margin: 0;
 }
@@ -1680,8 +1689,8 @@
   gap: 10px;
   cursor: pointer;
   padding: 10px 14px;
-  background: var(--pf-card);
-  border: 1px solid var(--pf-borde);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
   color: var(--pf-texto);
   font-size: 0.88rem;
@@ -1708,9 +1717,9 @@
 }
 
 .tecnico-card {
-  background: var(--pf-card);
-  border: 1px solid var(--pf-borde);
-  border-radius: 16px;
+  background: transparent;
+  border: 1px solid rgba(211, 172, 77, 0.2);
+  border-radius: 18px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -1720,14 +1729,14 @@
 .tecnico-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
-  border-color: rgba(212, 165, 75, 0.35);
+  border-color: rgba(212, 165, 75, 0.45);
 }
 
 .tecnico-card-header {
   position: relative;
   aspect-ratio: 16 / 10;
   overflow: hidden;
-  background: #1a1a1a;
+  background: transparent;
 }
 
 .tecnico-avatar-wrap {
@@ -1871,8 +1880,8 @@
 
 .tecnico-card-footer {
   padding: 16px 18px;
-  border-top: 1px solid var(--pf-borde);
-  background: rgba(0, 0, 0, 0.15);
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  background: transparent;
 }
 
 .tecnico-btn {
@@ -1915,8 +1924,8 @@
   padding: 60px 20px;
   text-align: center;
   color: var(--pf-muted);
-  background: var(--pf-card);
-  border: 1px solid var(--pf-borde);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   margin-top: 20px;
 }
@@ -1946,7 +1955,7 @@
 /* Responsive Técnicos */
 @media (max-width: 900px) {
   .tecnicos-main {
-    padding: 24px 16px;
+    padding: 26px 16px 60px;
   }
 
   .tecnicos-grid {

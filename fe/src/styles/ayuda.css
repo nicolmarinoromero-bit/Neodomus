@@ -1,4 +1,4 @@
-/* ── Ayuda Page · Neodomus ────────────────────────────────────
+﻿/* ── Ayuda Page · Neodomus ────────────────────────────────────
    Página independiente (ruta /cliente/Ayuda). Sin aspecto de modal. */
 
 :root {
@@ -18,23 +18,24 @@
   color-scheme: dark;
   position: relative;
   min-height: 100vh;
-  background: #000000;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 .ayuda-main {
   position: relative;
-  z-index: 1;
-  max-width: 1040px;
+  z-index: 2;
+  max-width: 1500px;
   margin: 0 auto;
-  padding: 44px 22px 90px;
+  padding: 40px 48px 80px;
 }
 
-/* ── Encabezado de página ──────────────────────────────────── */
+/* ── Encabezado de página (estándar Neodomus) ─────────────── */
 .ayuda-header {
-  margin-bottom: 26px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--ay-borde);
+  margin-bottom: 30px;
+  border-left: 4px solid #ffd700;
+  padding-left: 18px;
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 .ayuda-title {
@@ -45,7 +46,7 @@
   font-weight: 800;
   letter-spacing: -0.02em;
   margin: 0 0 6px;
-  color: var(--ay-texto);
+  color: #ffffff;
 }
 
 .ayuda-title svg {
@@ -54,7 +55,7 @@
 }
 
 .ayuda-subtitle {
-  color: var(--ay-muted);
+  color: #c9c9c9;
   font-size: 0.95rem;
   margin: 0;
 }
@@ -504,7 +505,7 @@
 
 @media (max-width: 760px) {
   .ayuda-main {
-    padding: 24px 14px 60px;
+    padding: 26px 16px 60px;
   }
 
   .ayuda-title {

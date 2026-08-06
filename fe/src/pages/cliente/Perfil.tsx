@@ -441,7 +441,7 @@ const Perfil = () => {
   );
 
   return (
-    <div className="perfil-layout">
+    <div className="perfil-layout app-glass">
       <div className="perfil-shell">
         {/* ── Navegación lateral ─────────────────────────────── */}
         <aside className="perfil-sidebar">

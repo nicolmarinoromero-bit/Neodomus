@@ -1,4 +1,4 @@
-/* ── Citas Page · Neodomus ────────────────────────────────────
+﻿/* ── Citas Page · Neodomus ────────────────────────────────────
    Página independiente tipo "panel de ajustes": encabezado de
    página + tarjetas a lo ancho. Sin aspecto de modal. */
 
@@ -16,19 +16,18 @@
   color-scheme: dark;
   position: relative;
   min-height: 100vh;
-  background: #000000;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 .citas-main {
   position: relative;
-  z-index: 1;
-  max-width: 1040px;
+  z-index: 2;
+  max-width: 1500px;
   margin: 0 auto;
-  padding: 44px 22px 90px;
+  padding: 40px 48px 80px;
 }
 
-/* ── Encabezado de página ──────────────────────────────────── */
+/* ── Encabezado de página (estándar Neodomus) ─────────────── */
 .citas-header {
   margin-bottom: 30px;
 }
@@ -58,8 +57,8 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--c-borde);
+  border-left: 4px solid #ffd700;
+  padding-left: 18px;
 }
 
 .citas-title {
@@ -67,17 +66,13 @@
   font-weight: 800;
   letter-spacing: -0.02em;
   margin: 0;
-  background: linear-gradient(135deg, #ffd700 0%, #d4a54b 55%, #a87c2e 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: var(--c-oro);
+  color: #ffffff;
   display: inline-block;
   width: fit-content;
 }
 
 .citas-subtitle {
-  color: var(--c-muted);
+  color: #c9c9c9;
   font-size: 0.95rem;
   margin: 0;
   max-width: 560px;
@@ -770,7 +765,7 @@ input[type='date'].citas-input::-webkit-calendar-picker-indicator {
 
 @media (max-width: 760px) {
   .citas-main {
-    padding: 24px 14px 60px;
+    padding: 26px 16px 60px;
   }
 
   .citas-card {

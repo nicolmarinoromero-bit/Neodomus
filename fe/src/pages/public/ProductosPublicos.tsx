@@ -183,7 +183,7 @@ const ProductosPublicos = () => {
   return (
     <>
       {cartMessage && <div className="cart-toast">{cartMessage}</div>}
-      <main className="productos-page">
+      <main className="productos-page app-glass">
         <section className="productos">
           <div className="barra-superior">
             <div className="buscador">

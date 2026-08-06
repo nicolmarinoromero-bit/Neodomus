@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    src/styles/info_pages.css - CONFIGURACIÓN CON ANIMACIONES DE SCROLL
    ========================================================================== */
 
@@ -41,7 +41,6 @@
   display: block  ;
   width: 100%  ;
   max-width: 100%  ;
-  background-color: #000000  ;
   position: relative  ;
   box-sizing: border-box  ;
   height: auto  ;

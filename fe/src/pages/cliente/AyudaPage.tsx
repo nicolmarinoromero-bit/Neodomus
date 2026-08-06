@@ -113,7 +113,7 @@ const AyudaPage = () => {
   ];
 
   return (
-    <div className="ayuda-page">
+    <div className="ayuda-page app-glass">
       <main className="ayuda-main">
         <header className="ayuda-header">
           <h1 className="ayuda-title">

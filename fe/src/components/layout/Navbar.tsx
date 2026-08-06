@@ -3,13 +3,12 @@ import { useAuth } from "@contexts/AuthContext";
 import { useAuthModal } from "@contexts/AuthModalContext";
 import { useCart } from "@contexts/CartContext";
 import { useState, useRef, useEffect } from "react";
-import { FaRightFromBracket } from "react-icons/fa6";
+import { FaRightFromBracket, FaCartShopping, FaBell } from "react-icons/fa6";
 import { getAvatar } from "@utils/profileStorage";
 
 import logo from "@assets/images/Logo.jpg";
 import helpIcon from "@assets/images/Icono.png";
 import perfilIcon from "@assets/images/perfil.png";
-import carritoIcon from "@assets/images/Carrito.png";
 
 import "../../styles/navbar.css";
 
@@ -116,12 +115,22 @@ const Navbar = () => {
           <div className="nav-right">
             <button
               type="button"
+              className="notif-button"
+              onClick={() => navigate('/notificaciones')}
+              aria-label="Notificaciones"
+              title="Ver notificaciones"
+            >
+              <FaBell className="notif-icon" />
+            </button>
+
+            <button
+              type="button"
               className="cart-button"
               onClick={() => navigate('/carrito')}
               aria-label="Carrito de compras"
               title="Ver carrito"
             >
-              <img src={carritoIcon} alt="Carrito" className="cart-icon" />
+              <FaCartShopping className="cart-icon" />
               {totalItems > 0 && <span className="cart-badge">{totalItems}</span>}
             </button>
 

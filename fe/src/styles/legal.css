@@ -1,4 +1,4 @@
-/* ── Páginas legales · Neodomus ───────────────────────────────
+﻿/* ── Páginas legales · Neodomus ───────────────────────────────
    Términos de Uso · Política de Privacidad · Política de Cookies · Contacto */
 
 :root {
@@ -17,30 +17,34 @@
   color-scheme: dark;
   position: relative;
   min-height: 100vh;
-  background: #000000;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 .legal-main {
   position: relative;
-  z-index: 1;
-  padding: 64px 20px 96px;
+  z-index: 2;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 40px 48px 80px;
   counter-reset: seccion;
 }
 
 /* ── Tarjeta principal ───────────────────────────────────────
-   Contenedor elegante que destaca el contenido sobre el fondo negro */
+   Cristal oscuro translúcido: deja ver las animaciones del fondo
+   tecnológico sin sacrificar la legibilidad del texto. */
 .legal-card {
   position: relative;
   max-width: 920px;
   margin: 0 auto;
   padding: 54px 58px 44px;
   border-radius: 22px;
-  background: linear-gradient(180deg, #171717 0%, #101010 100%);
+  background: rgba(10, 10, 14, 0.38);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--lg-borde-oro);
   box-shadow:
-    0 30px 70px rgba(0, 0, 0, 0.65),
-    0 0 90px rgba(212, 165, 75, 0.05);
+    0 30px 70px rgba(0, 0, 0, 0.4),
+    0 0 90px rgba(212, 165, 75, 0.06);
   overflow: hidden;
 }
 
@@ -308,7 +312,7 @@
 /* ── Responsive ────────────────────────────────────────────── */
 @media (max-width: 720px) {
   .legal-main {
-    padding: 28px 14px 70px;
+    padding: 26px 16px 60px;
   }
 
   .legal-card {

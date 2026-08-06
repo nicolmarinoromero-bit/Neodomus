@@ -24,7 +24,7 @@ const CarritoPage = () => {
   };
 
   return (
-    <div className="carrito-page">
+    <div className="carrito-page app-glass">
       {toast && (
         <div className={`carrito-toast ${toast.tipo}`}>
           {toast.tipo === 'success' ? <FaCircleCheck /> : <FaExclamation />}
@@ -33,17 +33,18 @@ const CarritoPage = () => {
       )}
 
       <main className="carrito-main">
-        <button type="button" className="carrito-back-btn" onClick={() => navigate('/productos')}>
-          <FaArrowLeft /> Volver a productos
-        </button>
-
         <header className="carrito-header">
-          <h1>Mi carrito</h1>
-          <p>
-            {totalItems > 0
-              ? `${totalItems} ${totalItems === 1 ? 'producto' : 'productos'} en tu carrito`
-              : 'Aún no tienes productos en tu carrito'}
-          </p>
+          <div>
+            <h1>Mi carrito</h1>
+            <p>
+              {totalItems > 0
+                ? `${totalItems} ${totalItems === 1 ? 'producto' : 'productos'} en tu carrito`
+                : 'Aún no tienes productos en tu carrito'}
+            </p>
+          </div>
+          <button type="button" className="carrito-back-btn" onClick={() => navigate('/productos')}>
+            <FaArrowLeft /> Volver a productos
+          </button>
         </header>
 
         {items.length === 0 ? (

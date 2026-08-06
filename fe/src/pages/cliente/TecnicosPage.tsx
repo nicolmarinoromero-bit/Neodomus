@@ -138,7 +138,7 @@ const TecnicosPage = () => {
   if (loading) return <div className="tecnicos-page-loading">Cargando técnicos...</div>;
 
   return (
-    <div className="tecnicos-page">
+    <div className="tecnicos-page app-glass">
       <main className="tecnicos-main">
         <header className="tecnicos-header">
           <button type="button" className="tecnicos-back-btn" onClick={() => navigate('/productos')}>

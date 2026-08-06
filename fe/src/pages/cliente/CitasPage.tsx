@@ -100,7 +100,7 @@ const CitasPage = () => {
   };
 
   return (
-    <div className="citas-page">
+    <div className="citas-page app-glass">
       <main className="citas-main">
         <header className="citas-header">
           <button className="citas-back-btn" onClick={() => navigate('/productos')}>

@@ -214,7 +214,7 @@ const ProductoDetalle = () => {
   };
 
   return (
-    <div className="detalle-page">
+    <div className="detalle-page app-glass">
       {toast && <div className="detalle-toast">{toast}</div>}
       <main className="detalle-main">
         <button type="button" className="detalle-back-btn" onClick={() => navigate('/productos')}>

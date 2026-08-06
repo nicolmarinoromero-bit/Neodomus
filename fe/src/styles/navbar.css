@@ -3,6 +3,8 @@
 ========================================================== */
 
 .neodomus-header {
+  position: relative;
+  z-index: 10;
   width: 100%;
 }
 
@@ -108,6 +110,38 @@
   gap: 15px;
 }
 
+/* Botón notificaciones */
+.neodomus-header .notif-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  transition: background 0.25s, transform 0.25s;
+}
+
+.neodomus-header .notif-button:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.08);
+}
+
+.neodomus-header .notif-icon {
+  color: #ffffff;
+  font-size: 21px;
+  display: flex;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.25));
+  transition: transform 0.25s ease;
+}
+
+.neodomus-header .notif-button:hover .notif-icon {
+  transform: scale(1.12);
+}
+
 /* Botón carrito */
 .neodomus-header .cart-button {
   position: relative;
@@ -129,9 +163,15 @@
 }
 
 .neodomus-header .cart-icon {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
+  color: #ffffff;
+  font-size: 21px;
+  display: flex;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.25));
+  transition: transform 0.25s ease;
+}
+
+.neodomus-header .cart-button:hover .cart-icon {
+  transform: scale(1.12);
 }
 
 .neodomus-header .cart-badge {
@@ -185,14 +225,13 @@
 }
 
 .neodomus-header .btn-login {
-  border: 2px solid white;
-  color: white;
-  background: transparent;
+  background: white;
+  color: #caa24d;
+  border: none;
 }
 
 .neodomus-header .btn-login:hover {
-  background: white;
-  color: #caa24d;
+  transform: translateY(-2px);
 }
 
 /* ==========================================================

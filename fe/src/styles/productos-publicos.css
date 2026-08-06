@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    PRODUCTOS PÚBLICOS - Catálogo Neodomus
    Diseño moderno tipo e-commerce con tarjetas elegantes y hover.
    ========================================================================== */
@@ -6,8 +6,6 @@
 .productos-page {
   position: relative;
   min-height: 100vh;
-  padding: 40px;
-  background: #000000;
   overflow: hidden;
 }
 
@@ -16,6 +14,7 @@
   z-index: 2;
   max-width: 1500px;
   margin: 0 auto;
+  padding: 40px 48px 80px;
 }
 
 /* ============================================================
@@ -515,8 +514,8 @@
 }
 
 @media (max-width: 700px) {
-  .productos-page {
-    padding: 20px;
+  .productos {
+    padding: 26px 16px 60px;
   }
 
   .barra-superior {

@@ -1,12 +1,16 @@
 .main-footer {
-  background-color: #050505;
+  background-color: #000000;
   border-top: 1px solid #c9a227;
   padding: 20px 0;
   text-align: center;
   /* Estas tres líneas garantizan la estabilidad */
   width: 100%;
-  margin-top: auto; 
+  margin-top: auto;
   flex-shrink: 0;
+  /* Se mantiene por encima de la capa de fondo para conservar
+     el negro sólido y diferenciar el final de la página */
+  position: relative;
+  z-index: 10;
 }
 
 .footer-links {

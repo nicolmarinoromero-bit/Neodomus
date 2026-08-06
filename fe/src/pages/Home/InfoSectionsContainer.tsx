@@ -8,7 +8,7 @@ import '@styles/info_pages.css';
 const InfoSectionsContainer = () => {
   return (
     <>
-      <div className="landing-sections-wrapper">
+      <div className="landing-sections-wrapper app-glass">
         {/* SECCIÓN SOBRE NOSOTROS */}
             <div 
           className="login-background-layer" 
