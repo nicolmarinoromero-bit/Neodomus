@@ -1,14 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuthModal } from '@contexts/AuthModalContext';
 import api from '@services/api';
 
 import '@styles/resetpassword.css';
 
 const ResetPassword = () => {
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get('token');
-
-  const navigate = useNavigate();
+  const { token, openAuth } = useAuthModal();
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -76,11 +73,11 @@ const ResetPassword = () => {
       });
 
       setMessage(
-        'Contraseña actualizada correctamente. Redirigiendo al inicio de sesión...'
+        'Contraseña actualizada correctamente. Volviendo al inicio de sesión...'
       );
 
       setTimeout(() => {
-        navigate('/login');
+        openAuth('ingresar');
       }, 3000);
     } catch (err: any) {
       if (err.response?.status === 403) {
@@ -111,9 +108,7 @@ const ResetPassword = () => {
 
         <button
           className="btn-reset-submit"
-          onClick={() =>
-            navigate('/forgot-password')
-          }
+          onClick={() => openAuth('recuperar')}
         >
           Solicitar nuevamente
         </button>

@@ -1,70 +1,39 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@contexts/AuthContext';
-import { 
-  FaCalendar, FaClock, FaScrewdriverWrench, FaComment, 
-  FaCircleCheck, FaArrowLeft, FaExclamation, FaUserTie, 
-  FaHouse, FaLocationDot, FaMagnifyingGlass, FaCheck, FaXmark
+import {
+  FaScrewdriverWrench, FaComment, FaCircleCheck, FaArrowLeft,
+  FaExclamation, FaCheck, FaChevronDown
 } from 'react-icons/fa6';
-import '@styles/perfil-cliente.css';
-import fondoImg from '@assets/images/Fondo2.png';
+import '@styles/citas.css';
 import api from '@services/api';
 
 type TipoServicio = 'instalacion' | 'reparacion' | 'mantenimiento' | 'revision';
 
 interface CitaForm {
-  tipo_servicio: TipoServicio;
+  tipo_servicio: TipoServicio | '';
   fecha: string;
   hora: string;
   direccion: string;
   descripcion: string;
-  tecnico_id?: number;
-}
-
-interface Tecnico {
-  id: number;
-  nombre: string;
-  apellido: string;
-  especialidad: string;
-  disponible: boolean;
-  calificacion?: number;
 }
 
 const CitasPage = () => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const [tecnicoIdParam] = useState(searchParams.get('tecnico'));
-  
+
   const [form, setForm] = useState<CitaForm>({
-    tipo_servicio: 'instalacion',
+    tipo_servicio: '',
     fecha: '',
     hora: '',
     direccion: '',
     descripcion: '',
-    tecnico_id: tecnicoIdParam ? parseInt(tecnicoIdParam) : undefined,
   });
-  const [tecnicos, setTecnicos] = useState<Tecnico[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ msg: string; tipo: 'success' | 'error' } | null>(null);
   const [horasDisponibles, setHorasDisponibles] = useState<string[]>([]);
-  const [showTecnicoModal, setShowTecnicoModal] = useState(false);
-  const [tecnicoSearch, setTecnicoSearch] = useState('');
 
   const hoy = new Date().toISOString().split('T')[0];
-
-  useEffect(() => {
-    const fetchTecnicos = async () => {
-      try {
-        const res = await api.get('/tecnicos');
-        const data = res.data.data || res.data || [];
-        setTecnicos(data.filter((t: Tecnico) => t.disponible));
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchTecnicos();
-  }, []);
 
   useEffect(() => {
     if (!form.fecha) {
@@ -100,6 +69,10 @@ const CitasPage = () => {
       setToast({ msg: 'Completa todos los campos obligatorios', tipo: 'error' });
       return;
     }
+    if (form.descripcion.trim().length < 20) {
+      setToast({ msg: 'La descripción debe tener al menos 20 caracteres', tipo: 'error' });
+      return;
+    }
     setSubmitting(true);
     try {
       await api.post('/citas', form);
@@ -114,28 +87,12 @@ const CitasPage = () => {
     }
   };
 
-  const tiposServicio: { value: TipoServicio; label: string; icon: React.ReactNode; descripcion: string }[] = [
-    { value: 'instalacion', label: 'Instalación', icon: <FaScrewdriverWrench />, descripcion: 'Nuevos equipos y sistemas' },
-    { value: 'reparacion', label: 'Reparación', icon: <FaHouse />, descripcion: 'Arreglo de equipos existentes' },
-    { value: 'mantenimiento', label: 'Mantenimiento', icon: <FaComment />, descripcion: 'Revisiones preventivas' },
-    { value: 'revision', label: 'Revisión técnica', icon: <FaMagnifyingGlass />, descripcion: 'Diagnóstico y evaluación' },
+  const tiposServicio: { value: TipoServicio; label: string }[] = [
+    { value: 'instalacion', label: 'Instalación' },
+    { value: 'mantenimiento', label: 'Mantenimiento' },
+    { value: 'reparacion', label: 'Reparación' },
+    { value: 'revision', label: 'Revisión técnica' },
   ];
-
-  const tecnicosFiltrados = tecnicos.filter(t => 
-    t.nombre.toLowerCase().includes(tecnicoSearch.toLowerCase()) ||
-    t.apellido.toLowerCase().includes(tecnicoSearch.toLowerCase()) ||
-    t.especialidad.toLowerCase().includes(tecnicoSearch.toLowerCase())
-  );
-
-  const handleSelectTecnico = (tecnico: Tecnico) => {
-    setForm(prev => ({ ...prev, tecnico_id: tecnico.id }));
-    setShowTecnicoModal(false);
-    setTecnicoSearch('');
-  };
-
-  const clearTecnico = () => {
-    setForm(prev => ({ ...prev, tecnico_id: undefined }));
-  };
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -143,88 +100,78 @@ const CitasPage = () => {
   };
 
   return (
-    <div className="citas-page" style={{ backgroundImage: `url(${fondoImg})`, backgroundSize: 'cover', minHeight: '100vh' }}>
-      <div className="citas-overlay" />
+    <div className="citas-page">
       <main className="citas-main">
         <header className="citas-header">
-          <button className="citas-back-btn" onClick={() => navigate('/perfil')}>
-            <FaArrowLeft /> Volver al perfil
+          <button className="citas-back-btn" onClick={() => navigate('/productos')}>
+            <FaArrowLeft /> Volver a Productos
           </button>
           <div className="citas-header-content">
-            <h1 className="citas-title">Agendar Cita</h1>
-            <p className="citas-subtitle">Completa los datos para programar tu servicio</p>
+            <h1 className="citas-title">Agendar cita</h1>
+            <p className="citas-subtitle">
+              Programa tu servicio en minutos. Completa la información y <span className="citas-subtitle-accent">NeoDomus</span> se encargará del resto.
+            </p>
           </div>
         </header>
 
         <form onSubmit={handleSubmit} className="citas-form" noValidate>
-          <div className="citas-form-grid">
-            
-            {/* Tipo de Servicio */}
-            <section className="citas-fieldset">
-              <h3 className="citas-fieldset-title">
-                <FaScrewdriverWrench /> Tipo de servicio
-              </h3>
-              <div className="citas-tipos-servicio-grid" role="radiogroup" aria-label="Tipo de servicio">
-                {tiposServicio.map(({ value, label, icon, descripcion }) => (
-                  <label key={value} className={`citas-tipo-card ${form.tipo_servicio === value ? 'selected' : ''}`}>
-                    <input
-                      type="radio"
-                      name="tipo_servicio"
-                      value={value}
-                      checked={form.tipo_servicio === value}
-                      onChange={handleChange}
-                      className="citas-tipo-radio"
-                    />
-                    <div className="citas-tipo-card-content">
-                      <div className="citas-tipo-icon-wrapper">
-                        {icon}
-                      </div>
-                      <div className="citas-tipo-info">
-                        <span className="citas-tipo-label">{label}</span>
-                        <span className="citas-tipo-desc">{descripcion}</span>
-                      </div>
-                      <div className="citas-tipo-check">
-                        <FaCheck />
-                      </div>
-                    </div>
-                  </label>
-                ))}
-              </div>
-            </section>
 
-            {/* Fecha y Hora en fila */}
-            <div className="citas-row">
-              <section className="citas-fieldset">
-                <h3 className="citas-fieldset-title">
-                  <FaCalendar /> Fecha de la cita
-                </h3>
-                <div className="citas-input-wrapper">
-                  <FaCalendar className="citas-input-icon" />
-                  <input
-                    type="date"
-                    name="fecha"
-                    value={form.fecha}
+          {/* Tarjeta: detalles del servicio */}
+          <div className="citas-card">
+            <div className="citas-card-title">
+              <span className="citas-card-icon"><FaScrewdriverWrench /></span>
+              <div className="citas-card-heading">
+                <h2>Detalles del servicio</h2>
+                <p>Selecciona qué necesitas y cuándo te conviene.</p>
+              </div>
+            </div>
+
+            <div className="citas-grid">
+              <div className="citas-field">
+                <label className="citas-label" htmlFor="citas-tipo">Tipo de servicio</label>
+                <div className="citas-select-wrap">
+                  <select
+                    id="citas-tipo"
+                    name="tipo_servicio"
+                    value={form.tipo_servicio}
                     onChange={handleChange}
-                    min={hoy}
-                    className="citas-input"
+                    className="citas-select"
                     required
                     aria-required="true"
-                    placeholder="Selecciona una fecha"
-                  />
+                  >
+                    <option value="" disabled>Selecciona el tipo de servicio</option>
+                    {tiposServicio.map(t => (
+                      <option key={t.value} value={t.value}>{t.label}</option>
+                    ))}
+                  </select>
+                  <FaChevronDown className="citas-select-chevron" />
                 </div>
+              </div>
+
+              <div className="citas-field">
+                <label className="citas-label" htmlFor="citas-fecha">Fecha de la cita</label>
+                <input
+                  type="date"
+                  id="citas-fecha"
+                  name="fecha"
+                  value={form.fecha}
+                  onChange={handleChange}
+                  min={hoy}
+                  className="citas-input"
+                  required
+                  aria-required="true"
+                />
                 {form.fecha && (
                   <p className="citas-selected-date">
                     <FaCheck /> {formatDate(form.fecha)}
                   </p>
                 )}
-                <p className="citas-hint">Lunes a viernes. No se atiende fines de semana.</p>
-              </section>
+                <p className="citas-hint">Lunes a viernes, de 8:00 a. m. a 6:00 p. m.</p>
+              </div>
 
-              <section className="citas-fieldset">
-                <h3 className="citas-fieldset-title">
-                  <FaClock /> Hora de la cita
-                </h3>
-                {horasDisponibles.length === 0 && form.fecha ? (
+              <div className="citas-field">
+                <label className="citas-label" htmlFor="citas-hora">Hora de la cita</label>
+                {form.fecha && horasDisponibles.length === 0 ? (
                   <div className="citas-no-horas">
                     <FaExclamation /> No hay horarios disponibles para esta fecha (fin de semana)
                   </div>
@@ -236,137 +183,70 @@ const CitasPage = () => {
                         type="button"
                         className={`citas-hora-btn ${form.hora === hora ? 'selected' : ''}`}
                         onClick={() => setForm(prev => ({ ...prev, hora }))}
-                        disabled={!horasDisponibles.length}
                       >
                         {hora}
                       </button>
                     ))}
                   </div>
                 )}
-              </section>
-            </div>
+                {!form.fecha && <p className="citas-hint">Elige una fecha para ver los horarios disponibles.</p>}
+              </div>
 
-            {/* Dirección */}
-            <section className="citas-fieldset citas-fieldset-full">
-              <h3 className="citas-fieldset-title">
-                <FaLocationDot /> Dirección del servicio
-              </h3>
-              <div className="citas-input-wrapper">
-                <FaLocationDot className="citas-input-icon" />
+              <div className="citas-field">
+                <label className="citas-label" htmlFor="citas-direccion">Dirección del servicio</label>
                 <input
                   type="text"
+                  id="citas-direccion"
                   name="direccion"
                   value={form.direccion}
                   onChange={handleChange}
                   className="citas-input"
                   required
                   aria-required="true"
-                  placeholder="Calle, número, barrio, ciudad, referencia..."
+                  placeholder="Calle, número, barrio, ciudad..."
                 />
+                <p className="citas-hint">Lugar donde se realizará el servicio.</p>
               </div>
-              <p className="citas-hint">Ingresa la dirección completa donde se realizará el servicio.</p>
-            </section>
+            </div>
+          </div>
 
-            {/* Descripción */}
-            <section className="citas-fieldset citas-fieldset-full">
-              <h3 className="citas-fieldset-title">
-                <FaComment /> Descripción del servicio
-              </h3>
-              <div className="citas-textarea-wrapper">
-                <textarea
-                  name="descripcion"
-                  value={form.descripcion}
-                  onChange={handleChange}
-                  className="citas-textarea"
-                  rows={5}
-                  placeholder="Describe detalladamente el problema, la instalación que necesitas, el mantenimiento requerido o lo que necesitas que revise el técnico..."
-                  required
-                  aria-required="true"
-                />
-                <span className="citas-char-count">{form.descripcion.length} / 500</span>
+          {/* Tarjeta: descripción */}
+          <div className="citas-card">
+            <div className="citas-card-title">
+              <span className="citas-card-icon"><FaComment /></span>
+              <div className="citas-card-heading">
+                <h2>Describe tu solicitud</h2>
+                <p>Cuanto más detalle proporciones, mejor preparado llegará el técnico.</p>
               </div>
-              <p className="citas-hint">Mínimo 20 caracteres. Cuanto más detalle, mejor preparará el técnico.</p>
-            </section>
+            </div>
 
-            {/* Técnico */}
-            <section className="citas-fieldset citas-fieldset-full">
-              <div className="citas-fieldset-header">
-                <h3 className="citas-fieldset-title">
-                  <FaUserTie /> Técnico preferido (opcional)
-                </h3>
-                {form.tecnico_id && (
-                  <button
-                    type="button"
-                    className="citas-clear-tecnico"
-                    onClick={clearTecnico}
-                    title="Quitar técnico seleccionado"
-                  >
-                    <FaXmark />
-                  </button>
-                )}
+            <div className="citas-grid">
+              <div className="citas-field citas-field-full">
+                <label className="citas-label" htmlFor="citas-descripcion">Descripción del servicio o problema</label>
+                <div className="citas-textarea-wrap">
+                  <textarea
+                    id="citas-descripcion"
+                    name="descripcion"
+                    value={form.descripcion}
+                    onChange={handleChange}
+                    className="citas-textarea"
+                    rows={5}
+                    placeholder="Describe detalladamente el problema, la instalación que necesitas, el mantenimiento requerido o lo que necesitas que revise el técnico..."
+                    required
+                    aria-required="true"
+                  />
+                  <span className="citas-char-count">{form.descripcion.length} / 500</span>
+                </div>
+                <p className="citas-hint">Mínimo 20 caracteres.</p>
               </div>
-              
-              {tecnicos.length > 0 && (
-                <>
-                  <div className="citas-tecnico-selector">
-                    {form.tecnico_id ? (
-                      <div className="citas-tecnico-selected">
-                        {(() => {
-                          const t = tecnicos.find(x => x.id === form.tecnico_id);
-                          if (!t) return null;
-                          return (
-                            <div className="citas-tecnico-card selected">
-                              <div className="citas-tecnico-avatar">
-                                <FaUserTie />
-                              </div>
-                              <div className="citas-tecnico-info">
-                                <span className="citas-tecnico-nombre">{t.nombre} {t.apellido}</span>
-                                <span className="citas-tecnico-especialidad">{t.especialidad}</span>
-                              </div>
-                              <span className="citas-tecnico-badge">Seleccionado</span>
-                            </div>
-                          );
-                        })()}
-                      </div>
-                    ) : (
-                      <div className="citas-tecnico-placeholder">
-                        <FaUserTie className="citas-tecnico-placeholder-icon" />
-                        <span>No hay técnico seleccionado</span>
-                        <button
-                          type="button"
-                          className="citas-btn citas-btn-outline"
-                          onClick={() => setShowTecnicoModal(true)}
-                        >
-                          Elegir técnico
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  {tecnicos.length > 0 && !form.tecnico_id && (
-                    <p className="citas-hint">
-                      Selecciona un técnico si tienes preferencia, o déjalo vacío para asignación automática.
-                    </p>
-                  )}
-                </>
-              )}
-            </section>
-
+            </div>
           </div>
 
           <div className="citas-form-actions">
-            <button
-              type="button"
-              className="citas-btn citas-btn-ghost"
-              onClick={() => navigate('/perfil')}
-            >
+            <button type="button" className="citas-btn citas-btn-ghost" onClick={() => navigate('/productos')}>
               <FaArrowLeft /> Cancelar
             </button>
-            <button
-              type="submit"
-              className="citas-btn citas-btn-primary"
-              disabled={submitting || horasDisponibles.length === 0}
-            >
+            <button type="submit" className="citas-btn citas-btn-primary" disabled={submitting}>
               {submitting ? (
                 <>
                   <FaCircleCheck style={{ animation: 'spin 1s linear infinite' }} /> Agendando...
@@ -382,62 +262,10 @@ const CitasPage = () => {
 
         {toast && (
           <div className={`citas-toast ${toast.tipo}`}>
-            <FaCircleCheck />
+            {toast.tipo === 'success' ? <FaCircleCheck /> : <FaExclamation />}
             <span>{toast.msg}</span>
           </div>
         )}
-
-        {/* Modal Técnicos */}
-        {showTecnicoModal && (
-          <div className="citas-modal-backdrop" onClick={() => setShowTecnicoModal(false)}>
-            <div className="citas-modal" onClick={(e) => e.stopPropagation()}>
-              <header className="citas-modal-header">
-                <h3><FaUserTie /> Seleccionar técnico</h3>
-                <button className="citas-modal-close" onClick={() => setShowTecnicoModal(false)}>
-                  <FaXmark />
-                </button>
-              </header>
-              <div className="citas-modal-search">
-                <FaMagnifyingGlass className="citas-modal-search-icon" />
-                <input
-                  type="text"
-                  placeholder="Buscar por nombre o especialidad..."
-                  value={tecnicoSearch}
-                  onChange={(e) => setTecnicoSearch(e.target.value)}
-                  className="citas-modal-search-input"
-                />
-              </div>
-              <div className="citas-modal-list">
-                {tecnicosFiltrados.length === 0 ? (
-                  <p className="citas-modal-empty">No se encontraron técnicos</p>
-                ) : (
-                  tecnicosFiltrados.map((t) => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      className="citas-modal-tecnico"
-                      onClick={() => handleSelectTecnico(t)}
-                    >
-                      <div className="citas-modal-tecnico-avatar">
-                        <FaUserTie />
-                      </div>
-                      <div className="citas-modal-tecnico-info">
-                        <span className="citas-modal-tecnico-nombre">{t.nombre} {t.apellido}</span>
-                        <span className="citas-modal-tecnico-especialidad">{t.especialidad}</span>
-                      </div>
-                      {t.calificacion && (
-                        <span className="citas-modal-tecnico-rating">
-                          <FaCircleCheck /> {t.calificacion.toFixed(1)}
-                        </span>
-                      )}
-                    </button>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
       </main>
     </div>
   );

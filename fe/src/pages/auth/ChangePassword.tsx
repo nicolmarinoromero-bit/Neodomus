@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '@contexts/AuthContext';
 import api from '@services/api';
 import '@styles/login.css'; // Reutiliza estilos del login (ajusta si quieres uno específico)
 
 const ChangePassword = () => {
-  const { user } = useAuth();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');

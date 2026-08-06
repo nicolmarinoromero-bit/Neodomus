@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@contexts/AuthContext';
-import { FaUserTie, FaCheck } from 'react-icons/fa6';
+import { useAuthModal } from '@contexts/AuthModalContext';
+import { FaUserTie, FaCheck, FaArrowLeft } from 'react-icons/fa6';
 import '@styles/perfil-cliente.css';
-import fondoImg from '@assets/images/Fondo2.png';
 import api from '@services/api';
 
 interface Tecnico {
@@ -88,6 +89,8 @@ const tecnicosMock: Tecnico[] = [
 
 const TecnicosPage = () => {
   const { isAuthenticated } = useAuth();
+  const { openAuth } = useAuthModal();
+  const navigate = useNavigate();
   const [tecnicos, setTecnicos] = useState<Tecnico[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -124,21 +127,23 @@ const TecnicosPage = () => {
     return stars;
   };
 
-  const handleSeleccionar = (tecnico: Tecnico) => {
+  const handleSeleccionar = (_tecnico: Tecnico) => {
     if (!isAuthenticated) {
-      window.location.href = '/login';
+      openAuth('ingresar');
       return;
     }
-    window.location.href = `/cliente/citas?tecnico=${tecnico.id}`;
+    navigate('/cliente/citas');
   };
 
   if (loading) return <div className="tecnicos-page-loading">Cargando técnicos...</div>;
 
   return (
-    <div className="tecnicos-page" style={{ backgroundImage: `url(${fondoImg})`, backgroundSize: 'cover', minHeight: '100vh' }}>
-      <div className="tecnicos-overlay" />
+    <div className="tecnicos-page">
       <main className="tecnicos-main">
         <header className="tecnicos-header">
+          <button type="button" className="tecnicos-back-btn" onClick={() => navigate('/productos')}>
+            <FaArrowLeft /> Volver a Productos
+          </button>
           <div className="tecnicos-header-content">
             <h1 className="tecnicos-title">Nuestros Técnicos</h1>
             <p className="tecnicos-subtitle">Encuentra al profesional ideal para tu proyecto</p>

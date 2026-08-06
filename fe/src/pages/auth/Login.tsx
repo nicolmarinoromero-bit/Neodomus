@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@contexts/AuthContext';
+import { useAuthModal } from '@contexts/AuthModalContext';
 import '@styles/login.css';
 
 
@@ -11,11 +12,13 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login, user, isAuthenticated } = useAuth();
+  const { openAuth, closeAuth } = useAuthModal();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated && user?.rol) {
+      closeAuth();
       const rol = user.rol;
       if (rol === 'administrador' || rol === 'admin') {
         navigate('/dashboard/admin', { replace: true });
@@ -25,7 +28,7 @@ const Login = () => {
         navigate('/dashboard/tecnico', { replace: true });
       }
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, navigate, closeAuth]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,9 +116,9 @@ const Login = () => {
               />
               <span>Recordarme</span>
             </label>
-            <Link to="/forgot-password" className="forgot-password-link">
+            <button type="button" className="forgot-password-link" onClick={() => openAuth('recuperar')}>
               ¿Olvidaste tu contraseña?
-            </Link>
+            </button>
           </div>
 
           <div className="login-divider">
@@ -124,7 +127,7 @@ const Login = () => {
 
           <div className="register-redirect-section">
             <span>¿No tienes una cuenta?</span>
-            <Link to="/register" className="register-gold-link">Registrarse</Link>
+            <button type="button" className="register-gold-link" onClick={() => openAuth('registro')}>Registrarse</button>
           </div>
 
         </form>

@@ -50,17 +50,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const res = await api.get<ClientProfile>('/clients/me');
       const profile = res.data;
-      const firstName = profile.first_name || '';
-      const lastName = profile.last_name || '';
-      const fullName = (firstName && lastName) ? `${firstName} ${lastName}` : user?.nombre || '';
-      
+      // Base: usuario almacenado (no depende del estado capturado)
+      let base: User | null = null;
+      const storedRaw = localStorage.getItem('user');
+      if (storedRaw) {
+        try {
+          base = JSON.parse(storedRaw) as User;
+        } catch {
+          base = null;
+        }
+      }
+      const firstName = profile.first_name || base?.nombre?.split(' ')[0] || '';
+      const lastName = profile.last_name || (base?.nombre?.split(' ').slice(1).join(' ') || '');
+      const fullName = (firstName && lastName) ? `${firstName} ${lastName}` : (firstName || base?.nombre || '');
       const updatedUser: User = {
-        ...user!,
+        id: base?.id ?? 0,
         nombre: fullName.trim(),
-        correo: profile.email || user?.correo || '',
+        correo: profile.email || base?.correo || '',
+        rol: base?.rol || '',
       };
       localStorage.setItem('user', JSON.stringify(updatedUser));
       setUser(updatedUser);
+      if (updatedUser.rol) setRol(updatedUser.rol);
     } catch (error) {
       console.error('Error refreshing user profile:', error);
     }

@@ -1,13 +1,11 @@
 // src/pages/auth/VerifyEmail.tsx
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useAuthModal } from '@contexts/AuthModalContext';
 import api from '@services/api';
 import '@styles/verify-email.css';
 
 const VerifyEmail = () => {
-  const [searchParams] = useSearchParams();
-  const email = searchParams.get('email') || '';
-  const navigate = useNavigate();
+  const { email, openAuth } = useAuthModal();
   
   // Estado para las 6 cajitas individuales del código
   const [codeArray, setCodeArray] = useState(['', '', '', '', '', '']);
@@ -19,10 +17,6 @@ const VerifyEmail = () => {
 
   // Referencias para controlar el salto automático entre inputs
   const inputRefs = useRef<HTMLInputElement[]>([]);
-
-  useEffect(() => {
-    if (!email) navigate('/register');
-  }, [email, navigate]);
 
   useEffect(() => {
     if (countdown > 0) {
@@ -94,8 +88,8 @@ const VerifyEmail = () => {
     setMessage('');
     try {
       await api.post('/auth/verify-email', null, { params: { code: finalCode } });
-      setMessage('¡Email verificado correctamente! Redirigiendo al login...');
-      setTimeout(() => navigate('/login'), 2000);
+      setMessage('¡Email verificado correctamente! Volviendo al inicio de sesión...');
+      setTimeout(() => openAuth('ingresar'), 2000);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Código inválido o expirado');
     } finally {
@@ -121,6 +115,21 @@ const VerifyEmail = () => {
       setLoading(false);
     }
   };
+
+  if (!email) {
+    return (
+      <div className="verify-form">
+        <h2>Error</h2>
+        <div className="glow-line"></div>
+        <p className="instruction-text">No se proporcionó un correo electrónico válido.</p>
+        <div className="back-to-login">
+          <button type="button" className="back-link" onClick={() => openAuth('registro')}>
+            <span className="back-arrow">←</span> Volver a registro
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -213,9 +222,9 @@ const VerifyEmail = () => {
 
           {/* Enlace Volver al Inicio de Sesión */}
           <div className="back-to-login">
-            <Link to="/login" className="back-link">
+            <button type="button" className="back-link" onClick={() => openAuth('ingresar')}>
               <span className="back-arrow">←</span> Volver al inicio de sesión
-            </Link>
+            </button>
           </div>
 
         </form>

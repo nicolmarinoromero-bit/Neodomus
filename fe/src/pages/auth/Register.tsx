@@ -1,6 +1,6 @@
 // src/pages/auth/Register.tsx
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useAuthModal } from '@contexts/AuthModalContext';
 import api from '@services/api';
 import '@styles/register.css';    
      
@@ -24,7 +24,7 @@ const regionesColombia: Record<string, string[]> = {
 };
 
 const Register = () => {
-  const navigate = useNavigate();
+  const { openAuth } = useAuthModal();
   const [formData, setFormData] = useState<FormData>({
     nombre: '', apellido: '', tipo_documento: 2, documento: '', 
     ciudad: '', municipio: '', direccion: '', telefono: '', 
@@ -143,7 +143,7 @@ const Register = () => {
       });
       setSuccess('Registro exitoso.');
       setTimeout(() => {
-        navigate(`/verify-email?email=${encodeURIComponent(formData.correo)}`);
+        openAuth('verificar-email', { email: formData.correo });
       }, 2000);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al registrarse');
@@ -354,7 +354,7 @@ const Register = () => {
           {/* Sección de Login Rediseñada */}
           <div className="links">
             <span>¿Ya tienes una cuenta?</span>
-            <Link to="/login" className="login-accent-link">Iniciar Sesión</Link>
+            <button type="button" className="login-accent-link" onClick={() => openAuth('ingresar')}>Iniciar Sesión</button>
           </div>
         </form>
     </>

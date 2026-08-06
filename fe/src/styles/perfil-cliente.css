@@ -15,18 +15,8 @@
   min-height: 100vh;
   padding: 24px;
   position: relative;
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
+  background: #000000;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-}
-
-.perfil-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.72);
-  backdrop-filter: blur(4px);
-  z-index: 0;
 }
 
 .perfil-shell {
@@ -1624,31 +1614,46 @@
 /* ── Técnicos Page ────────────────────────────────────────────── */
 .tecnicos-page {
   min-height: 100vh;
-}
-
-.tecnicos-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(3px);
-  z-index: 0;
+  position: relative;
+  background: #000000;
 }
 
 .tecnicos-main {
   position: relative;
   z-index: 1;
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 32px 20px;
+  padding: 44px 22px 90px;
 }
 
 .tecnicos-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 20px;
+  flex-direction: column;
+  gap: 18px;
   margin-bottom: 28px;
-  flex-wrap: wrap;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--pf-borde);
+}
+
+.tecnicos-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  background: transparent;
+  border: 1px solid var(--pf-borde);
+  color: var(--pf-muted);
+  font-size: 0.84rem;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: 999px;
+  transition: all 0.2s ease;
+}
+
+.tecnicos-back-btn:hover {
+  color: var(--pf-oro);
+  border-color: rgba(212, 165, 75, 0.28);
+  background: rgba(212, 165, 75, 0.07);
 }
 
 .tecnicos-header-content {

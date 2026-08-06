@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '@services/api';
 import '@styles/technician-dashboard.css';
-import fondoImg from '@assets/images/Fondo2.png';
 
 interface Cita {
   id_cita: number;

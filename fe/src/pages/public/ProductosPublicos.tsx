@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@contexts/AuthContext';
+import { Link } from 'react-router-dom';
 import api from '@services/api';
+import { useCart } from '@contexts/CartContext';
 import '@styles/productos-publicos.css';
-import fondoImg from '@assets/images/Fondo2.png';
 import buscadorIcon from '@assets/images/buscador.png';
 
 interface Producto {
@@ -24,8 +23,7 @@ interface Categoria {
 const FAVORITOS_KEY = 'neodomus_favoritos';
 
 const ProductosPublicos = () => {
-  const { isAuthenticated } = useAuth();
-  const navigate = useNavigate();
+  const { addItem } = useCart();
   const [productos, setProductos] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -126,13 +124,17 @@ const ProductosPublicos = () => {
 
   const handleAddToCart = (id: number) => {
     const producto = productos.find(p => p.id_producto === id);
-    if (!isAuthenticated) {
-      setCartMessage('Debes iniciar sesión para comprar');
-      setTimeout(() => setCartMessage(''), 3000);
-      setTimeout(() => navigate('/login'), 1500);
-      return;
-    }
-    setCartMessage(`${producto?.nombre_producto ?? 'Producto'} agregado al carrito`);
+    if (!producto) return;
+    addItem(
+      {
+        id_producto: producto.id_producto,
+        nombre_producto: producto.nombre_producto,
+        precio_venta_producto: producto.precio_venta_producto,
+        imagen: getImagen(producto),
+      },
+      cantidades[id] || 1
+    );
+    setCartMessage(`${producto.nombre_producto} agregado al carrito`);
     setTimeout(() => setCartMessage(''), 3000);
   };
 
@@ -181,7 +183,7 @@ const ProductosPublicos = () => {
   return (
     <>
       {cartMessage && <div className="cart-toast">{cartMessage}</div>}
-      <main className="productos-page" style={{ backgroundImage: `url(${fondoImg})`, backgroundSize: 'cover' }}>
+      <main className="productos-page">
         <section className="productos">
           <div className="barra-superior">
             <div className="buscador">
@@ -236,17 +238,21 @@ const ProductosPublicos = () => {
                           </svg>
                         </button>
                         <div className="img-producto-wrap">
-                          <img
-                            src={getImagen(producto)}
-                            alt={producto.nombre_producto}
-                            className="img-producto"
-                            loading="lazy"
-                            onError={(e) => (e.currentTarget.src = '/productos/default.png')}
-                          />
+                          <Link to={`/producto/${producto.id_producto}`} aria-label={`Ver detalle de ${producto.nombre_producto}`}>
+                            <img
+                              src={getImagen(producto)}
+                              alt={producto.nombre_producto}
+                              className="img-producto"
+                              loading="lazy"
+                              onError={(e) => (e.currentTarget.src = '/productos/default.png')}
+                            />
+                          </Link>
                         </div>
                       </div>
                       <div className="info-producto">
-                        <h3 className="nombre-producto">{producto.nombre_producto}</h3>
+                        <Link to={`/producto/${producto.id_producto}`} className="nombre-producto-link">
+                          <h3 className="nombre-producto">{producto.nombre_producto}</h3>
+                        </Link>
                         {producto.nombre_categoria && (
                           <span className="categoria-producto">{producto.nombre_categoria}</span>
                         )}

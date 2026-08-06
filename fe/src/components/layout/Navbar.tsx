@@ -1,5 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@contexts/AuthContext";
+import { useAuthModal } from "@contexts/AuthModalContext";
+import { useCart } from "@contexts/CartContext";
 import { useState, useRef, useEffect } from "react";
 import { FaRightFromBracket } from "react-icons/fa6";
 import { getAvatar } from "@utils/profileStorage";
@@ -7,11 +9,14 @@ import { getAvatar } from "@utils/profileStorage";
 import logo from "@assets/images/Logo.jpg";
 import helpIcon from "@assets/images/Icono.png";
 import perfilIcon from "@assets/images/perfil.png";
+import carritoIcon from "@assets/images/Carrito.png";
 
 import "../../styles/navbar.css";
 
 const Navbar = () => {
   const { user, rol, logout } = useAuth();
+  const { openAuth } = useAuthModal();
+  const { totalItems } = useCart();
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -81,9 +86,9 @@ const Navbar = () => {
                 {rol === "cliente" && (
                   <>
                     <Link to="/productos">Productos</Link>
-                    <Link to="/cliente/Tecnicos">Técnicos</Link>
+                    <Link to="/cliente/tecnicos">Técnicos</Link>
                     <Link to="/cliente/citas">Citas</Link>
-                    <Link to="/cliente/Ayuda">Ayuda</Link>
+                    <Link to="/cliente/ayuda">Ayuda</Link>
                   </>
                 )}
 
@@ -109,15 +114,26 @@ const Navbar = () => {
 
           {/* Parte derecha */}
           <div className="nav-right">
+            <button
+              type="button"
+              className="cart-button"
+              onClick={() => navigate('/carrito')}
+              aria-label="Carrito de compras"
+              title="Ver carrito"
+            >
+              <img src={carritoIcon} alt="Carrito" className="cart-icon" />
+              {totalItems > 0 && <span className="cart-badge">{totalItems}</span>}
+            </button>
+
             {!rol ? (
               <>
-                <Link className="btn-register" to="/register">
+                <button type="button" className="btn-register" onClick={() => openAuth('registro')}>
                   Registrarse
-                </Link>
+                </button>
 
-                <Link className="btn-login" to="/login">
+                <button type="button" className="btn-login" onClick={() => openAuth('ingresar')}>
                   Iniciar sesión
-                </Link>
+                </button>
               </>
             ) : (
               <div className="user-menu" ref={dropdownRef}>

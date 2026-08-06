@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@contexts/AuthContext';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   FaUserPen, FaLock, FaBox, FaTruck, FaStar, FaScrewdriverWrench,
   FaCreditCard, FaGlobe, FaBell, FaRightFromBracket, FaXmark, FaCheck,
@@ -9,7 +9,6 @@ import {
 } from 'react-icons/fa6';
 import type { ReactNode } from 'react';
 import '@styles/perfil-cliente.css';
-import fondoImg from '@assets/images/Fondo2.png';
 import perfilIcon from '@assets/images/perfil.png';
 
 import SectionHeader from '@components/profile/SectionHeader';
@@ -63,6 +62,7 @@ type TabId = 'perfil' | 'contrasena' | 'pedidos' | 'mensajes' | 'resenas' | 'tec
 
 const Perfil = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initialTab = (searchParams.get('tab') as TabId) || 'perfil';
   const [activo, setActivo] = useState<TabId>(initialTab);
@@ -202,7 +202,7 @@ const Perfil = () => {
 
   const handleLogout = () => {
     logout();
-    window.location.href = '/login';
+    navigate('/login');
   };
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -428,7 +428,7 @@ const Perfil = () => {
                 <button
                   type="button"
                   className="pf-btn pf-btn-primary pf-favorito-comprar"
-                  onClick={() => window.location.href = `/productos`}
+                  onClick={() => navigate('/productos')}
                 >
                   Ver producto
                 </button>
@@ -441,8 +441,7 @@ const Perfil = () => {
   );
 
   return (
-    <div className="perfil-layout" style={{ backgroundImage: `url(${fondoImg})` }}>
-      <div className="perfil-overlay" />
+    <div className="perfil-layout">
       <div className="perfil-shell">
         {/* ── Navegación lateral ─────────────────────────────── */}
         <aside className="perfil-sidebar">

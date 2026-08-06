@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { FaUserPen, FaCamera, FaPaperPlane } from 'react-icons/fa6';
 import api from '@services/api';
 import { useAuth } from '@contexts/AuthContext';
-import { getAvatar, setAvatar, PF_AVATAR_KEY } from '@utils/profileStorage';
+import { getAvatar, PF_AVATAR_KEY } from '@utils/profileStorage';
 import perfilIcon from '@assets/images/perfil.png';
 import SectionHeader from './SectionHeader';
 

@@ -1,13 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuthModal } from '@contexts/AuthModalContext';
 import api from '@services/api';
 import '@styles/verifyCode.css';
 
 const VerifyCode = () => {
-  const [searchParams] = useSearchParams();
-  const email = searchParams.get('email') || '';
-
-  const navigate = useNavigate();
+  const { email, openAuth } = useAuthModal();
 
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
@@ -56,7 +53,7 @@ const VerifyCode = () => {
         code: fullCode,
       });
 
-      navigate(`/reset-password?token=${fullCode}`);
+      openAuth('restablecer', { token: fullCode });
     } catch (err: any) {
       setError(
         err.response?.data?.detail ||
@@ -111,9 +108,7 @@ const VerifyCode = () => {
         <div className="forgot-back-to-login">
           <button
             type="button"
-            onClick={() =>
-              navigate('/forgot-password')
-            }
+            onClick={() => openAuth('recuperar')}
             className="forgot-back-link"
           >
             ← Volver
@@ -331,7 +326,7 @@ const VerifyCode = () => {
         <div className="forgot-back-to-login">
           <button
             type="button"
-            onClick={() => navigate('/login')}
+            onClick={() => openAuth('ingresar')}
             className="forgot-back-link"
           >
             ← Volver al inicio de sesión

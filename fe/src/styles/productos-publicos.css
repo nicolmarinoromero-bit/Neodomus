@@ -7,22 +7,8 @@
   position: relative;
   min-height: 100vh;
   padding: 40px;
-  background-size: cover;
-  background-position: center;
+  background: #000000;
   overflow: hidden;
-}
-
-/* Fondo desenfocado del catálogo */
-.productos-page::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: inherit;
-  background-size: cover;
-  background-position: center;
-  filter: blur(14px) brightness(0.65);
-  transform: scale(1.05);
-  z-index: 0;
 }
 
 .productos {
@@ -209,6 +195,27 @@
   object-fit: contain;
   filter: drop-shadow(0 14px 20px rgba(0, 0, 0, 0.4));
   transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.img-producto-wrap a {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.nombre-producto-link {
+  text-decoration: none;
+}
+
+.nombre-producto-link .nombre-producto {
+  transition: color 0.25s;
+}
+
+.nombre-producto-link .nombre-producto:hover {
+  color: #ffd700;
 }
 
 .card-producto:hover .img-producto {
@@ -454,6 +461,37 @@
 .page-nav {
   font-size: 22px;
   line-height: 1;
+}
+
+/* ============================================================
+   TOAST (mensaje al agregar al carrito)
+   ============================================================ */
+
+.cart-toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2000;
+  background: linear-gradient(135deg, #ffd700 0%, #d3ac4d 100%);
+  color: #111111;
+  font-weight: 700;
+  font-size: 14.5px;
+  padding: 14px 26px;
+  border-radius: 999px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  animation: cartToastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes cartToastIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
 /* ============================================================

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from typing import Optional, List
 from app.database import get_db
@@ -59,3 +59,17 @@ def listar_productos(
 @router.get("/categorias", response_model=List[CategoriaResponse])
 def listar_categorias(db: Session = Depends(get_db)):
     return db.query(Categoria).all()
+
+@router.get("/{producto_id}", response_model=dict)
+def obtener_producto(producto_id: int, db: Session = Depends(get_db)):
+    p = db.query(Producto).filter(Producto.id_producto == producto_id).first()
+    if not p:
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
+    return ProductoResponse(
+        id_producto=p.id_producto,
+        nombre_producto=p.nombre_producto,
+        precio_venta_producto=p.precio_venta_producto,
+        imagen_url=p.imagen_url,
+        id_cate_pr=p.id_cate_pr,
+        nombre_categoria=p.categoria.nombre_categoria if p.categoria else None
+    ).dict()

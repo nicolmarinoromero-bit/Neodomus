@@ -1,7 +1,7 @@
 
 import "../../styles/forgot-password.css";
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useAuthModal } from '@contexts/AuthModalContext';
 import api from '@services/api';
 
 
@@ -10,7 +10,7 @@ const ForgotPassword = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  const { openAuth } = useAuthModal();
 
   // Función handleSubmit correctamente definida dentro del componente
   const handleSubmit = async (e: React.FormEvent) => {
@@ -29,7 +29,7 @@ const ForgotPassword = () => {
     try {
       await api.post('/auth/forgot-password', { email });
       setMessage('Código enviado. Redirigiendo...');
-      setTimeout(() => navigate(`/verify-code?email=${encodeURIComponent(email)}`), 2000);
+      setTimeout(() => openAuth('verificar-codigo', { email }), 2000);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al enviar la solicitud');
     } finally {
@@ -82,7 +82,7 @@ const ForgotPassword = () => {
           </div>
 
           <div className="forgot-back-to-login">
-            <button type="button" onClick={() => navigate('/login')} className="forgot-back-link">
+            <button type="button" onClick={() => openAuth('ingresar')} className="forgot-back-link">
               ← Volver al inicio de sesión
             </button>
           </div>

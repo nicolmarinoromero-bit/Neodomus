@@ -2,6 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from '@contexts/AuthContext';
+import { AuthModalProvider } from '@contexts/AuthModalContext';
+import { CartProvider } from '@contexts/CartContext';
 import App from './App';
 import './styles/navbar.css'
 
@@ -9,7 +11,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <App />
+        <AuthModalProvider>
+          <CartProvider>
+            <App />
+          </CartProvider>
+        </AuthModalProvider>
       </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>

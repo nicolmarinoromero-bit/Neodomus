@@ -5,8 +5,7 @@ import {
   FaArrowRight, FaPaperPlane, FaLifeRing, FaBook, FaHeadset, FaCircleCheck,
   FaQuestion
 } from 'react-icons/fa6';
-import '@styles/perfil-cliente.css';
-import fondoImg from '@assets/images/Fondo2.png';
+import '@styles/ayuda.css';
 import api from '@services/api';
 
 interface FAQ {
@@ -114,14 +113,17 @@ const AyudaPage = () => {
   ];
 
   return (
-    <div className="ayuda-page" style={{ backgroundImage: `url(${fondoImg})`, backgroundSize: 'cover', minHeight: '100vh' }}>
-      <div className="ayuda-overlay" />
+    <div className="ayuda-page">
       <main className="ayuda-main">
         <header className="ayuda-header">
           <h1 className="ayuda-title">
             <FaLifeRing /> Centro de Ayuda
           </h1>
-          <p className="ayuda-subtitle">Encuentra respuestas rápidas o contáctanos directamente</p>
+          <p className="ayuda-subtitle">
+            {isAuthenticated
+              ? 'Encuentra respuestas rápidas o contáctanos directamente'
+              : 'Encuentra respuestas rápidas o escríbenos directamente, sin necesidad de iniciar sesión'}
+          </p>
         </header>
 
         <nav className="ayuda-tabs" role="tablist" aria-label="Secciones de ayuda">

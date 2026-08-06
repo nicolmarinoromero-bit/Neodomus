@@ -1,22 +1,23 @@
+import { Link } from "react-router-dom";
 import "../../styles/footer.css";
 
 export default function Footer() {
   return (
     <footer className="main-footer">
       <div className="footer-links">
-        <a href="/terminos">Términos de uso</a>
+        <Link to="/terminos">Términos de uso</Link>
 
         <span className="separator">|</span>
 
-        <a href="/privacidad">Política de privacidad</a>
+        <Link to="/privacidad">Política de privacidad</Link>
 
         <span className="separator">|</span>
 
-        <a href="/cookies">Política de cookies</a>
+        <Link to="/cookies">Política de cookies</Link>
 
         <span className="separator">|</span>
 
-        <a href="/contacto">Contacto</a>
+        <Link to="/contacto">Contacto</Link>
       </div>
 
       <p className="footer-copy">

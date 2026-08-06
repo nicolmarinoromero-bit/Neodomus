@@ -134,3 +134,12 @@ h2 { margin-bottom: 5px; font-size: 24px; color: #ffffff; }
 .register-gold-link { color: #ffd700; font-weight: bold; text-decoration: none; margin-left: 5px; }
 
 .error-message { color: #ff4d4d; font-size: 12px; margin-bottom: 10px; }
+/* Reset para enlaces convertidos a botones (modal por estado) */
+button.forgot-password-link,
+button.register-gold-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
