@@ -5,6 +5,7 @@ import {
   FaArrowTrendUp,
   FaCircleInfo,
 } from 'react-icons/fa6';
+import { useIdioma } from '@i18n/IdiomaContext';
 import '@styles/notificaciones.css';
 
 type TipoNotificacion = 'confirmacion' | 'pedido' | 'promocion' | 'novedad' | 'sistema';
@@ -63,14 +64,24 @@ const NOTIFICACIONES: Notificacion[] = [
   },
 ];
 
+const ETIQUETA_TRAD: Record<TipoNotificacion, string> = {
+  confirmacion: 'notif.etiquetaConfirmacion',
+  pedido: 'notif.etiquetaPedido',
+  promocion: 'notif.etiquetaPromocion',
+  novedad: 'notif.etiquetaNovedad',
+  sistema: 'notif.etiquetaSistema',
+};
+
 const Notificaciones = () => {
+  const { t } = useIdioma();
+
   return (
     <main className="notif-page app-glass">
       <section className="notif-content">
         <header className="notif-header">
           <div>
-            <h1>Notificaciones</h1>
-            <p>Entérate de tus citas, pedidos, promociones y novedades de la plataforma.</p>
+            <h1>{t('notif.titulo')}</h1>
+            <p>{t('notif.subtitulo')}</p>
           </div>
         </header>
 
@@ -82,7 +93,7 @@ const Notificaciones = () => {
                 <div className="notif-item-icon">{meta.icono}</div>
                 <div className="notif-item-body">
                   <div className="notif-item-top">
-                    <span className="notif-badge">{meta.etiqueta}</span>
+                    <span className="notif-badge">{t(ETIQUETA_TRAD[notificacion.tipo])}</span>
                     <span className="notif-fecha">{notificacion.fecha}</span>
                   </div>
                   <h3 className="notif-titulo">{notificacion.titulo}</h3>

@@ -16,6 +16,7 @@ from app.models.email_verification_token import EmailVerificationToken
 from app.models.password_reset_token import PasswordResetToken
 from app.models.pending_registration import PendingRegistration
 from app.models.roles_usuario import RolesUsuario
+from app.models.solicitud_cuenta import SolicitudCuenta
 from app.models.user import User
 from app.schemas.auth import (
     ChangePasswordRequest,
@@ -125,6 +126,34 @@ async def resend_verification_code(db: Session, email: str) -> dict:
     return {"msg": "Nuevo código enviado"}
 
 # ──────────────────────────────────────────────────────────────────
+# 📨 Solicitud de habilitación de cuenta (cuenta inhabilitada)
+# ──────────────────────────────────────────────────────────────────
+
+def solicitar_habilitacion(db: Session, email: str, password: str) -> dict:
+    """Verifica las credenciales del cliente y crea una solicitud de
+    habilitación para que el administrador la apruebe. La cuenta NO
+    se habilita automáticamente."""
+    client = _get_client_by_email(db, email)
+    if not client or not verify_password(password, client.password_hash):
+        raise HTTPException(401, "Credenciales inválidas")
+    if client.is_active:
+        raise HTTPException(400, "Tu cuenta ya está activa")
+    pendiente = (
+        db.query(SolicitudCuenta)
+        .filter(
+            SolicitudCuenta.id_cliente == client.id_cliente,
+            SolicitudCuenta.estado == "pendiente",
+        )
+        .first()
+    )
+    if pendiente:
+        raise HTTPException(400, "Ya tienes una solicitud pendiente de revisión")
+    solicitud = SolicitudCuenta(id_cliente=client.id_cliente, tipo="habilitar", estado="pendiente")
+    db.add(solicitud)
+    db.commit()
+    return {"msg": "Solicitud de habilitación enviada al administrador"}
+
+# ──────────────────────────────────────────────────────────────────
 # 🔐 Login unificado (con rol)
 # ──────────────────────────────────────────────────────────────────
 
@@ -157,7 +186,7 @@ def login(db: Session, login_data: UserLogin) -> TokenResponse:
             raise HTTPException(401, "Credenciales inválidas")
         if not client.is_active:
             log_login_failed(email, "account_inactive", "client")
-            raise HTTPException(403, "Cuenta no verificada o desactivada")
+            raise HTTPException(403, "Tu cuenta está inhabilitada")
         log_login_success(email, "client")
         return _create_tokens(email, "client", rol="cliente")
 
@@ -166,7 +195,7 @@ def login(db: Session, login_data: UserLogin) -> TokenResponse:
     if client and verify_password(password, client.password_hash):
         if not client.is_active:
             log_login_failed(email, "account_inactive", "client")
-            raise HTTPException(403, "Cuenta no verificada o desactivada")
+            raise HTTPException(403, "Tu cuenta está inhabilitada")
         log_login_success(email, "client")
         return _create_tokens(email, "client", rol="cliente")
 

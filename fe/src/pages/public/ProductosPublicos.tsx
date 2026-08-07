@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '@services/api';
 import { useCart } from '@contexts/CartContext';
+import { useIdioma } from '@i18n/IdiomaContext';
 import '@styles/productos-publicos.css';
 import buscadorIcon from '@assets/images/buscador.png';
 
@@ -24,6 +25,7 @@ const FAVORITOS_KEY = 'neodomus_favoritos';
 
 const ProductosPublicos = () => {
   const { addItem } = useCart();
+  const { t } = useIdioma();
   const [productos, setProductos] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -134,7 +136,7 @@ const ProductosPublicos = () => {
       },
       cantidades[id] || 1
     );
-    setCartMessage(`${producto.nombre_producto} agregado al carrito`);
+    setCartMessage(t('productos.agregadoMsg', { nombre: producto.nombre_producto }));
     setTimeout(() => setCartMessage(''), 3000);
   };
 
@@ -177,7 +179,7 @@ const ProductosPublicos = () => {
     return rangeWithDots;
   };
 
-  if (loading) return <div className="loading">Cargando productos...</div>;
+  if (loading) return <div className="loading">{t('common.cargando')}</div>;
   if (error) return <div className="error">{error}</div>;
 
   return (
@@ -188,7 +190,7 @@ const ProductosPublicos = () => {
           <div className="barra-superior">
             <div className="buscador">
               <img src={buscadorIcon} alt="" className="icono-buscar" />
-              <input type="text" placeholder="Buscar producto" value={searchTerm} onChange={handleSearchChange} />
+              <input type="text" placeholder={t('productos.buscarProducto')} value={searchTerm} onChange={handleSearchChange} />
             </div>
             <div className="controls-right">
               <select className="select-paginas" value={itemsPerPage} onChange={handleItemsPerPageChange}>
@@ -210,13 +212,13 @@ const ProductosPublicos = () => {
           </div>
 
           {currentProductos.length === 0 ? (
-            <div className="loading">No hay productos que coincidan.</div>
+            <div className="loading">{t('productos.sinResultados')}</div>
           ) : (
             <>
               <div className="productos-header">
                 <div>
-                  <h1>Productos</h1>
-                  <p>Encuentra todo lo que necesitas para tu hogar inteligente</p>
+                  <h1>{t('nav.productos')}</h1>
+                  <p>{t('productos.subtitulo')}</p>
                 </div>
               </div>
 
@@ -230,8 +232,8 @@ const ProductosPublicos = () => {
                           type="button"
                           className={`btn-favorito ${esFavorito ? 'activo' : ''}`}
                           onClick={() => toggleFavorito(producto.id_producto)}
-                          aria-label={esFavorito ? 'Quitar de favoritos' : 'Agregar a favoritos'}
-                          title={esFavorito ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+                          aria-label={esFavorito ? t('productos.quitarFavoritos') : t('productos.agregarFavoritos')}
+                          title={esFavorito ? t('productos.quitarFavoritos') : t('productos.agregarFavoritos')}
                         >
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
@@ -270,7 +272,7 @@ const ProductosPublicos = () => {
                             className="btn-agregar"
                             onClick={() => handleAddToCart(producto.id_producto)}
                           >
-                            <span>Agregar al carrito</span>
+                            <span>{t('productos.agregarCarrito')}</span>
                             <svg className="icono-carrito" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <circle cx="9" cy="21" r="1" />
                               <circle cx="20" cy="21" r="1" />

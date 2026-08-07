@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@contexts/AuthContext';
+import { useIdioma } from '@i18n/IdiomaContext';
 import {
   FaEnvelope, FaPhone, FaClock, FaLocationDot,
   FaArrowRight, FaPaperPlane, FaLifeRing, FaBook, FaHeadset, FaCircleCheck,
@@ -24,6 +25,7 @@ interface ConsultaForm {
 
 const AyudaPage = () => {
   const { user, isAuthenticated } = useAuth();
+  const { t } = useIdioma();
   const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [loadingFAQs, setLoadingFAQs] = useState(true);
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null);
@@ -117,23 +119,23 @@ const AyudaPage = () => {
       <main className="ayuda-main">
         <header className="ayuda-header">
           <h1 className="ayuda-title">
-            <FaLifeRing /> Centro de Ayuda
+            <FaLifeRing /> {t('ayuda.centro')}
           </h1>
           <p className="ayuda-subtitle">
             {isAuthenticated
-              ? 'Encuentra respuestas rápidas o contáctanos directamente'
-              : 'Encuentra respuestas rápidas o escríbenos directamente, sin necesidad de iniciar sesión'}
+              ? t('ayuda.subLogueado')
+              : t('ayuda.subPublico')}
           </p>
         </header>
 
-        <nav className="ayuda-tabs" role="tablist" aria-label="Secciones de ayuda">
+        <nav className="ayuda-tabs" role="tablist" aria-label={t('ayuda.seccionesLabel')}>
           <button
             role="tab"
             aria-selected={activeTab === 'faq'}
             className={`ayuda-tab ${activeTab === 'faq' ? 'active' : ''}`}
             onClick={() => setActiveTab('faq')}
           >
-            <FaQuestion /> Preguntas frecuentes
+            <FaQuestion /> {t('ayuda.preguntasFrec')}
           </button>
           <button
             role="tab"
@@ -141,7 +143,7 @@ const AyudaPage = () => {
             className={`ayuda-tab ${activeTab === 'contacto' ? 'active' : ''}`}
             onClick={() => setActiveTab('contacto')}
           >
-            <FaHeadset /> Contacto
+            <FaHeadset /> {t('ayuda.contacto')}
           </button>
           <button
             role="tab"
@@ -149,7 +151,7 @@ const AyudaPage = () => {
             className={`ayuda-tab ${activeTab === 'formulario' ? 'active' : ''}`}
             onClick={() => setActiveTab('formulario')}
           >
-            <FaPaperPlane /> Enviar consulta
+            <FaPaperPlane /> {t('ayuda.enviarConsulta')}
           </button>
         </nav>
 
@@ -157,7 +159,7 @@ const AyudaPage = () => {
           {activeTab === 'faq' && (
             <section className="ayuda-faq">
               {loadingFAQs ? (
-                <div className="ayuda-loading">Cargando preguntas...</div>
+                <div className="ayuda-loading">{t('ayuda.cargandoPreguntas')}</div>
               ) : (
                 <div className="ayuda-faq-grid">
                   {Object.entries(faqsPorCategoria).map(([categoria, items]) => (
@@ -188,9 +190,9 @@ const AyudaPage = () => {
                 </div>
               )}
               <div className="ayuda-faq-cta">
-                <p>¿No encontraste tu respuesta?</p>
+                <p>{t('ayuda.noEncontraste')}</p>
                 <button className="ayuda-btn ayuda-btn-primary" onClick={() => setActiveTab('formulario')}>
-                  <FaPaperPlane /> Enviar una pregunta
+                  <FaPaperPlane /> {t('ayuda.enviarUnaPregunta')}
                 </button>
               </div>
             </section>
@@ -209,9 +211,9 @@ const AyudaPage = () => {
                 ))}
               </div>
               <div className="ayuda-contacto-extra">
-                <h3>Canales adicionales</h3>
+                <h3>{t('ayuda.canalesExtra')}</h3>
                 <ul className="ayuda-contacto-lista">
-                  <li><FaCircleCheck /> Chat en vivo (próximamente)</li>
+                  <li><FaCircleCheck /> {t('ayuda.chatEnVivo')}</li>
                   <li><FaCircleCheck /> WhatsApp Business: +57 300 123 4567</li>
                   <li><FaCircleCheck /> Redes sociales: @NeodomusOficial</li>
                 </ul>

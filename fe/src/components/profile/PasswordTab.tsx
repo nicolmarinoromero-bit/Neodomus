@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FaKey, FaCheck, FaEye, FaEyeSlash } from 'react-icons/fa6';
+import { FaKey, FaCheck, FaXmark, FaEye, FaEyeSlash } from 'react-icons/fa6';
 import api from '@services/api';
 import SectionHeader from './SectionHeader';
 import { NotifyFn } from './PersonalTab';
@@ -8,16 +8,33 @@ interface PasswordTabProps {
   notify: NotifyFn;
 }
 
-const strengthContrasena = (value: string): { etiqueta: string; clase: number; ratio: number } => {
-  let puntos = 0;
-  if (value.length >= 6) puntos += 1;
-  if (value.length >= 10) puntos += 1;
-  if (/[A-Z]/.test(value) && /[a-z]/.test(value)) puntos += 1;
-  if (/\d/.test(value) && /[^A-Za-z0-9]/.test(value)) puntos += 1;
-  const etiquetas = ['Muy corta', 'Débil', 'Aceptable', 'Buena', 'Excelente'];
-  const ratio = (Math.min(puntos, 4) + 1) / 5;
-  return { etiqueta: etiquetas[Math.min(puntos, etiquetas.length - 1)], clase: puntos, ratio };
-};
+interface PasswordReqs {
+  length: boolean;
+  uppercase: boolean;
+  lowercase: boolean;
+  number: boolean;
+  special: boolean;
+}
+
+const REQ_SPECIAL = /[!@#$%^&*(),.?":{}|<>]/;
+
+const evaluarRequisitos = (value: string): PasswordReqs => ({
+  length: value.length >= 8,
+  uppercase: /[A-Z]/.test(value),
+  lowercase: /[a-z]/.test(value),
+  number: /\d/.test(value),
+  special: REQ_SPECIAL.test(value),
+});
+
+const REQUISITOS: { key: keyof PasswordReqs; label: string }[] = [
+  { key: 'length', label: 'Mínimo 8 caracteres' },
+  { key: 'uppercase', label: 'Al menos una mayúscula' },
+  { key: 'lowercase', label: 'Al menos una minúscula' },
+  { key: 'number', label: 'Al menos un número' },
+  { key: 'special', label: 'Al menos un símbolo (!@#$…)' },
+];
+
+const bloquearPegado = (e: React.ClipboardEvent<HTMLInputElement>) => e.preventDefault();
 
 const PasswordTab = ({ notify }: PasswordTabProps) => {
   const [actual, setActual] = useState('');
@@ -26,20 +43,19 @@ const PasswordTab = ({ notify }: PasswordTabProps) => {
   const [mostrar, setMostrar] = useState(false);
   const [guardando, setGuardando] = useState(false);
 
-  const fortaleza = strengthContrasena(nueva);
+  const reqs = evaluarRequisitos(nueva);
+  const todosValidos = Object.values(reqs).every(Boolean);
+  const botonListo =
+    actual.trim().length > 0 &&
+    todosValidos &&
+    confirmar.length > 0 &&
+    nueva === confirmar &&
+    nueva !== actual;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (nueva !== confirmar) {
-      notify('Las nuevas contraseñas no coinciden', 'error');
-      return;
-    }
-    if (nueva.length < 6) {
-      notify('La nueva contraseña debe tener al menos 6 caracteres', 'error');
-      return;
-    }
-    if (actual === nueva) {
-      notify('La nueva contraseña debe ser diferente a la actual', 'error');
+    if (!botonListo) {
+      notify('Completa todas las validaciones de la contraseña', 'error');
       return;
     }
     setGuardando(true);
@@ -65,7 +81,7 @@ const PasswordTab = ({ notify }: PasswordTabProps) => {
       <SectionHeader
         icon={<FaKey />}
         title="Cambiar contraseña"
-        subtitle="Actualiza tu contraseña. Debe tener al menos 6 caracteres."
+        subtitle="Debe tener al menos 8 caracteres, mayúsculas, minúsculas, números y símbolos. No se permite copiar ni pegar."
       />
 
       <form className="pf-form pf-form-limited" onSubmit={handleSubmit}>
@@ -78,6 +94,8 @@ const PasswordTab = ({ notify }: PasswordTabProps) => {
               type={mostrar ? 'text' : 'password'}
               value={actual}
               onChange={(e) => setActual(e.target.value)}
+              onCopy={bloquearPegado}
+              onPaste={bloquearPegado}
               required
               autoComplete="current-password"
             />
@@ -92,6 +110,8 @@ const PasswordTab = ({ notify }: PasswordTabProps) => {
               type={mostrar ? 'text' : 'password'}
               value={nueva}
               onChange={(e) => setNueva(e.target.value)}
+              onCopy={bloquearPegado}
+              onPaste={bloquearPegado}
               required
               autoComplete="new-password"
             />
@@ -105,11 +125,15 @@ const PasswordTab = ({ notify }: PasswordTabProps) => {
             </button>
           </div>
           {nueva && (
-            <div className="pf-strength">
-              <div className="pf-strength-bar">
-                <span style={{ width: `${fortaleza.ratio * 100}%` }} className={`lvl-${fortaleza.clase}`} />
-              </div>
-              <span className="pf-strength-label">{fortaleza.etiqueta}</span>
+            <div className="pf-pass-requirements">
+              <p className="pf-pass-requirements-title">La contraseña debe cumplir:</p>
+              <ul>
+                {REQUISITOS.map((req) => (
+                  <li key={req.key} className={reqs[req.key] ? 'valid' : 'invalid'}>
+                    {reqs[req.key] ? <FaCheck /> : <FaXmark />} {req.label}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </div>
@@ -122,13 +146,18 @@ const PasswordTab = ({ notify }: PasswordTabProps) => {
               type={mostrar ? 'text' : 'password'}
               value={confirmar}
               onChange={(e) => setConfirmar(e.target.value)}
+              onCopy={bloquearPegado}
+              onPaste={bloquearPegado}
               required
               autoComplete="new-password"
             />
           </div>
+          {confirmar && nueva !== confirmar && (
+            <p className="pf-pass-match-error">Las contraseñas no coinciden</p>
+          )}
         </div>
         <div className="pf-form-actions">
-          <button type="submit" className="pf-btn pf-btn-primary" disabled={guardando}>
+          <button type="submit" className="pf-btn pf-btn-primary" disabled={guardando || !botonListo}>
             <FaCheck /> {guardando ? 'Actualizando…' : 'Actualizar contraseña'}
           </button>
         </div>

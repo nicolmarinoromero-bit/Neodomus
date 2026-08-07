@@ -6,3 +6,5 @@ from .email_verification_token import EmailVerificationToken
 from .producto import Producto
 from .categoria import Categoria
 from .pending_registration import PendingRegistration
+from .cita import Cita
+from .solicitud_cuenta import SolicitudCuenta

@@ -3,6 +3,7 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import { FaArrowLeft, FaHeart, FaCheck, FaTruckFast, FaShieldHalved, FaRotateLeft } from 'react-icons/fa6';
 import api from '@services/api';
 import { useCart } from '@contexts/CartContext';
+import { useIdioma } from '@i18n/IdiomaContext';
 import '@styles/producto-detalle.css';
 
 interface Producto {
@@ -118,6 +119,7 @@ const ProductoDetalle = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addItem } = useCart();
+  const { t } = useIdioma();
 
   const [producto, setProducto] = useState<Producto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -210,7 +212,7 @@ const ProductoDetalle = () => {
       },
       cantidad
     );
-    showToast(`${cantidad} x ${producto.nombre_producto} agregado al carrito`);
+    showToast(`${cantidad} x ${producto.nombre_producto} ${t('productos.agregadoAlCarrito')}`);
   };
 
   return (
@@ -218,11 +220,11 @@ const ProductoDetalle = () => {
       {toast && <div className="detalle-toast">{toast}</div>}
       <main className="detalle-main">
         <button type="button" className="detalle-back-btn" onClick={() => navigate('/productos')}>
-          <FaArrowLeft /> Volver a productos
+          <FaArrowLeft /> {t('carrito.volverProductos')}
         </button>
 
-        <nav className="detalle-breadcrumb" aria-label="Ruta de navegación">
-          <Link to="/productos">Productos</Link>
+        <nav className="detalle-breadcrumb" aria-label={t('detalle.ruta')}>
+          <Link to="/productos">{t('nav.productos')}</Link>
           <span className="detalle-breadcrumb-sep">/</span>
           <span className="detalle-breadcrumb-cat">{categoria}</span>
           <span className="detalle-breadcrumb-sep">/</span>
@@ -235,8 +237,8 @@ const ProductoDetalle = () => {
               type="button"
               className={`detalle-fav-btn ${esFavorito ? 'activo' : ''}`}
               onClick={toggleFavorito}
-              aria-label={esFavorito ? 'Quitar de favoritos' : 'Agregar a favoritos'}
-              title={esFavorito ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+              aria-label={esFavorito ? t('productos.quitarFavoritos') : t('productos.agregarFavoritos')}
+              title={esFavorito ? t('productos.quitarFavoritos') : t('productos.agregarFavoritos')}
             >
               <FaHeart />
             </button>

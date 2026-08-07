@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@contexts/AuthContext';
+import { useIdioma } from '@i18n/IdiomaContext';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   FaUserPen, FaLock, FaBox, FaTruck, FaStar, FaScrewdriverWrench,
   FaCreditCard, FaGlobe, FaBell, FaRightFromBracket, FaXmark, FaCheck,
-  FaCamera, FaUser, FaFloppyDisk, FaHeart,
+  FaCamera, FaUser, FaFloppyDisk, FaHeart, FaUserSlash, FaHourglassHalf,
 } from 'react-icons/fa6';
 import type { ReactNode } from 'react';
 import '@styles/perfil-cliente.css';
@@ -62,6 +63,7 @@ type TabId = 'perfil' | 'contrasena' | 'pedidos' | 'mensajes' | 'resenas' | 'tec
 
 const Perfil = () => {
   const { user, logout } = useAuth();
+  const { t } = useIdioma();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initialTab = (searchParams.get('tab') as TabId) || 'perfil';
@@ -69,6 +71,9 @@ const Perfil = () => {
   const [toast, setToast] = useState<ToastState>(null);
   const [tick, setTick] = useState(0);
   const [confirmarSalida, setConfirmarSalida] = useState(false);
+  const [confirmarInhabilitar, setConfirmarInhabilitar] = useState(false);
+  const [enviandoSolicitud, setEnviandoSolicitud] = useState(false);
+  const [solicitudEstado, setSolicitudEstado] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Estado para favoritos
@@ -164,32 +169,32 @@ const Perfil = () => {
   const grupos: NavGroup[] = useMemo(
     () => [
       {
-        label: 'Cuenta',
+        label: t('perfil.cuenta'),
         items: [
-          { id: 'perfil', label: 'Mi perfil', icon: <FaUser /> },
-          { id: 'contrasena', label: 'Cambiar contraseña', icon: <FaLock /> },
+          { id: 'perfil', label: t('perfil.miPerfil'), icon: <FaUser /> },
+          { id: 'contrasena', label: t('perfil.cambiarContrasena'), icon: <FaLock /> },
         ],
       },
       {
-        label: 'Mi actividad',
+        label: t('perfil.miActividad'),
         items: [
-          { id: 'pedidos', label: 'Mis pedidos', icon: <FaBox /> },
-          { id: 'favoritos', label: 'Mis favoritos', icon: <FaHeart /> },
-          { id: 'mensajes', label: 'Mis mensajes', icon: <FaTruck />, badge: noLeidas },
-          { id: 'resenas', label: 'Mis reseñas', icon: <FaStar /> },
-          { id: 'tecnicos', label: 'Mis técnicos', icon: <FaScrewdriverWrench /> },
+          { id: 'pedidos', label: t('perfil.misPedidos'), icon: <FaBox /> },
+          { id: 'favoritos', label: t('perfil.misFavoritos'), icon: <FaHeart /> },
+          { id: 'mensajes', label: t('perfil.misMensajes'), icon: <FaTruck />, badge: noLeidas },
+          { id: 'resenas', label: t('perfil.misResenas'), icon: <FaStar /> },
+          { id: 'tecnicos', label: t('perfil.misTecnicos'), icon: <FaScrewdriverWrench /> },
         ],
       },
       {
-        label: 'Preferencias',
+        label: t('perfil.preferencias'),
         items: [
-          { id: 'pagos', label: 'Métodos de pago', icon: <FaCreditCard /> },
-          { id: 'idioma', label: 'Idioma', icon: <FaGlobe /> },
-          { id: 'notificaciones', label: 'Notificaciones', icon: <FaBell /> },
+          { id: 'pagos', label: t('perfil.metodosDePago'), icon: <FaCreditCard /> },
+          { id: 'idioma', label: t('perfil.idioma'), icon: <FaGlobe /> },
+          { id: 'notificaciones', label: t('perfil.notificaciones'), icon: <FaBell /> },
         ],
       },
     ],
-    [noLeidas]
+    [noLeidas, t]
   );
 
   const tituloSeccion = useMemo(() => {
@@ -197,12 +202,36 @@ const Perfil = () => {
       const item = g.items.find((i) => i.id === activo);
       if (item) return item.label;
     }
-    return 'Mi perfil';
-  }, [grupos, activo]);
+    return t('perfil.miPerfil');
+  }, [grupos, activo, t]);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  // Estado de la solicitud de inhabilitación
+  useEffect(() => {
+    api
+      .get<{ estado: string }>('/clients/me/cuenta-solicitud')
+      .then((res) => setSolicitudEstado(res.data.estado))
+      .catch(() => setSolicitudEstado(null));
+  }, []);
+
+  const handleSolicitarInhabilitacion = async () => {
+    setEnviandoSolicitud(true);
+    try {
+      await api.post('/clients/me/cuenta-solicitud', { tipo: 'inhabilitar' });
+      setSolicitudEstado('pendiente');
+      setConfirmarInhabilitar(false);
+      notify('Solicitud de inhabilitación enviada al administrador', 'success');
+    } catch (err: any) {
+      console.error(err);
+      notify(err.response?.data?.detail || 'No se pudo enviar la solicitud', 'error');
+      setConfirmarInhabilitar(false);
+    } finally {
+      setEnviandoSolicitud(false);
+    }
   };
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -262,31 +291,31 @@ const Perfil = () => {
     <div className="pf-tab">
       <SectionHeader
         icon={<FaUserPen />}
-        title="Mi perfil"
-        subtitle="Visualiza y edita tu información personal y foto de perfil."
+        title={t('perfil.miPerfil')}
+        subtitle={t('perfil.perfilTabSub')}
       />
 
       <div className="pf-avatar-zone">
         <div className="pf-avatar-big">
-          <img src={avatar} alt="Foto de perfil" />
+          <img src={avatar} alt={t('perfil.fotoPerfil')} />
           <button
             type="button"
             className="pf-avatar-camera"
-            aria-label="Cambiar foto de perfil"
+            aria-label={t('perfil.cambiarFotoAria')}
             onClick={() => fileInputRef.current?.click()}
           >
             <FaCamera />
           </button>
         </div>
         <div className="pf-avatar-text">
-          <strong>Foto de perfil</strong>
-          <span>PNG o JPG, máximo 4 MB.</span>
+          <strong>{t('perfil.fotoPerfil')}</strong>
+          <span>{t('perfil.fotoPerfilHint')}</span>
           <button
             type="button"
             className="pf-btn pf-btn-ghost"
             onClick={() => fileInputRef.current?.click()}
           >
-            <FaCamera /> Cambiar foto
+            <FaCamera /> {t('perfil.cambiarFoto')}
           </button>
           <input
             ref={fileInputRef}
@@ -301,31 +330,31 @@ const Perfil = () => {
       <form onSubmit={handleSaveProfile} className="pf-form">
         <div className="pf-form-grid">
           <div className="pf-form-group">
-            <label className="pf-form-label" htmlFor="pf-nombre">Nombre</label>
+            <label className="pf-form-label" htmlFor="pf-nombre">{t('perfil.nombre')}</label>
             <input
               id="pf-nombre"
               className="pf-form-input"
               type="text"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
-              placeholder="Tu nombre"
+              placeholder={t('perfil.placeholderNombre')}
               required
             />
           </div>
           <div className="pf-form-group">
-            <label className="pf-form-label" htmlFor="pf-apellido">Apellidos</label>
+            <label className="pf-form-label" htmlFor="pf-apellido">{t('perfil.apellidos')}</label>
             <input
               id="pf-apellido"
               className="pf-form-input"
               type="text"
               value={apellido}
               onChange={(e) => setApellido(e.target.value)}
-              placeholder="Tus apellidos"
+              placeholder={t('perfil.placeholderApellidos')}
               required
             />
           </div>
           <div className="pf-form-group">
-            <label className="pf-form-label" htmlFor="pf-email">Correo electrónico</label>
+            <label className="pf-form-label" htmlFor="pf-email">{t('perfil.correoElectronico')}</label>
             <input
               id="pf-email"
               className="pf-form-input"
@@ -336,34 +365,54 @@ const Perfil = () => {
             />
           </div>
           <div className="pf-form-group">
-            <label className="pf-form-label" htmlFor="pf-telefono">Teléfono</label>
+            <label className="pf-form-label" htmlFor="pf-telefono">{t('perfil.telefono')}</label>
             <input
               id="pf-telefono"
               className="pf-form-input"
               type="tel"
               value={telefono}
               onChange={(e) => setTelefono(e.target.value)}
-              placeholder="Ej: 3001234567"
+              placeholder={t('perfil.placeholderTelefono')}
             />
           </div>
           <div className="pf-form-group pf-form-span">
-            <label className="pf-form-label" htmlFor="pf-direccion">Dirección de residencia</label>
+            <label className="pf-form-label" htmlFor="pf-direccion">{t('perfil.direccionResidencia')}</label>
             <input
               id="pf-direccion"
               className="pf-form-input"
               type="text"
               value={direccion}
               onChange={(e) => setDireccion(e.target.value)}
-              placeholder="Calle, carrera, número y complemento"
+              placeholder={t('perfil.placeholderDireccion')}
             />
           </div>
         </div>
         <div className="pf-form-actions">
           <button type="submit" className="pf-btn pf-btn-primary" disabled={guardando}>
-            <FaFloppyDisk /> {guardando ? 'Guardando…' : 'Guardar cambios'}
+            <FaFloppyDisk /> {guardando ? t('perfil.guardando') : t('perfil.guardarCambios')}
           </button>
         </div>
       </form>
+
+      <div className="pf-danger-zone">
+        <span className="pf-danger-icon"><FaUserSlash /></span>
+        <div className="pf-danger-info">
+          <h3>{t('perfil.inhabilitarCuenta')}</h3>
+          <p>
+            {t('perfil.inhabilitarInfo')}
+            {solicitudEstado === 'pendiente' && t('perfil.solicitudPendiente')}
+            {solicitudEstado === 'rechazada' && t('perfil.solicitudRechazada')}
+          </p>
+        </div>
+        <button
+          type="button"
+          className="pf-btn pf-btn-danger"
+          onClick={() => setConfirmarInhabilitar(true)}
+          disabled={solicitudEstado === 'pendiente'}
+        >
+          <FaUserSlash /> {t('perfil.inhabilitarCuenta')}
+        </button>
+      </div>
     </div>
   );
 
@@ -371,22 +420,22 @@ const Perfil = () => {
     <div className="pf-tab">
       <SectionHeader
         icon={<FaHeart />}
-        title="Mis favoritos"
-        subtitle="Productos que has guardado para comprarlos más tarde."
+        title={t('perfil.misFavoritos')}
+        subtitle={t('perfil.favoritosTabSub')}
       />
 
       {favoritosLoading ? (
         <div className="pf-empty">
           <div className="pf-empty-icon">⏳</div>
-          <p>Cargando favoritos...</p>
+          <p>{t('common.cargando')}</p>
         </div>
       ) : productosFavoritos.length === 0 ? (
         <div className="pf-empty">
           <div className="pf-empty-icon">
             <FaHeart />
           </div>
-          <p>No tienes productos en favoritos aún.</p>
-          <p style={{ fontSize: '0.8rem', marginTop: '8px' }}>Navega por el catálogo y marca productos con el corazón.</p>
+          <p>{t('perfil.favoritosVacios')}</p>
+          <p style={{ fontSize: '0.8rem', marginTop: '8px' }}>{t('perfil.favoritosVaciosHint')}</p>
         </div>
       ) : (
         <div className="pf-favoritos-grid">
@@ -408,10 +457,10 @@ const Perfil = () => {
                     next.delete(producto.id_producto);
                     setFavoritos(next);
                     localStorage.setItem(FAVORITOS_KEY, JSON.stringify([...next]));
-                    notify('Eliminado de favoritos', 'info');
+                    notify(t('perfil.eliminadoFavoritos'), 'info');
                   }}
-                  aria-label="Quitar de favoritos"
-                  title="Quitar de favoritos"
+                  aria-label={t('perfil.quitarDeFavoritos')}
+                  title={t('perfil.quitarDeFavoritos')}
                 >
                   <FaHeart style={{ color: '#e5484d' }} />
                 </button>
@@ -430,7 +479,7 @@ const Perfil = () => {
                   className="pf-btn pf-btn-primary pf-favorito-comprar"
                   onClick={() => navigate('/productos')}
                 >
-                  Ver producto
+                  {t('perfil.verProducto')}
                 </button>
               </div>
             </div>
@@ -447,14 +496,14 @@ const Perfil = () => {
         <aside className="perfil-sidebar">
           <div className="pf-usuario-card">
             <span className="pf-avatar-wrap">
-              <img src={avatar} alt="Tu foto de perfil" className="pf-avatar-img" />
+              <img src={avatar} alt={t('perfil.tuFotoPerfil')} className="pf-avatar-img" />
             </span>
             <strong className="pf-usuario-nombre">{nombreCompleto}</strong>
             <span className="pf-usuario-correo">{correoUsuario}</span>
-            <span className="pf-rol-badge">Cuenta de cliente</span>
+            <span className="pf-rol-badge">{t('perfil.cuentaCliente')}</span>
           </div>
 
-          <nav className="pf-nav" aria-label="Secciones del perfil">
+          <nav className="pf-nav" aria-label={t('perfil.seccionesLabel')}>
             {grupos.map((grupo) => (
               <div className="pf-nav-group" key={grupo.label}>
                 <span className="pf-nav-group-title">{grupo.label}</span>
@@ -475,7 +524,7 @@ const Perfil = () => {
           </nav>
 
           <button type="button" className="pf-logout-btn" onClick={() => setConfirmarSalida(true)}>
-            <FaRightFromBracket /> Cerrar sesión
+            <FaRightFromBracket /> {t('nav.cerrarSesion')}
           </button>
         </aside>
 
@@ -483,8 +532,8 @@ const Perfil = () => {
         <main className="perfil-content">
           <header className="pf-content-header">
             <div>
-              <h1 className="pf-content-title">Mi perfil</h1>
-              <p className="pf-content-subtitle">Administra tu cuenta y tus actividades en un solo lugar.</p>
+              <h1 className="pf-content-title">{t('perfil.miPerfil')}</h1>
+              <p className="pf-content-subtitle">{t('perfil.subtituloHeader')}</p>
             </div>
             <span className="pf-breadcrumb">{tituloSeccion}</span>
           </header>
@@ -541,6 +590,25 @@ const Perfil = () => {
               <button type="button" className="pf-btn pf-btn-ghost" onClick={() => setConfirmarSalida(false)}>Cancelar</button>
               <button type="button" className="pf-btn pf-btn-danger" onClick={handleLogout}>
                 <FaRightFromBracket /> Cerrar sesión
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal inhabilitar cuenta ─────────────────────────── */}
+      {confirmarInhabilitar && (
+        <div className="pf-modal-backdrop" onClick={() => !enviandoSolicitud && setConfirmarInhabilitar(false)}>
+          <div className="pf-modal pf-modal-small" onClick={(e) => e.stopPropagation()}>
+            <div className="pf-modal-header">
+              <h3>Inhabilitar cuenta</h3>
+              <button type="button" className="pf-modal-close" onClick={() => setConfirmarInhabilitar(false)} aria-label="Cerrar" disabled={enviandoSolicitud}>×</button>
+            </div>
+            <p className="pf-modal-text">¿Deseas enviar una solicitud de inhabilitación a tu cuenta? Un administrador deberá aprobarla antes de que quede inhabilitada. Podrás solicitar su habilitación más adelante.</p>
+            <div className="pf-form-actions">
+              <button type="button" className="pf-btn pf-btn-ghost" onClick={() => setConfirmarInhabilitar(false)} disabled={enviandoSolicitud}>Cancelar</button>
+              <button type="button" className="pf-btn pf-btn-danger" onClick={handleSolicitarInhabilitacion} disabled={enviandoSolicitud}>
+                <FaHourglassHalf /> {enviandoSolicitud ? 'Enviando...' : 'Enviar solicitud'}
               </button>
             </div>
           </div>

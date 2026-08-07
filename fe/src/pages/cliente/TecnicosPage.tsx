@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@contexts/AuthContext';
 import { useAuthModal } from '@contexts/AuthModalContext';
+import { useIdioma } from '@i18n/IdiomaContext';
 import { FaUserTie, FaCheck, FaArrowLeft } from 'react-icons/fa6';
 import '@styles/perfil-cliente.css';
 import api from '@services/api';
@@ -90,6 +91,7 @@ const tecnicosMock: Tecnico[] = [
 const TecnicosPage = () => {
   const { isAuthenticated } = useAuth();
   const { openAuth } = useAuthModal();
+  const { t } = useIdioma();
   const navigate = useNavigate();
   const [tecnicos, setTecnicos] = useState<Tecnico[]>([]);
   const [loading, setLoading] = useState(true);
@@ -127,26 +129,27 @@ const TecnicosPage = () => {
     return stars;
   };
 
-  const handleSeleccionar = (_tecnico: Tecnico) => {
+  const handleSeleccionar = (tecnico: Tecnico) => {
     if (!isAuthenticated) {
       openAuth('ingresar');
       return;
     }
-    navigate('/cliente/citas');
+    const nombre = `${tecnico.nombre} ${tecnico.apellido}`;
+    navigate(`/cliente/citas?tecnico=${tecnico.id}&nombre=${encodeURIComponent(nombre)}`);
   };
 
-  if (loading) return <div className="tecnicos-page-loading">Cargando técnicos...</div>;
+  if (loading) return <div className="tecnicos-page-loading">{t('common.cargando')}</div>;
 
   return (
     <div className="tecnicos-page app-glass">
       <main className="tecnicos-main">
         <header className="tecnicos-header">
           <button type="button" className="tecnicos-back-btn" onClick={() => navigate('/productos')}>
-            <FaArrowLeft /> Volver a Productos
+            <FaArrowLeft /> {t('citas.volverProductos')}
           </button>
           <div className="tecnicos-header-content">
-            <h1 className="tecnicos-title">Nuestros Técnicos</h1>
-            <p className="tecnicos-subtitle">Encuentra al profesional ideal para tu proyecto</p>
+            <h1 className="tecnicos-title">{t('tecnicos.titulo')}</h1>
+            <p className="tecnicos-subtitle">{t('tecnicos.subtitulo')}</p>
           </div>
         </header>
 
@@ -161,8 +164,8 @@ const TecnicosPage = () => {
                     className="tecnico-avatar"
                     onError={(e) => (e.currentTarget.src = '/assets/images/perfil.png')}
                   />
-                  {tecnico.disponible && <span className="tecnico-badge disponible">Disponible</span>}
-                  {!tecnico.disponible && <span className="tecnico-badge ocupado">Ocupado</span>}
+                  {tecnico.disponible && <span className="tecnico-badge disponible">{t('citas.tecnicoDisponible')}</span>}
+                  {!tecnico.disponible && <span className="tecnico-badge ocupado">{t('citas.tecnicoOcupado')}</span>}
                 </div>
               </div>
               <div className="tecnico-card-body">
@@ -170,7 +173,7 @@ const TecnicosPage = () => {
                 <p className="tecnico-especialidad">{tecnico.especialidad}</p>
                 <div className="tecnico-meta">
                   <span className="tecnico-meta-item">
-                    <FaUserTie /> {tecnico.anios_experiencia}+ años exp.
+                    <FaUserTie /> {tecnico.anios_experiencia}+ {t('common.años')} exp.
                   </span>
                   <span className="tecnico-meta-item estrellas">
                     {renderStars(tecnico.calificacion)}
@@ -188,7 +191,7 @@ const TecnicosPage = () => {
                   onClick={() => handleSeleccionar(tecnico)}
                   disabled={!tecnico.disponible || !isAuthenticated}
                 >
-                  <FaCheck /> {tecnico.disponible ? (isAuthenticated ? 'Seleccionar técnico' : 'Inicia sesión') : 'No disponible'}
+                  <FaCheck /> {tecnico.disponible ? (isAuthenticated ? t('tecnicos.seleccionarTecnico') : t('nav.iniciarSesion')) : t('citas.tecnicoNoDisponible')}
                 </button>
               </div>
             </article>
@@ -198,7 +201,7 @@ const TecnicosPage = () => {
         {tecnicos.length === 0 && (
           <div className="tecnicos-empty">
             <FaUserTie className="tecnicos-empty-icon" />
-            <p>No hay técnicos registrados</p>
+            <p>{t('tecnicos.vacios')}</p>
           </div>
         )}
       </main>

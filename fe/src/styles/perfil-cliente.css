@@ -25,18 +25,20 @@
   padding: 40px 48px 80px;
   display: grid;
   grid-template-columns: 280px 1fr;
-  gap: 22px;
+  gap: 28px;
   align-items: start;
 }
 
 /* ── Barra lateral ─────────────────────────────────────────── */
 .perfil-sidebar {
-  background: var(--pf-card);
-  border: 1px solid var(--pf-borde, rgba(255, 208, 0, 0.35));
+  background: linear-gradient(180deg, rgba(24, 24, 24, 0.88), rgba(10, 10, 10, 0.92));
+  border: 1px solid rgba(211, 172, 77, 0.25);
   border-radius: 20px;
-  padding: 22px 16px;
+  padding: 26px 20px;
   position: sticky;
   top: 24px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
 }
 
 .pf-usuario-card {
@@ -184,9 +186,9 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 18px;
+  margin-bottom: 28px;
   border-left: 4px solid #ffd700;
-  padding-left: 18px;
+  padding-left: 20px;
 }
 
 .pf-content-title {
@@ -214,17 +216,20 @@
 }
 
 .pf-card {
-  background: var(--pf-card);
-  border: 1px solid var(--pf-borde, rgba(255, 255, 255, 0.09));
+  background: linear-gradient(180deg, rgba(24, 24, 24, 0.88), rgba(10, 10, 10, 0.92));
+  border: 1px solid rgba(211, 172, 77, 0.25);
   border-radius: 20px;
-  padding: 28px;
+  padding: 32px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
 }
 
 .pf-tab {
-  background: var(--pf-card);
-  border: 1px solid var(--pf-borde, rgba(255, 255, 255, 0.09));
+  background: linear-gradient(180deg, rgba(24, 24, 24, 0.88), rgba(10, 10, 10, 0.92));
+  border: 1px solid rgba(211, 172, 77, 0.25);
   border-radius: 20px;
-  padding: 28px;
+  padding: 32px;
+  backdrop-filter: blur(8px);
   animation: pf-fade 0.25s ease;
 }
 
@@ -237,7 +242,7 @@
 .pf-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 .pf-form-limited {
@@ -247,7 +252,7 @@
 .pf-form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 20px;
 }
 
 .pf-form-span {
@@ -257,7 +262,7 @@
 .pf-form-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .pf-form-label {
@@ -1305,6 +1310,100 @@
   font-size: 0.72rem;
 }
 
+/* Requisitos de contraseña (estilo registro) */
+.pf-pass-requirements {
+  background: rgba(12, 12, 12, 0.8);
+  border: 1px solid #1a1a1a;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-top: 8px;
+}
+
+.pf-pass-requirements-title {
+  color: #ffd700;
+  font-size: 0.72rem;
+  font-weight: 600;
+  margin: 0 0 6px 0;
+  text-align: left;
+}
+
+.pf-pass-requirements ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px 10px;
+}
+
+.pf-pass-requirements li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  text-align: left;
+}
+
+.pf-pass-requirements li.invalid {
+  color: #555555;
+}
+
+.pf-pass-requirements li.valid {
+  color: #ffd700;
+  font-weight: 600;
+}
+
+.pf-pass-match-error {
+  color: #e5484d;
+  font-size: 0.72rem;
+  margin: 6px 0 0;
+  text-align: left;
+}
+
+/* ── Zona de eliminación de cuenta ─────────────────────────── */
+.pf-danger-zone {
+  margin-top: 34px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 26px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.pf-danger-icon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: rgba(229, 72, 77, 0.12);
+  border: 1px solid rgba(229, 72, 77, 0.35);
+  color: var(--pf-danger);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+}
+
+.pf-danger-info {
+  flex: 1;
+  min-width: 220px;
+}
+
+.pf-danger-info h3 {
+  margin: 0 0 4px 0;
+  font-size: 0.95rem;
+  color: #fff;
+}
+
+.pf-danger-info p {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--pf-muted);
+  line-height: 1.5;
+  max-width: 480px;
+}
+
 /* ── Cabecera de sección (SectionHeader) ──────────────────── */
 .pf-section-header {
   display: flex;
@@ -1596,7 +1695,7 @@
 
   .pf-card,
   .pf-tab {
-    padding: 18px;
+    padding: 20px;
   }
 
   .pf-form-grid {

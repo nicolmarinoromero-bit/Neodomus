@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaArrowLeft, FaTrashCan, FaCartShopping, FaCircleCheck, FaExclamation } from 'react-icons/fa6';
 import { useCart } from '@contexts/CartContext';
+import { useIdioma } from '@i18n/IdiomaContext';
 import '@styles/carrito.css';
 
 const CarritoPage = () => {
   const navigate = useNavigate();
+  const { t } = useIdioma();
   const { items, totalItems, totalPrice, updateQuantity, removeItem, clearCart } = useCart();
   const [toast, setToast] = useState<{ msg: string; tipo: 'success' | 'error' } | null>(null);
 
@@ -16,11 +18,11 @@ const CarritoPage = () => {
 
   const handleFinalizar = () => {
     if (items.length === 0) {
-      showToast('Tu carrito está vacío', 'error');
+      showToast(t('carrito.toastVacio'), 'error');
       return;
     }
     clearCart();
-    showToast('¡Gracias por tu compra! Tu pedido ha sido registrado');
+    showToast(t('carrito.gracias'));
   };
 
   return (
@@ -35,25 +37,25 @@ const CarritoPage = () => {
       <main className="carrito-main">
         <header className="carrito-header">
           <div>
-            <h1>Mi carrito</h1>
+            <h1>{t('carrito.miCarrito')}</h1>
             <p>
               {totalItems > 0
-                ? `${totalItems} ${totalItems === 1 ? 'producto' : 'productos'} en tu carrito`
-                : 'Aún no tienes productos en tu carrito'}
+                ? (totalItems === 1 ? t('carrito.unProducto', { n: totalItems }) : t('carrito.variosProductos', { n: totalItems }))
+                : t('carrito.aunVacio')}
             </p>
           </div>
           <button type="button" className="carrito-back-btn" onClick={() => navigate('/productos')}>
-            <FaArrowLeft /> Volver a productos
+            <FaArrowLeft /> {t('carrito.volverProductos')}
           </button>
         </header>
 
         {items.length === 0 ? (
           <div className="carrito-vacio">
             <FaCartShopping className="carrito-vacio-icon" />
-            <h2>Tu carrito está vacío</h2>
-            <p>Explora nuestro catálogo y encuentra lo que necesitas para tu hogar inteligente.</p>
+            <h2>{t('carrito.vacio')}</h2>
+            <p>{t('carrito.vacioExterior')}</p>
             <button type="button" className="carrito-vacio-btn" onClick={() => navigate('/productos')}>
-              Explorar productos
+              {t('carrito.explorar')}
             </button>
           </div>
         ) : (
@@ -75,9 +77,9 @@ const CarritoPage = () => {
                       <Link to={`/producto/${item.id_producto}`} className="carrito-item-nombre">
                         {item.nombre_producto}
                       </Link>
-                      {item.color && <span className="carrito-item-color">Color: {item.color}</span>}
+                      {item.color && <span className="carrito-item-color">{t('carrito.color', { color: item.color })}</span>}
                       <span className="carrito-item-precio-unit">
-                        ${item.precio_venta_producto.toLocaleString()} COP / unidad
+                        ${item.precio_venta_producto.toLocaleString()} COP {t('carrito.unidad')}
                       </span>
                     </div>
 
@@ -108,8 +110,8 @@ const CarritoPage = () => {
                         type="button"
                         className="carrito-item-remove"
                         onClick={() => removeItem(key)}
-                        aria-label="Eliminar producto"
-                        title="Eliminar del carrito"
+                        aria-label={t('carrito.eliminarProducto')}
+                        title={t('carrito.eliminar')}
                       >
                         <FaTrashCan />
                       </button>
@@ -119,28 +121,28 @@ const CarritoPage = () => {
               })}
 
               <button type="button" className="carrito-clear" onClick={clearCart}>
-                Vaciar carrito
+                {t('carrito.vaciar')}
               </button>
             </div>
 
             <aside className="carrito-resumen">
-              <h2>Resumen del pedido</h2>
+              <h2>{t('carrito.resumen')}</h2>
               <div className="carrito-resumen-row">
-                <span>Productos ({totalItems})</span>
+                <span>{t('carrito.productos')} ({totalItems})</span>
                 <span>${totalPrice.toLocaleString()} COP</span>
               </div>
               <div className="carrito-resumen-row">
-                <span>Envío</span>
-                <span>Se calcula al finalizar</span>
+                <span>{t('carrito.envio')}</span>
+                <span>{t('carrito.seCalculaFinalizar')}</span>
               </div>
               <div className="carrito-resumen-total">
-                <span>Total</span>
+                <span>{t('carrito.total')}</span>
                 <span>${totalPrice.toLocaleString()} COP</span>
               </div>
               <button type="button" className="carrito-finalizar-btn" onClick={handleFinalizar}>
-                Finalizar compra
+                {t('carrito.finalizarCompra')}
               </button>
-              <p className="carrito-resumen-hint">El pago se confirmará al enviar tu pedido.</p>
+              <p className="carrito-resumen-hint">{t('carrito.hintPago')}</p>
             </aside>
           </div>
         )}

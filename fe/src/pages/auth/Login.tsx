@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@contexts/AuthContext';
 import { useAuthModal } from '@contexts/AuthModalContext';
+import api from '@services/api';
 import '@styles/login.css';
 
 
@@ -15,6 +16,9 @@ const Login = () => {
   const { openAuth, closeAuth } = useAuthModal();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [cuentaInhabilitada, setCuentaInhabilitada] = useState(false);
+  const [enviandoSolicitud, setEnviandoSolicitud] = useState(false);
+  const [solicitudEnviada, setSolicitudEnviada] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated && user?.rol) {
@@ -33,13 +37,33 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setCuentaInhabilitada(false);
+    setSolicitudEnviada(false);
     setLoading(true);
     try {
       await login(email, password);
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Error al iniciar sesión');
+      const detail = err.response?.data?.detail || 'Error al iniciar sesión';
+      setError(detail);
+      if (typeof detail === 'string' && detail.toLowerCase().includes('inhabilitada')) {
+        setCuentaInhabilitada(true);
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSolicitarHabilitacion = async () => {
+    setEnviandoSolicitud(true);
+    setError('');
+    try {
+      await api.post('/auth/solicitar-habilitacion', { email, password });
+      setSolicitudEnviada(true);
+      setCuentaInhabilitada(false);
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'No se pudo enviar la solicitud');
+    } finally {
+      setEnviandoSolicitud(false);
     }
   };
 
@@ -105,6 +129,21 @@ const Login = () => {
           <button type="submit" className="btn-login-submit" disabled={loading}>
             {loading ? 'Ingresando...' : 'Ingresar'}
           </button>
+
+          {solicitudEnviada && (
+            <div className="login-reactivate-box success">
+              <p>Solicitud de habilitación enviada. El administrador revisará tu caso y, si la aprueba, podrás iniciar sesión nuevamente.</p>
+            </div>
+          )}
+
+          {cuentaInhabilitada && (
+            <div className="login-reactivate-box">
+              <p>Tu cuenta está inhabilitada por un administrador. Puedes solicitar que sea habilitada nuevamente.</p>
+              <button type="button" className="btn-reactivate" onClick={handleSolicitarHabilitacion} disabled={enviandoSolicitud}>
+                {enviandoSolicitud ? 'Enviando...' : 'Solicitar habilitación de la cuenta'}
+              </button>
+            </div>
+          )}
 
           <div className="login-options-row">
             <label className="remember-me-label">

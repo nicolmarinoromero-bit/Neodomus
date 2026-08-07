@@ -446,3 +446,36 @@ CREATE TABLE email_verification_tokens (
 );
 CREATE INDEX idx_code ON email_verification_tokens(code);
 CREATE INDEX idx_expires_used ON email_verification_tokens(expires_at, used);
+
+-- Tabla de citas de clientes
+-- -------------------------
+CREATE TABLE IF NOT EXISTS citas (
+    id_cita INT AUTO_INCREMENT PRIMARY KEY,
+    id_cliente INT NOT NULL,
+    id_tecnico INT NULL,
+    nombre_tecnico VARCHAR(150) NULL,
+    tipo_servicio VARCHAR(30) NOT NULL,
+    fecha DATE NOT NULL,
+    hora VARCHAR(10) NOT NULL,
+    direccion VARCHAR(200) NOT NULL,
+    descripcion TEXT NULL,
+    estado VARCHAR(20) NOT NULL DEFAULT 'Pendiente',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_citas_cliente FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente) ON DELETE CASCADE,
+    INDEX ix_citas_id_cliente (id_cliente)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Solicitudes de inhabilitación/habilitación de cuentas
+-- -------------------------------------------------------
+CREATE TABLE IF NOT EXISTS solicitudes_cuenta (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_cliente INT NOT NULL,
+    tipo VARCHAR(20) NOT NULL,
+    estado VARCHAR(20) NOT NULL DEFAULT 'pendiente',
+    motivo TEXT NULL,
+    resuelta_por INT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    resuelta_at DATETIME NULL,
+    CONSTRAINT fk_sol_cuenta_cliente FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente) ON DELETE CASCADE,
+    INDEX ix_sol_cliente (id_cliente)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

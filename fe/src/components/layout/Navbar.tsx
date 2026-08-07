@@ -5,6 +5,7 @@ import { useCart } from "@contexts/CartContext";
 import { useState, useRef, useEffect } from "react";
 import { FaRightFromBracket, FaCartShopping, FaBell } from "react-icons/fa6";
 import { getAvatar } from "@utils/profileStorage";
+import { useIdioma } from "@i18n/IdiomaContext";
 
 import logo from "@assets/images/Logo.jpg";
 import helpIcon from "@assets/images/Icono.png";
@@ -16,6 +17,7 @@ const Navbar = () => {
   const { user, rol, logout } = useAuth();
   const { openAuth } = useAuthModal();
   const { totalItems } = useCart();
+  const { t } = useIdioma();
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -72,11 +74,11 @@ const Navbar = () => {
           <nav className="menu">
             {!rol ? (
               <>
-                <Link to="/productos">Productos</Link>
-                <Link to="/info">Sobre nosotros</Link>
+                <Link to="/productos">{t('nav.productos')}</Link>
+                <Link to="/info">{t('nav.sobreNosotros')}</Link>
 
                 <Link to="/ayuda" className="icon-link">
-                  Ayuda
+                  {t('nav.ayuda')}
                   <img src={helpIcon} alt="Ayuda" />
                 </Link>
               </>
@@ -84,27 +86,27 @@ const Navbar = () => {
               <>
                 {rol === "cliente" && (
                   <>
-                    <Link to="/productos">Productos</Link>
-                    <Link to="/cliente/tecnicos">Técnicos</Link>
-                    <Link to="/cliente/citas">Citas</Link>
-                    <Link to="/cliente/ayuda">Ayuda</Link>
+                    <Link to="/productos">{t('nav.productos')}</Link>
+                    <Link to="/cliente/tecnicos">{t('nav.tecnicos')}</Link>
+                    <Link to="/cliente/citas">{t('nav.citas')}</Link>
+                    <Link to="/cliente/ayuda">{t('nav.ayuda')}</Link>
                   </>
                 )}
 
                 {rol === "administrador" && (
                   <>
-                    <Link to="/dashboard/admin">Inicio</Link>
-                    <Link to="/admin/usuarios">Usuarios</Link>
-                    <Link to="/admin/ventas">Ventas</Link>
-                    <Link to="/admin/productos">Productos</Link>
+                    <Link to="/dashboard/admin">{t('nav.inicio')}</Link>
+                    <Link to="/admin/usuarios">{t('nav.usuarios')}</Link>
+                    <Link to="/admin/ventas">{t('nav.ventas')}</Link>
+                    <Link to="/admin/productos">{t('nav.productos')}</Link>
                   </>
                 )}
 
                 {rol === "tecnico" && (
                   <>
-                    <Link to="/dashboard/tecnico">Inicio</Link>
-                    <Link to="/tecnico/citas">Citas</Link>
-                    <Link to="/tecnico/servicios">Servicios</Link>
+                    <Link to="/dashboard/tecnico">{t('nav.inicio')}</Link>
+                    <Link to="/tecnico/citas">{t('nav.citas')}</Link>
+                    <Link to="/tecnico/servicios">{t('nav.servicios')}</Link>
                   </>
                 )}
               </>
@@ -117,38 +119,38 @@ const Navbar = () => {
               type="button"
               className="notif-button"
               onClick={() => navigate('/notificaciones')}
-              aria-label="Notificaciones"
-              title="Ver notificaciones"
+              aria-label={t('nav.verNotificaciones')}
+              title={t('nav.verNotificaciones')}
             >
               <FaBell className="notif-icon" />
             </button>
 
-            <button
-              type="button"
-              className="cart-button"
-              onClick={() => navigate('/carrito')}
-              aria-label="Carrito de compras"
-              title="Ver carrito"
-            >
-              <FaCartShopping className="cart-icon" />
+                <button
+                  type="button"
+                  className="cart-button"
+                  onClick={() => navigate('/carrito')}
+                  aria-label={t('nav.verCarrito')}
+                  title={t('nav.verCarrito')}
+                >
+                  <FaCartShopping className="cart-icon" />
               {totalItems > 0 && <span className="cart-badge">{totalItems}</span>}
             </button>
 
             {!rol ? (
               <>
                 <button type="button" className="btn-register" onClick={() => openAuth('registro')}>
-                  Registrarse
+                  {t('nav.registrarse')}
                 </button>
 
                 <button type="button" className="btn-login" onClick={() => openAuth('ingresar')}>
-                  Iniciar sesión
+                  {t('nav.iniciarSesion')}
                 </button>
               </>
             ) : (
               <div className="user-menu" ref={dropdownRef}>
                 <div className="user-welcome" onClick={toggleDropdown}>
                   <div className="welcome-text">
-                    <span className="welcome-greeting">{esFemenino ? 'Bienvenida' : 'Bienvenido'}</span>
+                    <span className="welcome-greeting">{esFemenino ? t('nav.bienvenida') : t('nav.bienvenido')}</span>
                     <span className="welcome-name">{nombreCompleto}</span>
                   </div>
                   <img
@@ -161,10 +163,10 @@ const Navbar = () => {
                 {showDropdown && (
                   <div className="user-dropdown">
                     <Link to={getPerfilPath()} className="dropdown-item" onClick={() => setShowDropdown(false)}>
-                      Mi perfil
+                      {t('nav.miPerfil')}
                     </Link>
                     <button type="button" className="dropdown-item dropdown-logout" onClick={handleLogout}>
-                      <FaRightFromBracket /> Cerrar sesión
+                      <FaRightFromBracket /> {t('nav.cerrarSesion')}
                     </button>
                   </div>
                 )}

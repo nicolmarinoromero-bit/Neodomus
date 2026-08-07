@@ -396,248 +396,6 @@ input[type='date'].citas-input::-webkit-calendar-picker-indicator {
   pointer-events: none;
 }
 
-/* ── Técnico ───────────────────────────────────────────────── */
-.citas-tecnico-selected {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  background: var(--c-input);
-  border: 1px solid var(--c-borde);
-  border-radius: 14px;
-  padding: 14px 16px;
-  flex-wrap: wrap;
-}
-
-.citas-tecnico-selected.has-tecnico {
-  border-color: var(--c-borde-oro);
-}
-
-.citas-tecnico-avatar {
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  background: var(--c-oro-degradado);
-  color: #141414;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
-  flex-shrink: 0;
-  box-shadow: 0 4px 14px rgba(212, 165, 75, 0.3);
-}
-
-.citas-tecnico-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-  flex: 1;
-}
-
-.citas-tecnico-nombre {
-  color: var(--c-texto);
-  font-size: 0.95rem;
-  font-weight: 700;
-}
-
-.citas-tecnico-especialidad {
-  color: var(--c-oro-claro);
-  font-size: 0.8rem;
-  font-weight: 500;
-  text-transform: capitalize;
-}
-
-.citas-tecnico-rating {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  color: var(--c-oro);
-  font-size: 0.78rem;
-  font-weight: 700;
-  background: rgba(212, 165, 75, 0.1);
-  border-radius: 999px;
-  padding: 4px 10px;
-  flex-shrink: 0;
-}
-
-.citas-tecnico-actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.citas-tecnico-change {
-  background: rgba(212, 165, 75, 0.1);
-  border: 1px solid var(--c-borde-oro);
-  color: var(--c-oro-claro);
-  font-family: inherit;
-  font-size: 0.78rem;
-  font-weight: 600;
-  padding: 7px 12px;
-  border-radius: 10px;
-  transition: all 0.18s ease;
-  cursor: pointer;
-}
-
-.citas-tecnico-change:hover {
-  background: rgba(212, 165, 75, 0.18);
-}
-
-.citas-tecnico-clear {
-  background: rgba(229, 72, 77, 0.1);
-  border: 1px solid rgba(229, 72, 77, 0.3);
-  color: #f0858a;
-  font-family: inherit;
-  width: 30px;
-  height: 30px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
-  font-size: 0.8rem;
-  transition: all 0.18s ease;
-  cursor: pointer;
-}
-
-.citas-tecnico-clear:hover {
-  background: rgba(229, 72, 77, 0.22);
-}
-
-.citas-tecnico-open {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  background: var(--c-input);
-  border: 1px dashed var(--c-borde-oro);
-  border-radius: 14px;
-  color: var(--c-oro-claro);
-  font-family: inherit;
-  font-size: 0.9rem;
-  font-weight: 600;
-  padding: 15px 18px;
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-.citas-tecnico-open:hover {
-  background: rgba(212, 165, 75, 0.08);
-  border-style: solid;
-}
-
-.citas-tecnico-open-icon {
-  font-size: 1.1rem;
-}
-
-.citas-tecnico-panel {
-  margin-top: 12px;
-  background: var(--c-input);
-  border: 1px solid var(--c-borde);
-  border-radius: 14px;
-  overflow: hidden;
-}
-
-.citas-tecnico-search {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--c-borde);
-}
-
-.citas-tecnico-search svg {
-  color: var(--c-oro);
-  font-size: 0.9rem;
-  flex-shrink: 0;
-}
-
-.citas-tecnico-search-input {
-  width: 100%;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: var(--c-texto);
-  font-family: inherit;
-  font-size: 0.88rem;
-}
-
-.citas-tecnico-search-input::placeholder {
-  color: #6b6b6b;
-}
-
-.citas-tecnico-list {
-  max-height: 260px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 8px;
-}
-
-.citas-tecnico-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 12px;
-  padding: 10px 12px;
-  font-family: inherit;
-  text-align: left;
-  transition: all 0.18s ease;
-  cursor: pointer;
-  width: 100%;
-}
-
-.citas-tecnico-item:hover {
-  background: rgba(212, 165, 75, 0.07);
-  border-color: var(--c-borde-oro);
-}
-
-.citas-tecnico-item .citas-tecnico-avatar {
-  width: 40px;
-  height: 40px;
-  font-size: 1rem;
-  box-shadow: none;
-}
-
-.citas-tecnico-item .citas-tecnico-nombre {
-  font-size: 0.88rem;
-}
-
-.citas-tecnico-item .citas-tecnico-especialidad {
-  font-size: 0.76rem;
-}
-
-.citas-tecnico-empty {
-  padding: 22px;
-  text-align: center;
-  color: var(--c-muted);
-  font-size: 0.86rem;
-  margin: 0;
-}
-
-.citas-tecnico-auto {
-  width: 100%;
-  background: transparent;
-  border: none;
-  border-top: 1px solid var(--c-borde);
-  color: var(--c-muted);
-  font-family: inherit;
-  font-size: 0.8rem;
-  font-weight: 500;
-  padding: 12px;
-  transition: color 0.18s ease, background 0.18s ease;
-  cursor: pointer;
-}
-
-.citas-tecnico-auto:hover {
-  color: var(--c-oro-claro);
-  background: rgba(212, 165, 75, 0.05);
-}
-
 /* ── Acciones ──────────────────────────────────────────────── */
 .citas-form-actions {
   display: flex;
@@ -756,7 +514,482 @@ input[type='date'].citas-input::-webkit-calendar-picker-indicator {
   flex-shrink: 0;
 }
 
+/* ── Tabs Agendar / Mis citas ──────────────────────────────── */
+.citas-tabs {
+  display: inline-flex;
+  gap: 8px;
+  margin-bottom: 26px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--c-borde);
+  border-radius: 14px;
+  padding: 6px;
+}
+
+.citas-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--c-muted);
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  padding: 11px 22px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.citas-tab-btn:hover {
+  color: var(--c-texto);
+}
+
+.citas-tab-btn.active {
+  background: var(--c-oro-degradado);
+  color: #141414;
+  box-shadow: 0 4px 14px rgba(212, 165, 75, 0.35);
+}
+
+.citas-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--c-oro);
+  color: #141414;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+/* ── Lista de citas (Mis citas) ───────────────────────────── */
+.citas-list-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.citas-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cita-card {
+  background: linear-gradient(180deg, var(--c-card-2) 0%, var(--c-card) 100%);
+  border: 1px solid var(--c-borde);
+  border-radius: 18px;
+  padding: 22px 26px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+  transition: border-color 0.2s ease;
+}
+
+.cita-card:hover {
+  border-color: var(--c-borde-oro);
+}
+
+.cita-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.cita-tipo {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--c-texto);
+}
+
+.cita-tipo svg {
+  color: var(--c-oro-claro);
+}
+
+.cita-estado {
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 5px 14px;
+  border-radius: 999px;
+}
+
+.cita-estado.estado-pendiente {
+  color: #ffd700;
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.35);
+}
+
+.cita-estado.estado-confirmada {
+  color: #3ddc84;
+  background: rgba(61, 220, 132, 0.1);
+  border: 1px solid rgba(61, 220, 132, 0.35);
+}
+
+.cita-estado.estado-finalizada {
+  color: #8ab4f8;
+  background: rgba(138, 180, 248, 0.1);
+  border: 1px solid rgba(138, 180, 248, 0.35);
+}
+
+.cita-estado.estado-cancelada {
+  color: #e5484d;
+  background: rgba(229, 72, 77, 0.1);
+  border: 1px solid rgba(229, 72, 77, 0.35);
+}
+
+.cita-datos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.cita-dato {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--c-muted);
+  font-size: 0.88rem;
+}
+
+.cita-dato svg {
+  color: var(--c-oro-claro);
+  flex-shrink: 0;
+}
+
+.cita-desc {
+  margin: 0 0 14px 0;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 3px solid var(--c-oro);
+  border-radius: 8px;
+  color: var(--c-muted);
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+.cita-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cita-actions .citas-btn {
+  padding: 10px 18px;
+  font-size: 0.84rem;
+}
+
+.citas-btn-danger {
+  background: rgba(229, 72, 77, 0.12);
+  border: 1px solid rgba(229, 72, 77, 0.45);
+  color: #ff6b6f;
+}
+
+.citas-btn-danger:hover {
+  background: rgba(229, 72, 77, 0.22);
+  border-color: rgba(229, 72, 77, 0.7);
+}
+
+.cita-locked {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(255, 193, 7, 0.06);
+  border: 1px solid rgba(255, 193, 7, 0.25);
+  color: var(--c-muted);
+  font-size: 0.8rem;
+}
+
+.cita-locked svg {
+  color: #ffc107;
+  flex-shrink: 0;
+}
+
+.citas-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 70px 24px;
+  background: linear-gradient(180deg, var(--c-card-2) 0%, var(--c-card) 100%);
+  border: 1px dashed var(--c-borde-oro);
+  border-radius: 18px;
+  text-align: center;
+  color: var(--c-muted);
+}
+
+.citas-empty svg {
+  font-size: 2.4rem;
+  color: var(--c-oro);
+}
+
+.citas-empty p {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.citas-empty-hint {
+  font-size: 0.8rem !important;
+  color: #6f6f6f;
+}
+
+.citas-editando {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 14px 18px;
+  margin-bottom: 18px;
+  border-radius: 12px;
+  background: rgba(212, 165, 75, 0.08);
+  border: 1px solid var(--c-borde-oro);
+  color: var(--c-oro-claro);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.citas-editando span {
+  flex: 1;
+}
+
+.citas-editando .citas-btn {
+  padding: 8px 16px;
+  font-size: 0.8rem;
+}
+
+/* ── Barra de técnico asociado ─────────────────────────────── */
+.cita-tecnico-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 16px 20px;
+  margin-bottom: 18px;
+  border-radius: 14px;
+  background: rgba(212, 165, 75, 0.08);
+  border: 1px solid var(--c-borde-oro);
+}
+
+.cita-tecnico-banner-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: rgba(212, 165, 75, 0.15);
+  color: var(--c-oro-claro);
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.cita-tecnico-banner-label {
+  display: block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-muted);
+}
+
+.cita-tecnico-banner div {
+  flex: 1;
+}
+
+.cita-tecnico-banner strong {
+  color: var(--c-texto);
+  font-size: 1rem;
+}
+
+/* ── Selección de técnico (acceso directo a Citas) ────────── */
+.citas-tecnicos-card {
+  margin-top: 4px;
+}
+
+.citas-tecnicos-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
+  gap: 20px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.citas-tecnico-item {
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 18px 20px 20px;
+  border-radius: 16px;
+  border: 1px solid var(--c-borde);
+  background: rgba(255, 255, 255, 0.02);
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.citas-tecnico-item:hover {
+  border-color: var(--c-borde-oro);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.citas-tecnico-item.selected {
+  border-color: rgba(61, 220, 132, 0.5);
+  background: rgba(61, 220, 132, 0.06);
+}
+
+.citas-tecnico-item.no-disponible {
+  opacity: 0.75;
+}
+
+.citas-tecnico-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+}
+
+.citas-tecnico-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--c-borde-oro);
+  background: #222;
+  flex-shrink: 0;
+  display: block;
+}
+
+.citas-tecnico-info {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-top: 2px;
+}
+
+.citas-tecnico-info strong {
+  color: var(--c-texto);
+  font-size: 1rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.citas-tecnico-especialidad {
+  color: var(--c-oro-claro);
+  font-size: 0.8rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.citas-tecnico-experiencia {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--c-muted);
+  font-size: 0.76rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.citas-tecnico-estado {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.citas-tecnico-estado.tec-ok {
+  color: #3ddc84;
+  background: rgba(61, 220, 132, 0.12);
+}
+
+.citas-tecnico-estado.tec-ocu {
+  color: #ffc107;
+  background: rgba(255, 193, 7, 0.12);
+}
+
+.citas-tecnico-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-width: 0;
+  color: var(--c-muted);
+  font-size: 0.78rem;
+  border-top: 1px solid var(--c-borde);
+  padding-top: 12px;
+}
+
+.citas-tecnico-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--c-oro-claro);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.citas-tecnico-actions {
+  margin-top: auto;
+  width: 100%;
+  min-width: 0;
+}
+
+.citas-tecnico-actions .citas-btn {
+  width: 100%;
+  padding: 10px 15px;
+  font-size: 0.82rem;
+  justify-content: center;
+  white-space: normal;
+}
+
+.citas-btn-confirmado {
+  background: rgba(61, 220, 132, 0.15);
+  border: 1px solid rgba(61, 220, 132, 0.5);
+  color: #3ddc84;
+}
+
+.citas-btn-confirmado:hover {
+  background: rgba(61, 220, 132, 0.25);
+}
+
+.citas-tecnico-actions .citas-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .citas-tecnicos-list {
+    grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
+  }
+}
+
 @media (max-width: 900px) {
   .citas-grid {
     grid-template-columns: 1fr;
@@ -789,5 +1022,34 @@ input[type='date'].citas-input::-webkit-calendar-picker-indicator {
 
   .citas-form-actions .citas-btn {
     width: 100%;
+  }
+
+  .citas-tabs {
+    display: flex;
+    width: 100%;
+  }
+
+  .citas-tab-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 11px 12px;
+  }
+
+  .cita-card {
+    padding: 18px 16px 20px;
+    border-radius: 16px;
+  }
+
+  .cita-actions .citas-btn {
+    flex: 1;
+  }
+
+  .citas-tecnicos-list {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .citas-tecnico-item {
+    padding: 18px 16px 18px;
   }
 }

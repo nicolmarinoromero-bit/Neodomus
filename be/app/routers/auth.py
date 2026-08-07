@@ -14,6 +14,7 @@ from app.services.auth_service import (
     request_password_reset,
     verify_password_reset_code,
     reset_password,
+    solicitar_habilitacion,
 )
 from app.schemas.auth import (
     ClientCreate,
@@ -55,6 +56,12 @@ async def resend_verification_endpoint(req: ResendVerificationRequest, db: Sessi
 @router.post("/login", response_model=TokenResponse)
 def login_endpoint(login_data: UserLogin, db: Session = Depends(get_db)):
     return login(db, login_data)
+
+@router.post("/solicitar-habilitacion")
+def solicitar_habilitacion_endpoint(req: UserLogin, db: Session = Depends(get_db)):
+    """Crea una solicitud de habilitación para un cliente con la cuenta inhabilitada.
+    Requiere email y contraseña para comprobar la identidad. No habilita la cuenta."""
+    return solicitar_habilitacion(db, req.email, req.password)
 
 @router.post("/refresh", response_model=TokenResponse)
 def refresh_token(refresh_token: str, db: Session = Depends(get_db)):

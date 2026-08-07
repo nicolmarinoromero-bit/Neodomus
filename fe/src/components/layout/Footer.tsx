@@ -1,27 +1,30 @@
 import { Link } from "react-router-dom";
+import { useIdioma } from "@i18n/IdiomaContext";
 import "../../styles/footer.css";
 
 export default function Footer() {
+  const { t } = useIdioma();
+
   return (
     <footer className="main-footer">
       <div className="footer-links">
-        <Link to="/terminos">Términos de uso</Link>
+        <Link to="/terminos">{t('footer.terminos')}</Link>
 
         <span className="separator">|</span>
 
-        <Link to="/privacidad">Política de privacidad</Link>
+        <Link to="/privacidad">{t('footer.privacidad')}</Link>
 
         <span className="separator">|</span>
 
-        <Link to="/cookies">Política de cookies</Link>
+        <Link to="/cookies">{t('footer.cookies')}</Link>
 
         <span className="separator">|</span>
 
-        <Link to="/contacto">Contacto</Link>
+        <Link to="/contacto">{t('footer.contacto')}</Link>
       </div>
 
       <p className="footer-copy">
-        © 2026 NEODOMUS. Todos los derechos reservados.
+        © 2026 NEODOMUS. {t('footer.derechos')}
       </p>
     </footer>
   );
