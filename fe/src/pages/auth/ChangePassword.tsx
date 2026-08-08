@@ -8,6 +8,7 @@ const ChangePassword = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   // Limpiar mensajes después de 5 segundos
   useEffect(() => {
@@ -30,8 +31,8 @@ const ChangePassword = () => {
       setError('Las nuevas contraseñas no coinciden');
       return;
     }
-    if (newPassword.length < 6) {
-      setError('La nueva contraseña debe tener al menos 6 caracteres');
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(newPassword)) {
+      setError('La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial');
       return;
     }
     if (currentPassword === newPassword) {
@@ -39,6 +40,7 @@ const ChangePassword = () => {
       return;
     }
 
+    setLoading(true);
     try {
       await api.post('/auth/change-password', {
         current_password: currentPassword,
@@ -52,6 +54,8 @@ const ChangePassword = () => {
     } catch (err: any) {
       const errorMsg = err.response?.data?.detail || 'Error al cambiar contraseña';
       setError(errorMsg);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -78,7 +82,8 @@ const ChangePassword = () => {
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             required
-            minLength={6}
+            minLength={8}
+            disabled={loading}
             autoComplete="new-password"
           />
           
@@ -88,10 +93,13 @@ const ChangePassword = () => {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
+            disabled={loading}
             autoComplete="new-password"
           />
           
-          <button type="submit">Actualizar</button>
+          <button type="submit" disabled={loading}>
+            {loading ? 'Actualizando...' : 'Actualizar'}
+          </button>
         </form>
       </div>
     </>

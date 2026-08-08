@@ -194,6 +194,12 @@
   margin-bottom: 20px;
 }
 
+.detalle-disponibilidad.agotado {
+  color: #ff8f93;
+  background: rgba(229, 72, 77, 0.1);
+  border-color: rgba(229, 72, 77, 0.35);
+}
+
 .detalle-descripcion {
   color: #c9c9c9;
   font-size: 16px;

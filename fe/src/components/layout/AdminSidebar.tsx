@@ -1,13 +1,33 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
 import {
-  FiHome, FiBox, FiTag, FiUser, FiTool,
-  FiHeadphones, FiUsers, FiBarChart2, FiSettings, FiLogOut
-} from "react-icons/fi";
+  FaHouse,
+  FaBell,
+  FaBoxOpen,
+  FaTags,
+  FaUserGear,
+  FaHammer,
+  FaEnvelopeOpenText,
+  FaUsers,
+  FaChartColumn,
+  FaGear,
+  FaRightFromBracket,
+  FaUserShield,
+} from "react-icons/fa6";
 import "../../styles/admin-sidebar.css";
 
-const AdminSidebar = () => {
+interface AdminSidebarProps {
+  open: boolean;
+  pendientes: number;
+  onNavigate?: () => void;
+}
+
+interface Seccion {
+  titulo: string;
+  links: { to: string; icon: React.ReactNode; label: string; badge?: number }[];
+}
+
+const AdminSidebar = ({ open, pendientes, onNavigate }: AdminSidebarProps) => {
   const { logout } = useAuth();
   const navigate = useNavigate();
 
@@ -16,35 +36,66 @@ const AdminSidebar = () => {
     navigate("/login");
   };
 
-  const links = [
-    { to: "/dashboard/admin", icon: <FiHome />, label: "Inicio" },
-    { to: "/admin/productos", icon: <FiBox />, label: "Productos" },
-    { to: "/admin/catalogo", icon: <FiTag />, label: "Catálogo" },
-    { to: "/admin/tecnicos", icon: <FiUser />, label: "Técnicos" },
-    { to: "/admin/instalaciones", icon: <FiTool />, label: "Instalaciones" },
-    { to: "/admin/soporte", icon: <FiHeadphones />, label: "Soporte" },
-    { to: "/admin/clientes", icon: <FiUsers />, label: "Clientes" },
-    { to: "/admin/reportes", icon: <FiBarChart2 />, label: "Reportes" },
-    { to: "/admin/configuracion", icon: <FiSettings />, label: "Configuración" },
+  const secciones: Seccion[] = [
+    {
+      titulo: "Panel",
+      links: [
+        { to: "/dashboard/admin", icon: <FaHouse />, label: "Inicio" },
+        {
+          to: "/admin/notificaciones",
+          icon: <FaBell />,
+          label: "Notificaciones",
+          badge: pendientes,
+        },
+      ],
+    },
+    {
+      titulo: "Gestión",
+      links: [
+        { to: "/admin/productos", icon: <FaBoxOpen />, label: "Productos" },
+        { to: "/admin/catalogo", icon: <FaTags />, label: "Catálogo" },
+        { to: "/admin/tecnicos", icon: <FaUserGear />, label: "Técnicos" },
+        { to: "/admin/instalaciones", icon: <FaHammer />, label: "Instalaciones" },
+        { to: "/admin/clientes", icon: <FaUsers />, label: "Clientes" },
+      ],
+    },
+    {
+      titulo: "Sistema",
+      links: [
+        { to: "/admin/consultas", icon: <FaEnvelopeOpenText />, label: "Solicitudes" },
+        { to: "/admin/reportes", icon: <FaChartColumn />, label: "Reportes" },
+        { to: "/admin/configuracion", icon: <FaGear />, label: "Configuración" },
+        { to: "/perfil/admin", icon: <FaUserShield />, label: "Mi perfil" },
+      ],
+    },
   ];
 
   return (
-    <aside className="admin-sidebar">
-      <nav className="sidebar-nav">
-        {links.map((link) => (
-          <NavLink
-            key={link.to}
-            to={link.to}
-            className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
-          >
-            <span className="sidebar-icon">{link.icon}</span>
-            <span className="sidebar-label">{link.label}</span>
-          </NavLink>
+    <aside className={`admin-sidebar ${open ? 'open' : ''}`}>
+      <nav className="sidebar-nav" aria-label="Menú de administración">
+        {secciones.map((seccion) => (
+          <div key={seccion.titulo}>
+            <span className="sidebar-section-title">{seccion.titulo}</span>
+            {seccion.links.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                onClick={onNavigate}
+                className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
+              >
+                <span className="sidebar-icon">{link.icon}</span>
+                <span className="sidebar-label">{link.label}</span>
+                {link.badge ? <span className="sidebar-badge">{link.badge}</span> : null}
+              </NavLink>
+            ))}
+          </div>
         ))}
       </nav>
+
       <div className="sidebar-divider" />
+
       <button className="sidebar-logout" onClick={handleLogout}>
-        <FiLogOut />
+        <FaRightFromBracket />
         <span>Cerrar sesión</span>
       </button>
     </aside>

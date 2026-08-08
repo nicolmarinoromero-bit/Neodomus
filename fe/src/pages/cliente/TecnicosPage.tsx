@@ -6,6 +6,7 @@ import { useIdioma } from '@i18n/IdiomaContext';
 import { FaUserTie, FaCheck, FaArrowLeft } from 'react-icons/fa6';
 import '@styles/perfil-cliente.css';
 import api from '@services/api';
+import { tituloNombre } from '@utils/formatoNombre';
 
 interface Tecnico {
   id: number;
@@ -19,74 +20,14 @@ interface Tecnico {
   descripcion?: string;
 }
 
-const tecnicosMock: Tecnico[] = [
-  {
-    id: 1,
-    nombre: 'Carlos',
-    apellido: 'Mendoza',
-    foto_url: null,
-    especialidad: 'Domótica',
-    anios_experiencia: 8,
-    calificacion: 4.9,
-    disponible: true,
-    descripcion: 'Especialista en sistemas de hogar inteligente, automatización de iluminación, climatización y seguridad. Certificado en KNX, Zigbee y Z-Wave.',
-  },
-  {
-    id: 2,
-    nombre: 'Andrés',
-    apellido: 'Rojas',
-    foto_url: null,
-    especialidad: 'Automatización',
-    anios_experiencia: 6,
-    calificacion: 4.8,
-    disponible: true,
-    descripcion: 'Experto en integración de dispositivos IoT, escenas programadas y control por voz (Alexa, Google Home, Siri).',
-  },
-  {
-    id: 3,
-    nombre: 'María',
-    apellido: 'Torres',
-    foto_url: null,
-    especialidad: 'Iluminación inteligente',
-    anios_experiencia: 5,
-    calificacion: 4.7,
-    disponible: false,
-    descripcion: 'Diseño e instalación de sistemas de iluminación LED inteligente, control RGB, regulación automática y sensores de presencia.',
-  },
-  {
-    id: 4,
-    nombre: 'Javier',
-    apellido: 'Silva',
-    foto_url: null,
-    especialidad: 'Seguridad',
-    anios_experiencia: 10,
-    calificacion: 5.0,
-    disponible: true,
-    descripcion: 'Instalación de cámaras IP, sensores de movimiento, cerraduras inteligentes y sistemas de alarma monitoreados 24/7.',
-  },
-  {
-    id: 5,
-    nombre: 'Laura',
-    apellido: 'García',
-    foto_url: null,
-    especialidad: 'Energía solar',
-    anios_experiencia: 7,
-    calificacion: 4.6,
-    disponible: true,
-    descripcion: 'Sistemas fotovoltaicos residenciales, baterías de respaldo y monitoreo de consumo energético en tiempo real.',
-  },
-  {
-    id: 6,
-    nombre: 'Roberto',
-    apellido: 'Castro',
-    foto_url: null,
-    especialidad: 'Climatización',
-    anios_experiencia: 9,
-    calificacion: 4.8,
-    disponible: true,
-    descripcion: 'Control inteligente de HVAC, termostatos programables, zonificación térmica y eficiencia energética.',
-  },
-];
+interface TecnicoPublico {
+  id_tecnico: number;
+  first_name: string;
+  last_name: string;
+  certificacion_t?: string | null;
+  cargo_t?: string | null;
+  is_active: boolean;
+}
 
 const TecnicosPage = () => {
   const { isAuthenticated } = useAuth();
@@ -100,16 +41,22 @@ const TecnicosPage = () => {
     const fetchTecnicos = async () => {
       setLoading(true);
       try {
-        const res = await api.get('/tecnicos');
-        const data = res.data.data || res.data || [];
-        if (data.length > 0) {
-          setTecnicos(data);
-        } else {
-          setTecnicos(tecnicosMock);
-        }
+        const res = await api.get<TecnicoPublico[]>('/tecnicos/publicos');
+        const data = res.data;
+        const reales = (Array.isArray(data) ? data : []).map((t) => ({
+          id: t.id_tecnico,
+          nombre: tituloNombre(t.first_name),
+          apellido: tituloNombre(t.last_name),
+          foto_url: null,
+          especialidad: t.cargo_t || t.certificacion_t || '',
+          anios_experiencia: 0,
+          calificacion: 0,
+          disponible: t.is_active,
+        }));
+        setTecnicos(reales);
       } catch (err: any) {
-        console.warn('API no disponible, usando datos de ejemplo:', err.message);
-        setTecnicos(tecnicosMock);
+        console.warn('No se pudieron cargar los técnicos reales:', err.message);
+        setTecnicos([]);
       } finally {
         setLoading(false);
       }
@@ -172,13 +119,17 @@ const TecnicosPage = () => {
                 <h3 className="tecnico-nombre">{tecnico.nombre} {tecnico.apellido}</h3>
                 <p className="tecnico-especialidad">{tecnico.especialidad}</p>
                 <div className="tecnico-meta">
-                  <span className="tecnico-meta-item">
-                    <FaUserTie /> {tecnico.anios_experiencia}+ {t('common.años')} exp.
-                  </span>
-                  <span className="tecnico-meta-item estrellas">
-                    {renderStars(tecnico.calificacion)}
-                    <span className="rating-value">{tecnico.calificacion.toFixed(1)}</span>
-                  </span>
+                  {tecnico.anios_experiencia > 0 && (
+                    <span className="tecnico-meta-item">
+                      <FaUserTie /> {tecnico.anios_experiencia}+ {t('common.años')} exp.
+                    </span>
+                  )}
+                  {tecnico.calificacion > 0 && (
+                    <span className="tecnico-meta-item estrellas">
+                      {renderStars(tecnico.calificacion)}
+                      <span className="rating-value">{tecnico.calificacion.toFixed(1)}</span>
+                    </span>
+                  )}
                 </div>
                 {tecnico.descripcion && (
                   <p className="tecnico-descripcion">{tecnico.descripcion}</p>

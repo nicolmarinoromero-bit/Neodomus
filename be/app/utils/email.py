@@ -53,7 +53,7 @@ async def send_email(to_email: str, subject: str, body: str) -> bool:
 # PARA: Crea un objeto MIMEText con el contenido del correo (en formato HTML) y lo adjunta al mensaje.
 # IMPACTO: El cuerpo del correo se mostrará como HTML, permitiendo diseños atractivos (colores, fuentes, botones).
 
-        server = smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT)
+        server = smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT, timeout=10)
 # PARA: Establece una conexión con el servidor SMTP usando el host y puerto configurados (ej. smtp.gmail.com, 587).
 # IMPACTO: Crea un objeto server que representa la conexión SMTP; sin ella no se puede enviar el correo.
 

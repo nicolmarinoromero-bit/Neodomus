@@ -76,9 +76,7 @@ const ResetPassword = () => {
         'Contraseña actualizada correctamente. Volviendo al inicio de sesión...'
       );
 
-      setTimeout(() => {
-        openAuth('ingresar');
-      }, 3000);
+      openAuth('ingresar');
     } catch (err: any) {
       if (err.response?.status === 403) {
         setError(

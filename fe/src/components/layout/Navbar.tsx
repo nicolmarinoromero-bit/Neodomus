@@ -96,9 +96,8 @@ const Navbar = () => {
                 {rol === "administrador" && (
                   <>
                     <Link to="/dashboard/admin">{t('nav.inicio')}</Link>
-                    <Link to="/admin/usuarios">{t('nav.usuarios')}</Link>
-                    <Link to="/admin/ventas">{t('nav.ventas')}</Link>
                     <Link to="/admin/productos">{t('nav.productos')}</Link>
+                    <Link to="/admin/clientes">{t('nav.usuarios')}</Link>
                   </>
                 )}
 
@@ -118,7 +117,7 @@ const Navbar = () => {
             <button
               type="button"
               className="notif-button"
-              onClick={() => navigate('/notificaciones')}
+              onClick={() => navigate(rol === 'administrador' ? '/admin/notificaciones' : '/notificaciones')}
               aria-label={t('nav.verNotificaciones')}
               title={t('nav.verNotificaciones')}
             >

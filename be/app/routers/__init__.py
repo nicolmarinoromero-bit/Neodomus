@@ -5,3 +5,5 @@ from .tecnicos import router as tecnicos_router
 from .productos import router as productos_router   # ← asegurar esta línea
 from .citas import router as citas_router
 from .solicitudes import router as solicitudes_router
+from .reports import router as reports_router
+from .consultas import router as consultas_router

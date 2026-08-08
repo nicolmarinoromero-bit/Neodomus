@@ -29,7 +29,7 @@ const ForgotPassword = () => {
     try {
       await api.post('/auth/forgot-password', { email });
       setMessage('Código enviado. Redirigiendo...');
-      setTimeout(() => openAuth('verificar-codigo', { email }), 2000);
+      openAuth('verificar-codigo', { email });
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al enviar la solicitud');
     } finally {

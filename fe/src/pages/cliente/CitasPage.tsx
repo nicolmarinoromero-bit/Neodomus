@@ -10,6 +10,7 @@ import {
 } from 'react-icons/fa6';
 import '@styles/citas.css';
 import api from '@services/api';
+import { tituloNombre } from '@utils/formatoNombre';
 
 type TipoServicio = 'instalacion' | 'reparacion' | 'mantenimiento' | 'revision';
 
@@ -44,6 +45,16 @@ interface Tecnico {
   disponible: boolean;
 }
 
+interface TecnicoPublico {
+  id_tecnico: number;
+  first_name: string;
+  last_name: string;
+  certificacion_t?: string | null;
+  cargo_t?: string | null;
+  is_active: boolean;
+  disponible: boolean;
+}
+
 const TIPO_TRAD: Record<string, string> = {
   instalacion: 'citas.instalacion',
   mantenimiento: 'citas.mantenimiento',
@@ -60,15 +71,6 @@ const FORM_VACIO: CitaForm = {
 };
 
 const HORAS_48 = 48 * 60 * 60 * 1000;
-
-const tecnicosMock: Tecnico[] = [
-  { id: 1, nombre: 'Carlos', apellido: 'Mendoza', foto_url: null, especialidad: 'Domótica', anios_experiencia: 8, calificacion: 4.9, disponible: true },
-  { id: 2, nombre: 'Andrés', apellido: 'Rojas', foto_url: null, especialidad: 'Automatización', anios_experiencia: 6, calificacion: 4.8, disponible: true },
-  { id: 3, nombre: 'María', apellido: 'Torres', foto_url: null, especialidad: 'Iluminación inteligente', anios_experiencia: 5, calificacion: 4.7, disponible: false },
-  { id: 4, nombre: 'Javier', apellido: 'Silva', foto_url: null, especialidad: 'Seguridad', anios_experiencia: 10, calificacion: 5.0, disponible: true },
-  { id: 5, nombre: 'Laura', apellido: 'García', foto_url: null, especialidad: 'Energía solar', anios_experiencia: 7, calificacion: 4.6, disponible: true },
-  { id: 6, nombre: 'Roberto', apellido: 'Castro', foto_url: null, especialidad: 'Climatización', anios_experiencia: 9, calificacion: 4.8, disponible: true },
-];
 
 const CitasPage = () => {
   const { isAuthenticated } = useAuth();
@@ -107,17 +109,41 @@ const CitasPage = () => {
     }
   }, [searchParams]);
 
-  // Cargar técnicos (solo para la sección "selecciona técnico" cuando se accede directo)
+  // Cargar técnicos según servicio/fecha/hora: el backend filtra por
+  // especialidad y marca disponibles según las citas registradas.
   useEffect(() => {
     let activo = true;
     const fetchTecnicos = async () => {
       setTecnicosLoading(true);
       try {
-        const res = await api.get('/tecnicos');
-        const data = res.data.data || res.data || [];
-        if (activo) setTecnicos(data.length > 0 ? data : tecnicosMock);
+        const params = new URLSearchParams();
+        if (form.tipo_servicio) params.set('tipo_servicio', form.tipo_servicio);
+        if (form.fecha) params.set('fecha', form.fecha);
+        if (form.hora) params.set('hora', form.hora);
+        const qs = params.toString();
+        const res = await api.get<TecnicoPublico[]>(`/tecnicos/publicos${qs ? `?${qs}` : ''}`);
+        const data = Array.isArray(res.data) ? res.data : [];
+        if (activo) {
+          setTecnicos(
+            data.map((t) => ({
+              id: t.id_tecnico,
+              nombre: tituloNombre(t.first_name),
+              apellido: tituloNombre(t.last_name),
+              foto_url: null,
+              especialidad: t.certificacion_t || t.cargo_t || '',
+              anios_experiencia: 0,
+              calificacion: 0,
+              disponible: t.disponible && t.is_active,
+            })),
+          );
+          setTecnicoSel((prev) => {
+            if (!prev) return prev;
+            const sigue = data.some((t) => t.id_tecnico === prev.id && t.disponible && t.is_active);
+            return sigue ? prev : null;
+          });
+        }
       } catch {
-        if (activo) setTecnicos(tecnicosMock);
+        if (activo) setTecnicos([]);
       } finally {
         if (activo) setTecnicosLoading(false);
       }
@@ -126,7 +152,7 @@ const CitasPage = () => {
     return () => {
       activo = false;
     };
-  }, []);
+  }, [form.tipo_servicio, form.fecha, form.hora]);
 
   const cargarCitas = useCallback(async () => {
     if (!isAuthenticated) {
@@ -294,6 +320,11 @@ const CitasPage = () => {
       </div>
       {tecnicosLoading ? (
         <p className="citas-hint">{t('citas.cargandoTecnicos')}</p>
+      ) : tecnicos.length === 0 ? (
+        <div className="citas-tecnicos-vacio">
+          <FaExclamation />
+          <p>No hay técnicos disponibles para el servicio y horario seleccionados. Prueba con otro tipo de servicio, fecha u hora.</p>
+        </div>
       ) : (
         <div className="citas-tecnicos-list">
           {tecnicos.map((tec) => {
@@ -313,14 +344,12 @@ const CitasPage = () => {
                   <div className="citas-tecnico-info">
                     <strong>{tec.nombre} {tec.apellido}</strong>
                     <span className="citas-tecnico-especialidad">{tec.especialidad}</span>
-                    <span className="citas-tecnico-experiencia">{tec.anios_experiencia}+ {t('common.años')}</span>
                   </div>
                 </div>
                 <div className="citas-tecnico-meta">
                   <span className={`citas-tecnico-estado ${tec.disponible ? 'tec-ok' : 'tec-ocu'}`}>
                     {tec.disponible ? t('citas.tecnicoDisponible') : t('citas.tecnicoOcupado')}
                   </span>
-                  <span className="citas-tecnico-rating">★ {tec.calificacion.toFixed(1)}</span>
                 </div>
                 <div className="citas-tecnico-actions">
                   <button

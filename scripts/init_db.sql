@@ -269,27 +269,31 @@ CREATE TABLE IF NOT EXISTS productos (
     fecha_registro_producto DATETIME,
     imagen_url VARCHAR(255) NULL,
     id_cate_pr INT,
+    descripcion_producto TEXT NULL,
+    colores_producto VARCHAR(255) NULL,
+    estado_producto VARCHAR(20) NOT NULL DEFAULT 'activo',
+    stock_producto INT NOT NULL DEFAULT 0,
     FOREIGN KEY (id_proveedor_pr) REFERENCES proveedores(id_proveedor),
     FOREIGN KEY (id_cate_pr) REFERENCES categorias(id_categoria)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO productos (nombre_producto, referencia_producto, id_proveedor_pr, precio_compra_producto, precio_venta_producto, fecha_registro_producto, imagen_url, id_cate_pr) VALUES
-('sensor de movimiento pir', 'smi-001', 1, 45000.00, 70000.00, NOW(), NULL, 1),
-('controlador central domótico', 'ccd-004', 3, 90000.00, 160000.00, NOW(), NULL, 2),
-('cinta led rgb', 'led-003', 1, 12000.00, 20000.00, NOW(), NULL, 3),
-('kit de automatización básica', 'kit-001', 5, 100000.00, 180000.00, NOW(), NULL, 4),
-('cable utp cat6', 'utp6-050', 4, 3000.00, 6000.00, NOW(), NULL, 5),
-('sensor de puerta/ventana', 'spd-006', 2, 25000.00, 39000.00, NOW(), NULL, 1),
-('enchufe inteligente wifi', 'eiw-007', 1, 34000.00, 58000.00, NOW(), NULL, 6),
-('fuente de poder 12v 5a', 'ps12-5a', 4, 28000.00, 50000.00, NOW(), NULL, 7),
-('cámara ip 1080p', 'cip-003', 2, 120000.00, 170000.00, NOW(), NULL, 8),
-('batería recargable 18650', 'bat18650', 6, 5000.00, 10000.00, NOW(), NULL, 7),
-('termostato inteligente', 'ter-101', 2, 75000.00, 125000.00, NOW(), NULL, 9),
-('interruptor táctil wifi', 'int-202', 1, 32000.00, 55000.00, NOW(), NULL, 10),
-('sirena inalámbrica', 'sir-303', 3, 45000.00, 80000.00, NOW(), NULL, 8),
-('detector de humo', 'dhu-404', 4, 38000.00, 69000.00, NOW(), NULL, 1),
-('persiana motorizada', 'per-505', 5, 120000.00, 210000.00, NOW(), NULL, 9),
-('panel táctil central', 'pan-606', 6, 250000.00, 420000.00, NOW(), NULL, 2);
+INSERT INTO productos (nombre_producto, referencia_producto, id_proveedor_pr, precio_compra_producto, precio_venta_producto, fecha_registro_producto, imagen_url, id_cate_pr, descripcion_producto, colores_producto, estado_producto, stock_producto) VALUES
+('sensor de movimiento pir', 'smi-001', 1, 45000.00, 70000.00, NOW(), NULL, 1, 'Sensor de movimiento PIR para detección de presencia con ángulo de 110° y alcance de 9 metros.', 'Blanco', 'activo', 50),
+('controlador central domótico', 'ccd-004', 3, 90000.00, 160000.00, NOW(), NULL, 2, 'Controlador central para automatizar todos los dispositivos del hogar.', 'Blanco,Negro', 'activo', 20),
+('cinta led rgb', 'led-003', 1, 12000.00, 20000.00, NOW(), NULL, 3, 'Cinta LED RGB de 5 m con control por app y 16 millones de colores.', 'RGB', 'activo', 100),
+('kit de automatización básica', 'kit-001', 6, 100000.00, 180000.00, NOW(), NULL, 4, 'Kit completo para iniciar la automatización del hogar.', 'Negro', 'activo', 15),
+('cable utp cat6', 'utp6-050', 5, 3000.00, 6000.00, NOW(), NULL, 5, 'Cable UTP Cat6 de 50 metros para redes de alta velocidad.', 'Gris,Azul', 'activo', 300),
+('sensor de puerta/ventana', 'spd-006', 2, 25000.00, 39000.00, NOW(), NULL, 1, 'Sensor magnético de apertura para puertas y ventanas.', 'Blanco', 'activo', 75),
+('enchufe inteligente wifi', 'eiw-007', 3, 34000.00, 58000.00, NOW(), NULL, 6, 'Enchufe inteligente con control remoto vía WiFi y monitoreo de energía.', 'Blanco', 'activo', 40),
+('fuente de poder 12v 5a', 'ps12-5a', 4, 28000.00, 50000.00, NOW(), NULL, 7, 'Fuente de poder 12V 5A para dispositivos de seguridad y automatización.', 'Negro', 'activo', 60),
+('cámara ip 1080p', 'cip-003', 3, 120000.00, 170000.00, NOW(), NULL, 8, 'Cámara IP Full HD con visión nocturna y detección de movimiento.', 'Blanco,Negro', 'activo', 25),
+('batería recargable 18650', 'bat18650', 8, 5000.00, 10000.00, NOW(), NULL, 7, 'Batería recargable 18650 de 3000 mAh para sensores y dispositivos.', 'Negro', 'activo', 120),
+('termostato inteligente', 'ter-101', 2, 75000.00, 125000.00, NOW(), NULL, 9, 'Termostato inteligente compatible con WiFi, para climatización.', 'Blanco,Negro', 'activo', 0),
+('interruptor táctil wifi', 'int-202', 3, 32000.00, 55000.00, NOW(), NULL, 10, 'Interruptor táctil WiFi para controlar la iluminación desde el celular.', 'Blanco,Negro,Gris', 'activo', 0),
+('sirena inalámbrica', 'sir-303', 2, 45000.00, 80000.00, NOW(), NULL, 8, 'Sirena inalámbrica con batería integrada para alarmas de seguridad.', 'Rojo,Blanco', 'activo', 0),
+('detector de humo', 'dhu-404', 4, 38000.00, 69000.00, NOW(), NULL, 1, 'Detector de humo con alarma incluida y batería de larga duración.', 'Blanco', 'activo', 0),
+('persiana motorizada', 'per-505', 5, 120000.00, 210000.00, NOW(), NULL, 9, 'Persiana motorizada programable para automatizar la luz natural.', 'Gris,Blanco', 'activo', 0),
+('panel táctil central', 'pan-606', 6, 250000.00, 420000.00, NOW(), NULL, 2, 'Panel táctil central para controlar toda la automatización desde un solo lugar.', 'Negro', 'activo', 0);
 
 CREATE TABLE bodega_f (
     id_bodega_f INT AUTO_INCREMENT PRIMARY KEY,
@@ -479,3 +483,18 @@ CREATE TABLE IF NOT EXISTS solicitudes_cuenta (
     CONSTRAINT fk_sol_cuenta_cliente FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente) ON DELETE CASCADE,
     INDEX ix_sol_cliente (id_cliente)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS contactos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre_usuario VARCHAR(120) NOT NULL,
+    email_usuario VARCHAR(120) NOT NULL,
+    asunto VARCHAR(180) NOT NULL,
+    mensaje TEXT NOT NULL,
+    categoria VARCHAR(40) NULL,
+    estado VARCHAR(20) NOT NULL DEFAULT 'pendiente',
+    respuesta TEXT NULL,
+    responded_by INT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    responded_at DATETIME NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+

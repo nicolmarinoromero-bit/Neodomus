@@ -38,6 +38,14 @@ interface ClientProfile {
   address?: string | null;
 }
 
+interface EmployeeProfile {
+  id_usuario: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  is_active?: boolean;
+}
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -48,8 +56,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const refreshUserProfile = async () => {
     try {
-      const res = await api.get<ClientProfile>('/clients/me');
-      const profile = res.data;
       // Base: usuario almacenado (no depende del estado capturado)
       let base: User | null = null;
       const storedRaw = localStorage.getItem('user');
@@ -60,13 +66,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           base = null;
         }
       }
-      const firstName = profile.first_name || base?.nombre?.split(' ')[0] || '';
-      const lastName = profile.last_name || (base?.nombre?.split(' ').slice(1).join(' ') || '');
-      const fullName = (firstName && lastName) ? `${firstName} ${lastName}` : (firstName || base?.nombre || '');
+      // El backend identifica a los empleados (administrador, tecnico, etc.) con
+      // su rol propio; solo los clientes usan "cliente".
+      const isEmployee = (base?.rol || '') !== 'cliente';
+
+      let firstName = '';
+      let lastName = '';
+      let email = base?.correo || '';
+      if (isEmployee) {
+        const res = await api.get<EmployeeProfile>('/users/me');
+        const profile = res.data;
+        firstName = profile.first_name || '';
+        lastName = profile.last_name || '';
+        email = profile.email || email;
+      } else {
+        const res = await api.get<ClientProfile>('/clients/me');
+        const profile = res.data;
+        firstName = profile.first_name || '';
+        lastName = profile.last_name || '';
+        email = profile.email || email;
+      }
+      const firstNameResolved = firstName || base?.nombre?.split(' ')[0] || '';
+      const lastNameResolved = lastName || (base?.nombre?.split(' ').slice(1).join(' ') || '');
+      const fullName = (firstNameResolved && lastNameResolved) ? `${firstNameResolved} ${lastNameResolved}` : (firstNameResolved || base?.nombre || '');
       const updatedUser: User = {
         id: base?.id ?? 0,
         nombre: fullName.trim(),
-        correo: profile.email || base?.correo || '',
+        correo: email,
         rol: base?.rol || '',
       };
       localStorage.setItem('user', JSON.stringify(updatedUser));

@@ -13,6 +13,15 @@ interface Producto {
   imagen_url?: string | null;
   id_cate_pr?: number;
   nombre_categoria?: string;
+  stock_producto?: number;
+  stock_estado?: 'disponible' | 'bajo' | 'agotado';
+  variantes?: {
+    id: number;
+    nombre: string;
+    hex?: string | null;
+    imagen_url?: string | null;
+    stock: number;
+  }[];
 }
 
 const FAVORITOS_KEY = 'neodomus_favoritos';
@@ -134,6 +143,15 @@ const ProductoDetalle = () => {
     setTimeout(() => setToast(''), 2500);
   };
 
+  const variantes = producto?.variantes || [];
+  const varianteActiva = variantes.find(v => v.nombre === color) || null;
+  const stockDisponible =
+    variantes.length > 0
+      ? (varianteActiva?.stock ?? 0)
+      : (producto?.stock_producto ?? 0);
+  const imagen =
+    varianteActiva?.imagen_url || producto?.imagen_url || `/productos/${producto?.id_producto}.jpg`;
+
   useEffect(() => {
     const fetchProducto = async () => {
       setLoading(true);
@@ -163,7 +181,7 @@ const ProductoDetalle = () => {
 
   useEffect(() => {
     if (producto) {
-      const paleta = PALETAS[producto.id_cate_pr ?? 0] || ['Blanco', 'Negro', 'Gris'];
+      const paleta = (producto.variantes?.length ? producto.variantes.map(v => v.nombre) : PALETAS[producto.id_cate_pr ?? 0]) || ['Blanco', 'Negro', 'Gris'];
       setColor(paleta[0]);
     }
   }, [producto]);
@@ -179,8 +197,9 @@ const ProductoDetalle = () => {
       </div>
     );
 
-  const imagen = producto.imagen_url || `/productos/${producto.id_producto}.jpg`;
-  const paleta = PALETAS[producto.id_cate_pr ?? 0] || ['Blanco', 'Negro', 'Gris'];
+  const paleta = variantes.length
+    ? variantes.map(v => v.nombre)
+    : PALETAS[producto.id_cate_pr ?? 0] || ['Blanco', 'Negro', 'Gris'];
   const caracteristicas = CARACTERISTICAS[producto.id_cate_pr ?? 0] || CARACTERISTICAS[1];
   const categoria = producto.nombre_categoria || 'Producto';
 
@@ -202,6 +221,10 @@ const ProductoDetalle = () => {
   };
 
   const handleAgregarAlCarrito = () => {
+    if (stockDisponible <= 0) {
+      showToast('No hay stock disponible para este color');
+      return;
+    }
     addItem(
       {
         id_producto: producto.id_producto,
@@ -260,8 +283,11 @@ const ProductoDetalle = () => {
               <span className="detalle-precio-sufijo">COP</span>
             </div>
 
-            <div className="detalle-disponibilidad">
-              <FaCheck /> Disponible
+            <div className={`detalle-disponibilidad ${stockDisponible <= 0 ? 'agotado' : ''}`}>
+              {stockDisponible > 0 ? <FaCheck /> : <FaRotateLeft />}
+              {stockDisponible > 0
+                ? `Disponible · ${stockDisponible} u.${variantes.length ? ' en este color' : ''}`
+                : 'Sin stock de este producto'}
             </div>
 
             <p className="detalle-descripcion">{descripcion}</p>
@@ -281,21 +307,30 @@ const ProductoDetalle = () => {
               <div className="detalle-colores">
                 <span className="detalle-label">Color: <strong>{color}</strong></span>
                 <div className="detalle-colores-swatches">
-                  {paleta.map(c => (
-                    <button
-                      key={c}
-                      type="button"
-                      className={`detalle-swatch ${color === c ? 'activo' : ''}`}
-                      onClick={() => setColor(c)}
-                      aria-label={`Color ${c}`}
-                      title={c}
-                    >
-                      <span
-                        className="detalle-swatch-circle"
-                        style={COLOR_HEX[c]?.startsWith('linear') ? { background: COLOR_HEX[c] } : { background: COLOR_HEX[c] || '#ccc' }}
-                      />
-                    </button>
-                  ))}
+                  {paleta.map(c => {
+                    const variante = variantes.length ? variantes.find(v => v.nombre === c) : null;
+                    const fondo = (variante?.hex || COLOR_HEX[c] || '#ccc').trim();
+                    const esDegradado = fondo.startsWith('linear');
+                    return (
+                      <button
+                        key={c}
+                        type="button"
+                        className={`detalle-swatch ${color === c ? 'activo' : ''}`}
+                        onClick={() => setColor(c)}
+                        aria-label={`Color ${c}`}
+                        title={c}
+                      >
+                        <span
+                          className="detalle-swatch-circle"
+                          style={
+                            esDegradado
+                              ? { background: fondo }
+                              : { background: fondo || '#ccc' }
+                          }
+                        />
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

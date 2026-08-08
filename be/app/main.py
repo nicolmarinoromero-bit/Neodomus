@@ -14,6 +14,8 @@ from app.routers import (
     productos_router,
     citas_router,
     solicitudes_router,
+    reports_router,
+    consultas_router,
 )
 
 # Crear la aplicación FastAPI
@@ -35,6 +37,8 @@ app.include_router(tecnicos_router, prefix="/api/v1")
 app.include_router(productos_router, prefix="/api/v1")
 app.include_router(citas_router, prefix="/api/v1")
 app.include_router(solicitudes_router, prefix="/api/v1")
+app.include_router(reports_router, prefix="/api/v1")
+app.include_router(consultas_router, prefix="/api/v1")
 
 # Endpoint de prueba
 @app.get("/")

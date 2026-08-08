@@ -4,10 +4,12 @@ import { useIdioma } from '@i18n/IdiomaContext';
 import {
   FaEnvelope, FaPhone, FaClock, FaLocationDot,
   FaArrowRight, FaPaperPlane, FaLifeRing, FaBook, FaHeadset, FaCircleCheck,
-  FaQuestion
+  FaQuestion, FaRobot, FaMessage
 } from 'react-icons/fa6';
 import '@styles/ayuda.css';
 import api from '@services/api';
+import { CATEGORIAS_CONSULTA, CATEGORIAS_CONSULTA_ORDER } from '../../constants';
+import { BOT_INICIAL, BOT_SUGERENCIAS, responderBot } from '../../data/botData';
 
 interface FAQ {
   id: number;
@@ -19,8 +21,13 @@ interface FAQ {
 interface ConsultaForm {
   nombre: string;
   email: string;
-  asunto: string;
   mensaje: string;
+  categoria: string;
+}
+
+interface ChatMsg {
+  de: 'bot' | 'usuario';
+  texto: string;
 }
 
 const AyudaPage = () => {
@@ -29,15 +36,18 @@ const AyudaPage = () => {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [loadingFAQs, setLoadingFAQs] = useState(true);
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<'faq' | 'contacto' | 'formulario'>('faq');
+  const [activeTab, setActiveTab] = useState<'faq' | 'chat' | 'contacto' | 'formulario'>('faq');
   const [consulta, setConsulta] = useState<ConsultaForm>({
     nombre: user?.nombre || '',
     email: user?.correo || '',
-    asunto: '',
     mensaje: '',
+    categoria: '',
   });
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ msg: string; tipo: 'success' | 'error' } | null>(null);
+  const [chats, setChats] = useState<ChatMsg[]>([{ de: 'bot', texto: BOT_INICIAL }]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatEscribiendo, setChatEscribiendo] = useState(false);
 
   useEffect(() => {
     const fetchFAQs = async () => {
@@ -69,9 +79,23 @@ const AyudaPage = () => {
     setConsulta(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const respondoBot = (texto: string): string => responderBot(texto);
+
+  const enviarChat = (texto: string) => {
+    const mensaje = texto.trim();
+    if (!mensaje || chatEscribiendo) return;
+    setChats(prev => [...prev, { de: 'usuario', texto: mensaje }]);
+    setChatInput('');
+    setChatEscribiendo(true);
+    window.setTimeout(() => {
+      setChats(prev => [...prev, { de: 'bot', texto: respondoBot(mensaje) }]);
+      setChatEscribiendo(false);
+    }, 450);
+  };
+
   const handleConsultaSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!consulta.nombre.trim() || !consulta.email.trim() || !consulta.asunto.trim() || !consulta.mensaje.trim()) {
+    if (!consulta.nombre.trim() || !consulta.email.trim() || !consulta.mensaje.trim()) {
       showToast('Completa todos los campos', 'error');
       return;
     }
@@ -79,11 +103,21 @@ const AyudaPage = () => {
       showToast('Email inválido', 'error');
       return;
     }
+    if (!consulta.categoria) {
+      showToast('Selecciona la clasificación de tu consulta', 'error');
+      return;
+    }
     setSubmitting(true);
     try {
-      await api.post('/contacto', consulta);
+      await api.post('/contacto', {
+        nombre: consulta.nombre,
+        email: consulta.email,
+        asunto: CATEGORIAS_CONSULTA[consulta.categoria] || 'Consulta',
+        mensaje: consulta.mensaje,
+        categoria: consulta.categoria,
+      });
       showToast('Tu consulta ha sido enviada. Te responderemos pronto.', 'success');
-      setConsulta(prev => ({ ...prev, asunto: '', mensaje: '' }));
+      setConsulta(prev => ({ ...prev, categoria: '', mensaje: '' }));
     } catch (err) {
       console.error(err);
       showToast('Error al enviar. Intenta de nuevo.', 'error');
@@ -136,6 +170,14 @@ const AyudaPage = () => {
             onClick={() => setActiveTab('faq')}
           >
             <FaQuestion /> {t('ayuda.preguntasFrec')}
+          </button>
+          <button
+            role="tab"
+            aria-selected={activeTab === 'chat'}
+            className={`ayuda-tab ${activeTab === 'chat' ? 'active' : ''}`}
+            onClick={() => setActiveTab('chat')}
+          >
+            <FaRobot /> Asistente virtual
           </button>
           <button
             role="tab"
@@ -198,6 +240,89 @@ const AyudaPage = () => {
             </section>
           )}
 
+          {activeTab === 'chat' && (
+            <section className="ayuda-chat">
+              <div className="ayuda-chat-window">
+                <div className="ayuda-chat-msgs">
+                  {chats.map((msg, i) => (
+                    <div key={i} className={`ayuda-chat-msg ${msg.de}`}>
+                      {msg.de === 'bot' && (
+                        <span className="ayuda-chat-bot-avatar">
+                          <FaRobot />
+                        </span>
+                      )}
+                      <div className="ayuda-chat-bubble">
+                        {msg.texto.split('\n').map((linea, j) => (
+                          <span key={j}>{linea}</span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                  {chatEscribiendo && (
+                    <div className="ayuda-chat-msg bot">
+                      <span className="ayuda-chat-bot-avatar">
+                        <FaRobot />
+                      </span>
+                      <div className="ayuda-chat-bubble typing">
+                        <span />
+                        <span />
+                        <span />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="ayuda-chat-sugs">
+                  {!chatEscribiendo && chats.length <= 1 && (
+                    <>
+                      <span className="ayuda-chat-sugs-label">Preguntas frecuentes:</span>
+                      <div className="ayuda-chat-sugs-list">
+                        {BOT_SUGERENCIAS.map((s) => (
+                          <button
+                            type="button"
+                            key={s}
+                            className="ayuda-chat-sug"
+                            onClick={() => enviarChat(s)}
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                <div className="ayuda-chat-input-row">
+                  <input
+                    type="text"
+                    className="ayuda-input"
+                    placeholder="Escribe tu pregunta..."
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') enviarChat(chatInput);
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="ayuda-btn ayuda-btn-primary"
+                    disabled={chatEscribiendo}
+                    onClick={() => enviarChat(chatInput)}
+                  >
+                    <FaMessage />
+                  </button>
+                </div>
+
+                <div className="ayuda-chat-cta">
+                  <span>¿No encontraste tu respuesta?</span>
+                  <button className="ayuda-btn ayuda-btn-ghost" onClick={() => setActiveTab('formulario')}>
+                    <FaPaperPlane /> Escalar a un asesor
+                  </button>
+                </div>
+              </div>
+            </section>
+          )}
+
           {activeTab === 'contacto' && (
             <section className="ayuda-contacto">
               <div className="ayuda-contacto-grid">
@@ -253,22 +378,21 @@ const AyudaPage = () => {
                     />
                   </div>
                   <div className="ayuda-form-group ayuda-form-full">
-                    <label htmlFor="ayuda-asunto">Asunto *</label>
+                    <label htmlFor="ayuda-categoria">Motivo de la consulta *</label>
                     <select
-                      id="ayuda-asunto"
-                      name="asunto"
-                      value={consulta.asunto}
+                      id="ayuda-categoria"
+                      name="categoria"
+                      value={consulta.categoria}
                       onChange={handleConsultaChange}
                       className="ayuda-select"
                       required
                     >
-                      <option value="">Selecciona un tema</option>
-                      <option value="pedido">Consulta sobre pedido</option>
-                      <option value="tecnico">Soporte técnico</option>
-                      <option value="facturacion">Facturación y pagos</option>
-                      <option value="cita">Citas y técnicos</option>
-                      <option value="cuenta">Mi cuenta</option>
-                      <option value="otro">Otro</option>
+                      <option value="">Selecciona una clasificación</option>
+                      {CATEGORIAS_CONSULTA_ORDER.map((cat) => (
+                        <option key={cat} value={cat}>
+                          {CATEGORIAS_CONSULTA[cat]}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div className="ayuda-form-group ayuda-form-full">

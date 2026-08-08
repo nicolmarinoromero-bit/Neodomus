@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional
@@ -83,9 +83,10 @@ def change_password_endpoint(
 async def forgot_password(
     req: ForgotPasswordRequest,
     request: Request,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
-    await request_password_reset(db, req.email, request.client.host)
+    background_tasks.add_task(request_password_reset, db, req.email, request.client.host)
     return {"msg": "Si el email está registrado, recibirás un código de recuperación"}
 
 @router.post("/verify-code")

@@ -22,7 +22,7 @@ interface ClientProfile {
 }
 
 const PersonalTab = ({ notify, onProfileChanged }: PersonalTabProps) => {
-  const { user } = useAuth();
+  const { user, refreshUserProfile } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [avatar, setAvatar] = useState<string>(getAvatar() || perfilIcon);
@@ -97,13 +97,7 @@ const PersonalTab = ({ notify, onProfileChanged }: PersonalTabProps) => {
       if (direccion.trim()) payload.address = direccion.trim();
       await api.put('/clients/me', payload);
 
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        const parsed = JSON.parse(storedUser);
-        parsed.nombre = `${nombre.trim()} ${apellido.trim()}`.trim();
-        parsed.correo = email.trim();
-        localStorage.setItem('user', JSON.stringify(parsed));
-      }
+      await refreshUserProfile();
       window.dispatchEvent(new CustomEvent('client-profile-updated'));
       onProfileChanged();
       notify('Cambios guardados correctamente', 'success');
