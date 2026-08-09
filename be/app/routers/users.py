@@ -9,7 +9,7 @@ from app.database import get_db
 from app.models.user import User
 from app.models.roles_usuario import RolesUsuario
 from app.models.tecnico import Tecnico
-from app.schemas.user import EmployeeResponse, UserUpdate
+from app.schemas.user import EmployeeResponse, PerfilEmpleadoResponse, UserUpdate
 from app.utils.security import get_current_employee, require_roles, hash_password
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -48,12 +48,24 @@ def _admin(
     return current_user
 
 
-@router.get("/me", response_model=EmployeeResponse)
-def get_me(current_user: User = Depends(get_current_employee)):
-    return current_user
+def _perfil_empleado(usuario: User, db: Session) -> dict:
+    """Serializa al empleado junto con su ficha técnica (si existe)."""
+    data = EmployeeResponse.model_validate(usuario).model_dump()
+    ficha = db.query(Tecnico).filter(Tecnico.id_usuario_t == usuario.id_usuario).first()
+    data["certificacion_t"] = ficha.certificacion_t if ficha else None
+    data["cargo_t"] = ficha.cargo_t if ficha else None
+    return data
 
 
-@router.put("/me", response_model=EmployeeResponse)
+@router.get("/me", response_model=PerfilEmpleadoResponse)
+def get_me(
+    current_user: User = Depends(get_current_employee),
+    db: Session = Depends(get_db),
+):
+    return _perfil_empleado(current_user, db)
+
+
+@router.put("/me", response_model=PerfilEmpleadoResponse)
 def update_me(
     data: UserUpdate,
     current_user: User = Depends(get_current_employee),
@@ -77,11 +89,28 @@ def update_me(
             raise HTTPException(status_code=400, detail="El nombre y los apellidos no pueden estar vacíos")
         if campo in update_data:
             update_data[campo] = update_data[campo].strip()
+    certificacion_t = update_data.pop("certificacion_t", None)
+    cargo_t = update_data.pop("cargo_t", None)
     for field, value in update_data.items():
         setattr(current_user, field, value)
+    if certificacion_t is not None or cargo_t is not None:
+        ficha = db.query(Tecnico).filter(Tecnico.id_usuario_t == current_user.id_usuario).first()
+        if not ficha:
+            db.add(
+                Tecnico(
+                    id_usuario_t=current_user.id_usuario,
+                    certificacion_t=certificacion_t or "",
+                    cargo_t=cargo_t or "",
+                )
+            )
+        else:
+            if certificacion_t is not None:
+                ficha.certificacion_t = certificacion_t
+            if cargo_t is not None:
+                ficha.cargo_t = cargo_t
     db.commit()
     db.refresh(current_user)
-    return current_user
+    return _perfil_empleado(current_user, db)
 
 
 @router.get("/roles", response_model=List[dict])

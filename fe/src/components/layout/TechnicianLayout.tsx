@@ -1,39 +1,39 @@
 import { Outlet } from 'react-router-dom';
-import Footer from './Footer';
-import TechnicalNavbar from './TechnicianNavbar';
-import TechnicalSidebar from './TechnicianSidebar';
+import { useState } from 'react';
+import AmbientBackground from './AmbientBackground';
+import TechnicianNavbar from './TechnicianNavbar';
+import TechnicianSidebar from './TechnicianSidebar';
+import AdminFooter from './AdminFooter';
+import '@styles/admin-panel.css';
 
-const TechnicalLayout = () => {
+const TechnicianLayout = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const cerrarSidebar = () => setSidebarOpen(false);
+
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: '100vh'
-      }}
-    >
-      <TechnicalNavbar />
+    <div className="admin-layout">
+      <AmbientBackground />
 
-      <main style={{ flex: 1 }}>
+      <TechnicianNavbar onMenuToggle={() => setSidebarOpen((v) => !v)} />
+
+      <div className="admin-body">
         <div
-          style={{
-            display: 'flex',
-            flex: 1,
-            alignItems: 'stretch'
-          }}
-        >
-          <TechnicalSidebar />
+          className={`admin-backdrop ${sidebarOpen ? 'show' : ''}`}
+          onClick={cerrarSidebar}
+          aria-hidden="true"
+        />
 
-          <main style={{ flex: 1 }}>
-            <Outlet />
-          </main>
+        <TechnicianSidebar open={sidebarOpen} onNavigate={cerrarSidebar} />
 
-        </div>
-      </main>
+        <main className="admin-content">
+          <Outlet />
+        </main>
+      </div>
 
-      <Footer />
+      <AdminFooter />
     </div>
   );
 };
 
-export default TechnicalLayout;
+export default TechnicianLayout;

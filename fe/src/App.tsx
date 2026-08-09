@@ -28,6 +28,10 @@ import AdminClientes from '@pages/admin/AdminClientes';
 import AdminReportes from '@pages/admin/AdminReportes';
 import AdminConfiguracion from '@pages/admin/AdminConfiguracion';
 import TecnicoPerfil from '@pages/tecnico/TecnicoPerfil';
+import TecnicoCitas from '@pages/tecnico/TecnicoCitas';
+import TecnicoHistorial from '@pages/tecnico/TecnicoHistorial';
+import TecnicoClientes from '@pages/tecnico/TecnicoClientes';
+import TecnicoMensajes from '@pages/tecnico/TecnicoMensajes';
 import ProductosPublicos from '@pages/public/ProductosPublicos';
 import ProductoDetalle from '@pages/public/ProductoDetalle';
 import CarritoPage from '@pages/public/CarritoPage';
@@ -92,6 +96,10 @@ function App() {
           <Route element={<TechnicianLayout />}>
             <Route path="/dashboard/tecnico" element={<TechnicianDashboard />} />
             <Route path="/perfil/tecnico" element={<TecnicoPerfil />} />
+            <Route path="/tecnico/citas" element={<TecnicoCitas />} />
+            <Route path="/tecnico/historial" element={<TecnicoHistorial />} />
+            <Route path="/tecnico/clientes" element={<TecnicoClientes />} />
+            <Route path="/tecnico/mensajes" element={<TecnicoMensajes />} />
           </Route>
         </Route>
 

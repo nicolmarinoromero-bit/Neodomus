@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FaKey, FaCheck, FaXmark, FaEye, FaEyeSlash } from 'react-icons/fa6';
 import api from '@services/api';
+import { useIdioma } from '@i18n/IdiomaContext';
 import SectionHeader from './SectionHeader';
 import { NotifyFn } from './PersonalTab';
 
@@ -26,17 +27,10 @@ const evaluarRequisitos = (value: string): PasswordReqs => ({
   special: REQ_SPECIAL.test(value),
 });
 
-const REQUISITOS: { key: keyof PasswordReqs; label: string }[] = [
-  { key: 'length', label: 'Mínimo 8 caracteres' },
-  { key: 'uppercase', label: 'Al menos una mayúscula' },
-  { key: 'lowercase', label: 'Al menos una minúscula' },
-  { key: 'number', label: 'Al menos un número' },
-  { key: 'special', label: 'Al menos un símbolo (!@#$…)' },
-];
-
 const bloquearPegado = (e: React.ClipboardEvent<HTMLInputElement>) => e.preventDefault();
 
 const PasswordTab = ({ notify }: PasswordTabProps) => {
+  const { t } = useIdioma();
   const [actual, setActual] = useState('');
   const [nueva, setNueva] = useState('');
   const [confirmar, setConfirmar] = useState('');
@@ -52,10 +46,18 @@ const PasswordTab = ({ notify }: PasswordTabProps) => {
     nueva === confirmar &&
     nueva !== actual;
 
+  const REQUISITOS: { key: keyof PasswordReqs; label: string }[] = [
+    { key: 'length', label: t('perfil.reqLongitud') },
+    { key: 'uppercase', label: t('perfil.reqMayuscula') },
+    { key: 'lowercase', label: t('perfil.reqMinuscula') },
+    { key: 'number', label: t('perfil.reqNumero') },
+    { key: 'special', label: t('perfil.reqSimbolo') },
+  ];
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!botonListo) {
-      notify('Completa todas las validaciones de la contraseña', 'error');
+      notify(t('perfil.validacionesContrasena'), 'error');
       return;
     }
     setGuardando(true);
@@ -64,13 +66,13 @@ const PasswordTab = ({ notify }: PasswordTabProps) => {
         current_password: actual,
         new_password: nueva,
       });
-      notify('Contraseña actualizada correctamente', 'success');
+      notify(t('perfil.contrasenaActualizada'), 'success');
       setActual('');
       setNueva('');
       setConfirmar('');
     } catch (err) {
       const msg = (err as { response?: { data?: { detail?: string } } }).response?.data?.detail;
-      notify(msg || 'Error al cambiar la contraseña', 'error');
+      notify(msg || t('perfil.errorCambiarContrasena'), 'error');
     } finally {
       setGuardando(false);
     }
@@ -80,13 +82,13 @@ const PasswordTab = ({ notify }: PasswordTabProps) => {
     <div className="pf-tab">
       <SectionHeader
         icon={<FaKey />}
-        title="Cambiar contraseña"
-        subtitle="Debe tener al menos 8 caracteres, mayúsculas, minúsculas, números y símbolos. No se permite copiar ni pegar."
+        title={t('perfil.cambiarContrasena')}
+        subtitle={t('perfil.cambiarContrasenaSub')}
       />
 
       <form className="pf-form pf-form-limited" onSubmit={handleSubmit}>
         <div className="pf-form-group">
-          <label className="pf-form-label" htmlFor="pf-pass-actual">Contraseña actual</label>
+          <label className="pf-form-label" htmlFor="pf-pass-actual">{t('perfil.contrasenaActual')}</label>
           <div className="pf-input-wrap">
             <input
               id="pf-pass-actual"
@@ -102,7 +104,7 @@ const PasswordTab = ({ notify }: PasswordTabProps) => {
           </div>
         </div>
         <div className="pf-form-group">
-          <label className="pf-form-label" htmlFor="pf-pass-nueva">Nueva contraseña</label>
+          <label className="pf-form-label" htmlFor="pf-pass-nueva">{t('perfil.nuevaContrasena')}</label>
           <div className="pf-input-wrap">
             <input
               id="pf-pass-nueva"
@@ -119,14 +121,14 @@ const PasswordTab = ({ notify }: PasswordTabProps) => {
               type="button"
               className="pf-eye"
               onClick={() => setMostrar((v) => !v)}
-              aria-label={mostrar ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+              aria-label={mostrar ? t('perfil.ocultarContrasena') : t('perfil.mostrarContrasena')}
             >
               {mostrar ? <FaEyeSlash /> : <FaEye />}
             </button>
           </div>
           {nueva && (
             <div className="pf-pass-requirements">
-              <p className="pf-pass-requirements-title">La contraseña debe cumplir:</p>
+              <p className="pf-pass-requirements-title">{t('perfil.reqTitulo')}</p>
               <ul>
                 {REQUISITOS.map((req) => (
                   <li key={req.key} className={reqs[req.key] ? 'valid' : 'invalid'}>
@@ -138,7 +140,7 @@ const PasswordTab = ({ notify }: PasswordTabProps) => {
           )}
         </div>
         <div className="pf-form-group">
-          <label className="pf-form-label" htmlFor="pf-pass-confirmar">Confirmar nueva contraseña</label>
+          <label className="pf-form-label" htmlFor="pf-pass-confirmar">{t('perfil.confirmarNuevaContrasena')}</label>
           <div className="pf-input-wrap">
             <input
               id="pf-pass-confirmar"
@@ -153,12 +155,12 @@ const PasswordTab = ({ notify }: PasswordTabProps) => {
             />
           </div>
           {confirmar && nueva !== confirmar && (
-            <p className="pf-pass-match-error">Las contraseñas no coinciden</p>
+            <p className="pf-pass-match-error">{t('perfil.contrasenasNoCoinciden')}</p>
           )}
         </div>
         <div className="pf-form-actions">
           <button type="submit" className="pf-btn pf-btn-primary" disabled={guardando || !botonListo}>
-            <FaCheck /> {guardando ? 'Actualizando…' : 'Actualizar contraseña'}
+            <FaCheck /> {guardando ? t('perfil.actualizandoContrasena') : t('perfil.actualizarContrasena')}
           </button>
         </div>
       </form>

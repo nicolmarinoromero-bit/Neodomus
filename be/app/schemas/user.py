@@ -16,6 +16,13 @@ class EmployeeResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
+class PerfilEmpleadoResponse(EmployeeResponse):
+    """Perfil del empleado autenticado, incluye su ficha técnica (si existe)."""
+
+    certificacion_t: Optional[str] = None
+    cargo_t: Optional[str] = None
+
 # app/schemas/user.py (añade al final)
 
 class UserBase(BaseModel):
@@ -38,3 +45,5 @@ class UserUpdate(BaseModel):
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None
     telefono_usuario: Optional[int] = None
+    certificacion_t: Optional[str] = None
+    cargo_t: Optional[str] = None

@@ -1,18 +1,30 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@contexts/AuthContext";
+import { useIdioma } from "@i18n/IdiomaContext";
 import {
-  FiHome,
-  FiCalendar,
-  FiClock,
-  FiUsers,
-  FiMessageSquare,
-  FiLogOut
-} from "react-icons/fi";
+  FaHouse,
+  FaCalendarCheck,
+  FaClockRotateLeft,
+  FaUsers,
+  FaMessage,
+  FaUserGear,
+  FaRightFromBracket,
+} from "react-icons/fa6";
+import "@styles/admin-sidebar.css";
 
-import "../../styles/technicician-sidebar.css";
+interface TechnicianSidebarProps {
+  open: boolean;
+  onNavigate?: () => void;
+}
 
-const TechnicalSidebar = () => {
+interface Seccion {
+  titulo: string;
+  links: { to: string; icon: React.ReactNode; label: string }[];
+}
+
+const TechnicianSidebar = ({ open, onNavigate }: TechnicianSidebarProps) => {
   const { logout } = useAuth();
+  const { t } = useIdioma();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -20,67 +32,64 @@ const TechnicalSidebar = () => {
     navigate("/login");
   };
 
-  const links = [
+  const secciones: Seccion[] = [
     {
-      to: "/dashboard/tecnico",
-      icon: <FiHome />,
-      label: "Inicio"
+      titulo: t('tec.panel'),
+      links: [
+        { to: "/dashboard/tecnico", icon: <FaHouse />, label: t('tec.inicio') },
+      ],
     },
     {
-      to: "/tecnico/citas",
-      icon: <FiCalendar />,
-      label: "Mis citas"
+      titulo: t('tec.servicios'),
+      links: [
+        { to: "/tecnico/citas", icon: <FaCalendarCheck />, label: t('tec.misCitas') },
+        { to: "/tecnico/historial", icon: <FaClockRotateLeft />, label: t('tec.historial') },
+      ],
     },
     {
-      to: "/tecnico/historial",
-      icon: <FiClock />,
-      label: "Historial"
+      titulo: t('tec.clientes'),
+      links: [
+        { to: "/tecnico/clientes", icon: <FaUsers />, label: t('tec.clientes') },
+        { to: "/tecnico/mensajes", icon: <FaMessage />, label: t('tec.mensajes') },
+      ],
     },
     {
-      to: "/tecnico/clientes",
-      icon: <FiUsers />,
-      label: "Clientes"
+      titulo: t('tec.miCuenta'),
+      links: [
+        { to: "/perfil/tecnico", icon: <FaUserGear />, label: t('tec.miPerfil') },
+      ],
     },
-    {
-      to: "/tecnico/mensajes",
-      icon: <FiMessageSquare />,
-      label: "Mensajes"
-    }
   ];
 
   return (
-    <aside className="admin-sidebar">
-      <nav className="sidebar-nav">
-        {links.map((link) => (
-          <NavLink
-            key={link.to}
-            to={link.to}
-            className={({ isActive }) =>
-              `sidebar-link ${isActive ? "active" : ""}`
-            }
-          >
-            <span className="sidebar-icon">
-              {link.icon}
-            </span>
-
-            <span className="sidebar-label">
-              {link.label}
-            </span>
-          </NavLink>
+    <aside className={`admin-sidebar ${open ? 'open' : ''}`}>
+      <nav className="sidebar-nav" aria-label={t('tec.menuTecnico')}>
+        {secciones.map((seccion) => (
+          <div key={seccion.titulo}>
+            <span className="sidebar-section-title">{seccion.titulo}</span>
+            {seccion.links.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                onClick={onNavigate}
+                className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
+              >
+                <span className="sidebar-icon">{link.icon}</span>
+                <span className="sidebar-label">{link.label}</span>
+              </NavLink>
+            ))}
+          </div>
         ))}
       </nav>
 
       <div className="sidebar-divider" />
 
-      <button
-        className="sidebar-logout"
-        onClick={handleLogout}
-      >
-        <FiLogOut />
-        <span>Cerrar sesión</span>
+      <button className="sidebar-logout" onClick={handleLogout}>
+        <FaRightFromBracket />
+        <span>{t('tec.cerrarSesion')}</span>
       </button>
     </aside>
   );
 };
 
-export default TechnicalSidebar;
+export default TechnicianSidebar;

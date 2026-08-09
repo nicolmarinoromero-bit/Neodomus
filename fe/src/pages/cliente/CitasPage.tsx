@@ -175,6 +175,13 @@ const CitasPage = () => {
     if (vista === 'mis-citas') cargarCitas();
   }, [vista, cargarCitas]);
 
+  // Pre-cargar las citas al montar para que el contador de la pestaña
+  // "Mis citas" y la lista estén siempre sincronizados con la base de datos.
+  useEffect(() => {
+    cargarCitas();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     if (!form.fecha) {
       setHorasDisponibles([]);
