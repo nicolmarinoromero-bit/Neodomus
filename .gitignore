@@ -1,0 +1,93 @@
+# ==========================================
+# Python / Backend
+# ==========================================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.db
+*.sqlite
+*.pid
+*.log
+.env
+.venv
+venv/
+ENV/
+env/
+alembic/versions/*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+logs/
+
+# ==========================================
+# Node.js / pnpm (Frontend)
+# ==========================================
+node_modules/
+.pnpm-store/
+fe/node_modules/
+fe/.pnpm-store/
+fe/dist/
+dist-ssr/
+*.local
+fe/.env.local
+fe/.env.*.local
+fe/package-lock.json
+fe/npm-debug.log*
+fe/yarn-debug.log*
+fe/yarn-error.log*
+
+# El lockfile de pnpm SÍ se sube (no lo ignores)
+# Asegúrate de NO tener "pnpm-lock.yaml" en esta lista
+
+# ==========================================
+# Docker
+# ==========================================
+mysql_data/
+redis_data/
+*.pid
+*.sock
+# ==========================================
+# Editores / IDEs
+# ==========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.iml
+
+# ==========================================
+# Sistema Operativo
+# ==========================================
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+*.ds_store
+
+# ==========================================
+# Logs y bases de datos locales
+# ==========================================
+*.log
+*.sqlite
+*.db
+
+# ==========================================
+# Otros archivos generados
+# ==========================================
+*.pyc
+*.pyo
+__pycache__/
+*.egg-info/
+dist/
+build/
