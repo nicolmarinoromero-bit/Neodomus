@@ -1,0 +1,110 @@
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+from sqlalchemy.orm import Session
+from pydantic import BaseModel
+from typing import Optional
+
+from app.database import get_db
+from app.services.auth_service import (
+    register_client,
+    verify_client_email,
+    resend_verification_code,
+    login,
+    refresh_access_token,
+    change_password,
+    request_password_reset,
+    verify_password_reset_code,
+    reset_password,
+    solicitar_habilitacion,
+    google_login,
+)
+from app.schemas.auth import (
+    ClientCreate,
+    UserLogin,
+    TokenResponse,
+    ChangePasswordRequest,
+    ResetPasswordRequest,
+    VerifyCodeRequest,
+    GoogleLoginRequest,
+)
+from app.utils.security import get_current_user
+
+router = APIRouter(prefix="/auth", tags=["Authentication"])
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+class ResetPasswordCodeRequest(BaseModel):
+    token: str
+    new_password: str
+
+class ResendVerificationRequest(BaseModel):
+    email: str
+
+# Registro y verificación
+@router.post("/register/client", response_model=dict)
+async def register_client_endpoint(client_data: ClientCreate, db: Session = Depends(get_db)):
+    return await register_client(db, client_data)
+
+@router.post("/verify-email")
+def verify_email_endpoint(code: str, db: Session = Depends(get_db)):
+    verify_client_email(db, code)
+    return {"msg": "Email verificado correctamente. Ya puedes iniciar sesión."}
+
+@router.post("/resend-verification")
+async def resend_verification_endpoint(req: ResendVerificationRequest, db: Session = Depends(get_db)):
+    return await resend_verification_code(db, req.email)
+
+# Login y autenticación
+@router.post("/login", response_model=TokenResponse)
+def login_endpoint(login_data: UserLogin, db: Session = Depends(get_db)):
+    return login(db, login_data)
+
+@router.post("/google", response_model=TokenResponse)
+def google_login_endpoint(req: GoogleLoginRequest, db: Session = Depends(get_db)):
+    return google_login(db, req.credential)
+
+@router.post("/solicitar-habilitacion")
+async def solicitar_habilitacion_endpoint(req: UserLogin, db: Session = Depends(get_db)):
+    """Crea una solicitud de habilitación para un cliente con la cuenta inhabilitada.
+    Requiere email y contraseña para comprobar la identidad. No habilita la cuenta."""
+    return solicitar_habilitacion(db, req.email, req.password)
+
+@router.post("/refresh", response_model=TokenResponse)
+def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
+    return refresh_access_token(db, refresh_token)
+
+@router.post("/change-password")
+def change_password_endpoint(
+    req: ChangePasswordRequest,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    request: Request = None
+):
+    ip = request.client.host if request else None
+    change_password(db, current_user, req, ip)
+    return {"msg": "Contraseña actualizada correctamente"}
+
+# Recuperación de contraseña
+@router.post("/forgot-password")
+async def forgot_password(
+    req: ForgotPasswordRequest,
+    request: Request,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
+):
+    background_tasks.add_task(request_password_reset, db, req.email, request.client.host)
+    return {"msg": "Si el email está registrado, recibirás un código de recuperación"}
+
+@router.post("/verify-code")
+def verify_code(req: VerifyCodeRequest, db: Session = Depends(get_db)):
+    verify_password_reset_code(db, req.email, req.code)
+    return {"valid": True, "message": "Código válido. Ahora puedes restablecer tu contraseña."}
+
+@router.post("/reset-password")
+def reset_password_endpoint(
+    req: ResetPasswordCodeRequest,
+    db: Session = Depends(get_db)
+):
+    reset_req = ResetPasswordRequest(token=req.token, new_password=req.new_password)
+    reset_password(db, reset_req)
+    return {"msg": "Contraseña actualizada correctamente"}

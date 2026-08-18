@@ -1,0 +1,14 @@
+
+.pf-order-tecnico-entrega {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pf-order-tecnico-entrega img {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(212, 165, 75, 0.5);
+}
