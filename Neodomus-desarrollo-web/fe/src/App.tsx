@@ -28,7 +28,6 @@ import AdminConsultas from '@pages/admin/AdminConsultas';
 import AdminClientes from '@pages/admin/AdminClientes';
 import AdminProveedores from '@pages/admin/AdminProveedores';
 import AdminReportes from '@pages/admin/AdminReportes';
-import AdminConfiguracion from '@pages/admin/AdminConfiguracion';
 import TecnicoPerfil from '@pages/tecnico/TecnicoPerfil';
 import TecnicoCitas from '@pages/tecnico/TecnicoCitas';
 import TecnicoHistorial from '@pages/tecnico/TecnicoHistorial';
@@ -148,7 +147,6 @@ function App() {
             <Route path="/admin/clientes" element={<AdminClientes />} />
             <Route path="/admin/proveedores" element={<AdminProveedores />} />
             <Route path="/admin/reportes" element={<AdminReportes />} />
-            <Route path="/admin/configuracion" element={<AdminConfiguracion />} />
           </Route>
         </Route>
 

@@ -5,7 +5,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -17,12 +17,12 @@ from app.models.pedido import DetallePedido, Pedido
 from app.models.producto import Producto
 from app.models.roles_usuario import RolesUsuario
 from app.models.solicitud_cuenta import SolicitudCuenta
+from app.models.tarifa_servicio import TarifaServicio
 from app.models.tecnico import Tecnico
 from app.models.user import User
 from app.services.reportes_service import (
-    generar_citas_excel,
     generar_citas_pdf,
-    generar_ventas_excel,
+    generar_reporte_completo_pdf,
     generar_ventas_pdf,
 )
 from app.utils.security import get_current_employee
@@ -295,7 +295,11 @@ def reporte_citas(
     inicio, fin = _resolver_rango(periodo, fecha_inicio, fecha_fin)
     grupo = _group_expr(periodo, Cita.fecha)
 
-    q = db.query(grupo.label("g"), Cita.estado).filter(
+    q = db.query(
+        grupo.label("g"),
+        Cita.estado,
+        func.count(Cita.id_cita).label("cantidad"),
+    ).filter(
         Cita.fecha >= inicio,
         Cita.fecha <= fin,
     )
@@ -310,8 +314,8 @@ def reporte_citas(
         g = str(r.g)
         if g not in datos:
             datos[g] = {"total": 0, "Pendiente": 0, "Confirmada": 0, "Finalizada": 0, "Cancelada": 0}
-        datos[g][r.estado] = datos[g].get(r.estado, 0) + 1
-        datos[g]["total"] += 1
+        datos[g][r.estado] = datos[g].get(r.estado, 0) + int(r.cantidad)
+        datos[g]["total"] += int(r.cantidad)
 
     citas_por_periodo = []
     total_general = 0
@@ -381,7 +385,11 @@ def reporte_tecnico(
 
     # ── Citas del técnico ────────────────────────────────
     filas = (
-        db.query(grupo.label("g"), Cita.estado)
+        db.query(
+            grupo.label("g"),
+            Cita.estado,
+            func.count(Cita.id_cita).label("cantidad"),
+        )
         .filter(Cita.id_tecnico == id_tecnico, Cita.fecha >= inicio, Cita.fecha <= fin)
         .group_by("g", Cita.estado)
         .order_by("g")
@@ -393,8 +401,8 @@ def reporte_tecnico(
         g = str(r.g)
         if g not in datos:
             datos[g] = {"total": 0, "Pendiente": 0, "Confirmada": 0, "Finalizada": 0, "Cancelada": 0}
-        datos[g][r.estado] = datos[g].get(r.estado, 0) + 1
-        datos[g]["total"] += 1
+        datos[g][r.estado] = datos[g].get(r.estado, 0) + int(r.cantidad)
+        datos[g]["total"] += int(r.cantidad)
 
     totales_estado: dict[str, int] = {"Pendiente": 0, "Confirmada": 0, "Finalizada": 0, "Cancelada": 0}
     total_citas = 0
@@ -615,7 +623,11 @@ def _datos_ventas(db, id_tecnico, inicio, fin, periodo):
 
 def _datos_citas(db, id_tecnico, inicio, fin, periodo):
     grupo = _group_expr(periodo, Cita.fecha)
-    q = db.query(grupo.label("g"), Cita.estado).filter(
+    q = db.query(
+        grupo.label("g"),
+        Cita.estado,
+        func.count(Cita.id_cita).label("cantidad"),
+    ).filter(
         Cita.fecha >= inicio, Cita.fecha <= fin,
     )
     if id_tecnico is not None:
@@ -626,8 +638,8 @@ def _datos_citas(db, id_tecnico, inicio, fin, periodo):
         g = str(r.g)
         if g not in datos:
             datos[g] = {"total": 0, "Pendiente": 0, "Confirmada": 0, "Finalizada": 0, "Cancelada": 0}
-        datos[g][r.estado] = datos[g].get(r.estado, 0) + 1
-        datos[g]["total"] += 1
+        datos[g][r.estado] = datos[g].get(r.estado, 0) + int(r.cantidad)
+        datos[g]["total"] += int(r.cantidad)
 
     totales = {"Pendiente": 0, "Confirmada": 0, "Finalizada": 0, "Cancelada": 0}
     total_gen = 0
@@ -684,28 +696,6 @@ def ventas_pdf(
     )
 
 
-@router.get("/ventas/excel")
-def ventas_excel(
-    periodo: str = Query("mes", regex="^(dia|semana|mes|anio)$"),
-    fecha_inicio: Optional[date] = None,
-    fecha_fin: Optional[date] = None,
-    id_tecnico: Optional[int] = None,
-    _admin_user: User = Depends(_admin),
-    db: Session = Depends(get_db),
-):
-    """Descargar reporte de ventas en Excel."""
-    inicio, fin = _resolver_rango(periodo, fecha_inicio, fecha_fin)
-    resumen, detalle = _datos_ventas(db, id_tecnico, inicio, fin, periodo)
-    nombre_tec = _resolver_nombre_tecnico(db, id_tecnico)
-    buf = generar_ventas_excel(resumen, detalle, periodo, inicio, fin, nombre_tec)
-    fecha_str = datetime.now().strftime("%Y%m%d_%H%M")
-    return StreamingResponse(
-        buf,
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": f'attachment; filename="reporte_ventas_{periodo}_{fecha_str}.xlsx"'},
-    )
-
-
 # ── Descargas: Reporte de Citas ──────────────────────────────────
 
 
@@ -731,24 +721,243 @@ def citas_pdf(
     )
 
 
-@router.get("/citas/excel")
-def citas_excel(
-    periodo: str = Query("mes", regex="^(dia|semana|mes|anio)$"),
-    fecha_inicio: Optional[date] = None,
-    fecha_fin: Optional[date] = None,
-    id_tecnico: Optional[int] = None,
+# ── Descarga: Reporte General (PDF) ───────────────────────────────
+
+_MESES_NOMBRE = [
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+]
+
+
+def _nombre_archivo_reporte(periodo: str, inicio: date) -> str:
+    """Nombre del archivo PDF según el período del reporte."""
+    if periodo == "semana":
+        return f"Reporte_Semanal_{inicio.isoformat()}.pdf"
+    if periodo == "mes":
+        return f"Reporte_Mensual_{_MESES_NOMBRE[inicio.month - 1]}_{inicio.year}.pdf"
+    return f"Reporte_Anual_{inicio.year}.pdf"
+
+
+def _datos_reporte_completo(db: Session, inicio: date, fin: date, periodo: str) -> dict:
+    """Reúne todos los datos reales del período para el reporte general."""
+    res_ventas, det_ventas = _datos_ventas(db, None, inicio, fin, periodo)
+    res_citas, det_citas = _datos_citas(db, None, inicio, fin, periodo)
+
+    # ── Detalle de citas del período ─────────────────────
+    citas_detalle = []
+    for c in (
+        db.query(Cita)
+        .filter(Cita.fecha >= inicio, Cita.fecha <= fin)
+        .order_by(Cita.fecha, Cita.hora)
+        .all()
+    ):
+        nombre_cliente = ""
+        if c.cliente:
+            nombre_cliente = f"{c.cliente.first_name} {c.cliente.last_name}".strip()
+        citas_detalle.append({
+            "id_cita": c.id_cita,
+            "fecha": c.fecha,
+            "hora": c.hora or "",
+            "cliente": nombre_cliente,
+            "tecnico": c.nombre_tecnico or "",
+            "servicio": c.tipo_servicio,
+            "estado": c.estado,
+            "costo": float(c.costo_cita or 0),
+            "estado_pago": c.estado_pago or "",
+        })
+
+    # ── Servicios por tipo en el período ─────────────────
+    servicios = []
+    filas_serv = (
+        db.query(
+            Cita.tipo_servicio,
+            func.count(Cita.id_cita).label("cantidad"),
+        )
+        .filter(Cita.fecha >= inicio, Cita.fecha <= fin)
+        .group_by(Cita.tipo_servicio)
+        .order_by(Cita.tipo_servicio)
+        .all()
+    )
+    for tipo, cant in filas_serv:
+        por_estado = {
+            e: (
+                db.query(func.count(Cita.id_cita))
+                .filter(
+                    Cita.fecha >= inicio, Cita.fecha <= fin,
+                    Cita.tipo_servicio == tipo, Cita.estado == e,
+                )
+                .scalar() or 0
+            )
+            for e in ("Pendiente", "Confirmada", "Finalizada", "Cancelada")
+        }
+        ingresos = float(
+            db.query(func.coalesce(func.sum(Cita.costo_cita), 0))
+            .filter(
+                Cita.fecha >= inicio, Cita.fecha <= fin,
+                Cita.tipo_servicio == tipo, Cita.estado_pago == "aprobado",
+            )
+            .scalar() or 0
+        )
+        servicios.append({
+            "tipo_servicio": tipo,
+            "cantidad": int(cant),
+            "por_estado": por_estado,
+            "ingresos": ingresos,
+        })
+
+    # ── Tarifas actuales (configuración) ─────────────────
+    tarifas = [
+        {
+            "tipo_servicio": t.tipo_servicio,
+            "costo": float(t.costo),
+            "descripcion": t.descripcion or "",
+        }
+        for t in db.query(TarifaServicio).order_by(TarifaServicio.tipo_servicio).all()
+    ]
+
+    # ── Rendimiento por técnico en el período ───────────
+    tecnicos_reporte = []
+    filas_tec = (
+        db.query(
+            Cita.id_tecnico,
+            Cita.nombre_tecnico,
+            func.count(Cita.id_cita).label("total"),
+            func.coalesce(
+                func.sum(case((Cita.estado == "Finalizada", 1), else_=0)), 0
+            ).label("finalizadas"),
+            func.coalesce(
+                func.sum(case((Cita.estado_pago == "aprobado", Cita.costo_cita), else_=0)), 0
+            ).label("ingresos"),
+        )
+        .filter(Cita.fecha >= inicio, Cita.fecha <= fin, Cita.id_tecnico.isnot(None))
+        .group_by(Cita.id_tecnico, Cita.nombre_tecnico)
+        .order_by(func.count(Cita.id_cita).desc())
+        .all()
+    )
+    for id_t, nombre_t, total, finalizadas, ingresos in filas_tec:
+        tecnicos_reporte.append({
+            "id_tecnico": id_t,
+            "nombre": nombre_t or "Técnico",
+            "total_citas": int(total),
+            "finalizadas": int(finalizadas),
+            "ingresos": float(ingresos),
+        })
+
+    # ── Clientes con citas en el período (top 15) ───────
+    clientes_citas = []
+    filas_cli = (
+        db.query(
+            Cliente.id_cliente,
+            Cliente.first_name,
+            Cliente.last_name,
+            func.count(Cita.id_cita).label("total"),
+            func.coalesce(
+                func.sum(case((Cita.estado_pago == "aprobado", Cita.costo_cita), else_=0)), 0
+            ).label("gasto"),
+        )
+        .join(Cita, Cita.id_cliente == Cliente.id_cliente)
+        .filter(Cita.fecha >= inicio, Cita.fecha <= fin)
+        .group_by(Cliente.id_cliente)
+        .order_by(func.count(Cita.id_cita).desc())
+        .limit(15)
+        .all()
+    )
+    for id_cli, first, last, total, gasto in filas_cli:
+        clientes_citas.append({
+            "id_cliente": id_cli,
+            "nombre": f"{first} {last}".strip() or "Cliente",
+            "citas": int(total),
+            "gasto": float(gasto),
+        })
+
+    # ── Valor promedio de cita en el período ────────────
+    promedio_costo_cita = float(
+        db.query(func.avg(Cita.costo_cita))
+        .filter(Cita.fecha >= inicio, Cita.fecha <= fin, Cita.costo_cita.isnot(None))
+        .scalar() or 0
+    )
+
+    # ── Métricas complementarias ─────────────────────────
+    clientes_registrados = (
+        db.query(func.count(Cliente.id_cliente))
+        .filter(
+            func.date(Cliente.created_at) >= inicio,
+            func.date(Cliente.created_at) <= fin,
+        )
+        .scalar() or 0
+    )
+    clientes_total = db.query(func.count(Cliente.id_cliente)).scalar() or 0
+    tecnicos_total = db.query(func.count(Tecnico.id_tecnico)).scalar() or 0
+    tecnicos_activos = (
+        db.query(func.count(User.id_usuario))
+        .filter(User.id_rol_u == 2, User.is_active == True)  # noqa: E712
+        .scalar() or 0
+    )
+    tecnicos_con_citas = (
+        db.query(func.count(func.distinct(Cita.id_tecnico)))
+        .filter(Cita.fecha >= inicio, Cita.fecha <= fin, Cita.id_tecnico.isnot(None))
+        .scalar() or 0
+    )
+    productos_total = db.query(func.count(Producto.id_producto)).scalar() or 0
+    productos_activos = (
+        db.query(func.count(Producto.id_producto))
+        .filter(Producto.estado_producto == "activo")
+        .scalar() or 0
+    )
+    solicitudes_pendientes = (
+        db.query(func.count(SolicitudCuenta.id))
+        .filter(SolicitudCuenta.estado == "pendiente")
+        .scalar() or 0
+    )
+
+    hay_datos = bool(det_ventas or det_citas or citas_detalle or servicios or tecnicos_reporte or clientes_citas)
+
+    return {
+        "resumen": {
+            "ventas_total": res_ventas["total_ventas_pedidos"],
+            "pedidos_total": res_ventas["total_pedidos"],
+            "ingresos_citas": res_ventas["total_ingresos_citas"],
+            "total_ingresos": res_ventas["total_ingresos"],
+            "citas_total": res_citas["total_citas"],
+            "citas_por_estado": res_citas["por_estado"],
+            "ingresos_citas_finalizadas": res_citas["ingresos_total"],
+            "promedio_costo_cita": round(promedio_costo_cita, 2),
+            "servicios_distintos": len(servicios),
+            "clientes_registrados": int(clientes_registrados),
+            "clientes_total": int(clientes_total),
+            "tecnicos_activos": int(tecnicos_activos),
+            "tecnicos_total": int(tecnicos_total),
+            "tecnicos_con_citas": int(tecnicos_con_citas),
+            "productos_activos": int(productos_activos),
+            "productos_total": int(productos_total),
+            "solicitudes_pendientes": int(solicitudes_pendientes),
+        },
+        "ventas_por_periodo": det_ventas,
+        "citas_por_periodo": det_citas,
+        "citas_detalle": citas_detalle,
+        "servicios": servicios,
+        "tarifas": tarifas,
+        "tecnicos_reporte": tecnicos_reporte,
+        "clientes_citas": clientes_citas,
+        "hay_datos": hay_datos,
+    }
+
+
+@router.get("/pdf")
+def reporte_pdf(
+    periodo: str = Query("mes", regex="^(semana|mes|anio)$"),
     _admin_user: User = Depends(_admin),
     db: Session = Depends(get_db),
 ):
-    """Descargar reporte de citas en Excel."""
-    inicio, fin = _resolver_rango(periodo, fecha_inicio, fecha_fin)
-    resumen, detalle = _datos_citas(db, id_tecnico, inicio, fin, periodo)
-    nombre_tec = _resolver_nombre_tecnico(db, id_tecnico)
-    buf = generar_citas_excel(resumen, detalle, periodo, inicio, fin, nombre_tec)
-    fecha_str = datetime.now().strftime("%Y%m%d_%H%M")
+    """Descarga el reporte general del panel en PDF profesional: portada
+    con logo, resumen ejecutivo, análisis con gráficas, detalle con tablas
+    y resumen final, para el período indicado."""
+    inicio, fin = _resolver_rango(periodo, None, None)
+    datos = _datos_reporte_completo(db, inicio, fin, periodo)
+    buf = generar_reporte_completo_pdf(datos, periodo, inicio, fin)
     return StreamingResponse(
         buf,
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": f'attachment; filename="reporte_citas_{periodo}_{fecha_str}.xlsx"'},
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{_nombre_archivo_reporte(periodo, inicio)}"'},
     )
 

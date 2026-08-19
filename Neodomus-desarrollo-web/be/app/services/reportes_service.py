@@ -1,23 +1,27 @@
 """
-Generación de reportes PDF y Excel para NEODOMUS.
+Generación de reportes PDF para NEODOMUS.
 
-PDF: usa reportlab (misma paleta y estilos que factura_service.py).
-Excel: usa openpyxl.
+Usa reportlab (misma paleta y estilos que factura_service.py).
 """
 from __future__ import annotations
 
 import io
 from datetime import date, datetime
+from pathlib import Path
 
-from openpyxl import Workbook
-from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
-from openpyxl.utils import get_column_letter
+from reportlab.graphics.charts.barcharts import HorizontalBarChart, VerticalBarChart
+from reportlab.graphics.charts.legends import Legend
+from reportlab.graphics.charts.piecharts import Pie
+from reportlab.graphics.shapes import Drawing
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_RIGHT
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.platypus import (
+    Image,
+    KeepTogether,
+    PageBreak,
     Paragraph,
     SimpleDocTemplate,
     Spacer,
@@ -31,8 +35,11 @@ ORO = colors.HexColor("#caa24d")
 ORO_CLARO = colors.HexColor("#f0c96f")
 NEGRO = colors.HexColor("#000000")
 FONDO_TABLA = colors.HexColor("#f7f3ea")
+FONDO_TOTAL = colors.HexColor("#f0e8d2")
 GRIS = colors.HexColor("#6b6b6b")
 BLANCO = colors.white
+
+_LABEL_PERIODO = {"semana": "Semanal", "mes": "Mensual", "anio": "Anual"}
 
 # ── Estilos PDF ───────────────────────────────────────────────────
 
@@ -73,6 +80,17 @@ def _styles():
             "tdr", fontName="Helvetica", fontSize=8.5, textColor=NEGRO,
             alignment=TA_RIGHT,
         ),
+        "tdb": ParagraphStyle(
+            "tdb", fontName="Helvetica-Bold", fontSize=8.5, textColor=NEGRO,
+        ),
+        "tdcb": ParagraphStyle(
+            "tdcb", fontName="Helvetica-Bold", fontSize=8.5, textColor=NEGRO,
+            alignment=TA_CENTER,
+        ),
+        "tdrb": ParagraphStyle(
+            "tdrb", fontName="Helvetica-Bold", fontSize=8.5, textColor=NEGRO,
+            alignment=TA_RIGHT,
+        ),
         "total_label": ParagraphStyle(
             "total_label", fontName="Helvetica-Bold", fontSize=10,
             textColor=NEGRO, alignment=TA_RIGHT,
@@ -84,6 +102,46 @@ def _styles():
         "nota": ParagraphStyle(
             "nota", fontName="Helvetica", fontSize=7.5, textColor=GRIS,
             alignment=TA_CENTER,
+        ),
+        "marca": ParagraphStyle(
+            "marca", fontName="Helvetica-Bold", fontSize=30, leading=36,
+            textColor=ORO, alignment=TA_CENTER, spaceAfter=2,
+        ),
+        "portada_titulo": ParagraphStyle(
+            "portada_titulo", fontName="Helvetica-Bold", fontSize=17, leading=21,
+            textColor=NEGRO, alignment=TA_CENTER, spaceAfter=3,
+        ),
+        "portada_sub": ParagraphStyle(
+            "portada_sub", fontName="Helvetica", fontSize=10.5, leading=13,
+            textColor=GRIS, alignment=TA_CENTER,
+        ),
+        "meta_label": ParagraphStyle(
+            "meta_label", fontName="Helvetica-Bold", fontSize=8.5,
+            textColor=GRIS, alignment=TA_RIGHT,
+        ),
+        "meta_valor": ParagraphStyle(
+            "meta_valor", fontName="Helvetica-Bold", fontSize=9.5,
+            textColor=NEGRO,
+        ),
+        "kpi_valor": ParagraphStyle(
+            "kpi_valor", fontName="Helvetica-Bold", fontSize=15, leading=18,
+            textColor=ORO, alignment=TA_CENTER, spaceAfter=2,
+        ),
+        "kpi_label": ParagraphStyle(
+            "kpi_label", fontName="Helvetica", fontSize=8, textColor=GRIS,
+            alignment=TA_CENTER,
+        ),
+        "grafico_titulo": ParagraphStyle(
+            "grafico_titulo", fontName="Helvetica-Bold", fontSize=9.5,
+            textColor=NEGRO, spaceBefore=8, spaceAfter=2,
+        ),
+        "sin_datos": ParagraphStyle(
+            "sin_datos", fontName="Helvetica-Oblique", fontSize=9,
+            textColor=GRIS, spaceBefore=2, spaceAfter=6,
+        ),
+        "parrafo": ParagraphStyle(
+            "parrafo", fontName="Helvetica", fontSize=9, textColor=GRIS,
+            leading=13,
         ),
     }
 
@@ -98,6 +156,23 @@ def _cop(valor) -> str:
     except (TypeError, ValueError):
         v = 0
     return f"${v:,.0f} COP".replace(",", ".")
+
+
+def _logo_pdf() -> Image | None:
+    """Imagen del logo NEODOMUS para la portada (si está disponible)."""
+    ruta = Path(__file__).resolve().parent.parent / "assets" / "logo_neodomus.jpg"
+    if not ruta.exists():
+        return None
+    try:
+        from PIL import Image as PILImage
+
+        with PILImage.open(ruta) as im:
+            w, h = im.size
+    except Exception:
+        w, h = 342, 332
+    ancho = 150
+    alto = ancho * h / w
+    return Image(str(ruta), width=ancho, height=alto)
 
 
 # ── Helpers PDF comunes ──────────────────────────────────────────
@@ -322,208 +397,600 @@ def generar_citas_pdf(
     return _build_pdf(historia, "Reporte de Citas")
 
 
-# ── Excel helpers ────────────────────────────────────────────────
-
-ORO_HEX = "caa24d"
-FONDO_HEX = "f7f3ea"
-GRIS_HEX = "6b6b6b"
-
-_header_font = Font(name="Calibri", bold=True, color="FFFFFF", size=11)
-_header_fill = PatternFill(start_color=ORO_HEX, end_color=ORO_HEX, fill_type="solid")
-_label_font = Font(name="Calibri", bold=True, size=11)
-_valor_font = Font(name="Calibri", size=11)
-_total_font = Font(name="Calibri", bold=True, size=13, color=ORO_HEX)
-_thin_border = Border(
-    left=Side(style="thin", color=GRIS_HEX),
-    right=Side(style="thin", color=GRIS_HEX),
-    top=Side(style="thin", color=GRIS_HEX),
-    bottom=Side(style="thin", color=GRIS_HEX),
-)
-_center = Alignment(horizontal="center", vertical="center")
-_right = Alignment(horizontal="right", vertical="center")
-_left = Alignment(horizontal="left", vertical="center")
+# ── PDF: Reporte General del Panel ───────────────────────────────
 
 
-def _auto_width(ws, cols: int):
-    for col_idx in range(1, cols + 1):
-        max_len = 0
-        col_letter = get_column_letter(col_idx)
-        for row in ws.iter_rows(min_col=col_idx, max_col=col_idx):
-            for cell in row:
-                if cell.value:
-                    max_len = max(max_len, len(str(cell.value)))
-        ws.column_dimensions[col_letter].width = min(max_len + 4, 30)
+def _leyenda(serie: list[tuple[str, str]]) -> Legend:
+    """Leyenda horizontal para las gráficas (pares (color, nombre))."""
+    leg = Legend()
+    leg.x = 0
+    leg.y = 8
+    leg.fontName = "Helvetica"
+    leg.fontSize = 7.5
+    leg.boxAnchor = "w"
+    leg.columnMaximum = 6
+    leg.alignment = "left"
+    leg.dx = 4
+    leg.dy = 4
+    leg.colorNamePairs = [(colors.HexColor(c), n) for c, n in serie]
+    return leg
 
 
-# ── Excel: Reporte de Ventas ─────────────────────────────────────
+def _grafica_barras_vertical(
+    s: dict,
+    titulo: str,
+    categorias: list[str],
+    series: list[tuple[str, list[float], str]],
+    divisor: float = 1.0,
+) -> KeepTogether:
+    """Gráfica de barras verticales agrupadas con leyenda (valores ya escalados)."""
+    d = Drawing(500, 215)
+    g = VerticalBarChart()
+    g.x = 55
+    g.y = 42
+    g.width = 440
+    g.height = 160
+    g.data = [[v / divisor for v in valores] for _, valores, _ in series]
+    g.categoryAxis.categoryNames = categorias
+    g.categoryAxis.labels.fontSize = 7.5
+    g.categoryAxis.labels.angle = 0
+    g.categoryAxis.labels.boxAnchor = "n"
+    g.categoryAxis.labels.dx = 0
+    g.valueAxis.valueMin = 0
+    g.valueAxis.labels.fontSize = 7
+    g.valueAxis.labels.angle = 0
+    g.groupSpacing = 14
+    g.barWidth = 13
+    for i, (_, _, color) in enumerate(series):
+        g.bars[i].fillColor = colors.HexColor(color)
+        g.bars[i].strokeColor = colors.white
+    d.add(g)
+    if len(series) > 1:
+        d.add(_leyenda([(c, n) for n, _, c in series]))
+    return KeepTogether([Paragraph(titulo, s["grafico_titulo"]), d])
 
 
-def generar_ventas_excel(
-    resumen: dict,
-    ventas_por_periodo: list[dict],
+def _grafica_barras_horizontal(
+    s: dict,
+    titulo: str,
+    categorias: list[str],
+    valores: list[float],
+    divisor: float = 1.0,
+) -> KeepTogether:
+    """Gráfica de barras horizontales (una serie, color oro)."""
+    alto = max(215, 60 + len(categorias) * 13)
+    d = Drawing(500, alto)
+    g = HorizontalBarChart()
+    g.x = 105
+    g.y = 30
+    g.width = 390
+    g.height = alto - 55
+    g.data = [[v / divisor for v in valores]]
+    g.categoryAxis.categoryNames = categorias
+    g.categoryAxis.labels.fontSize = 7.5
+    g.valueAxis.valueMin = 0
+    g.valueAxis.labels.fontSize = 7
+    g.barWidth = 11
+    g.bars[0].fillColor = ORO
+    g.bars[0].strokeColor = colors.white
+    d.add(g)
+    return KeepTogether([Paragraph(titulo, s["grafico_titulo"]), d])
+
+
+def _grafica_dona(
+    s: dict,
+    titulo: str,
+    valores: list[tuple[str, float, str]],
+) -> KeepTogether:
+    """Gráfica de dona con leyenda lateral (estados de las citas)."""
+    d = Drawing(500, 215)
+    p = Pie()
+    p.x = 60
+    p.y = 22
+    p.width = 165
+    p.height = 165
+    p.data = [v for _, v, _ in valores]
+    p.labels = None
+    p.startAngle = 90
+    p.innerRadiusFraction = 0.55
+    for i, (_, _, color) in enumerate(valores):
+        p.slices[i].fillColor = colors.HexColor(color)
+        p.slices[i].strokeColor = colors.white
+        p.slices[i].strokeWidth = 1
+    d.add(p)
+    leg = _leyenda([(c, f"{n} ({int(v)})") for n, v, c in valores])
+    leg.x = 260
+    leg.y = 60
+    leg.columnMaximum = 1
+    d.add(leg)
+    return KeepTogether([Paragraph(titulo, s["grafico_titulo"]), d])
+
+
+def _tabla_pdf(
+    s: dict,
+    headers: list[str],
+    filas: list[list],
+    col_widths: list,
+    alineacion: list[str],
+    totales: list | None = None,
+) -> Table:
+    """Tabla con encabezado dorado, filas alternadas y fila de totales opcional.
+    alineacion: 'l' | 'c' | 'r' por columna."""
+    fila_estilos = {"l": s["td"], "c": s["tdc"], "r": s["tdr"]}
+    tot_estilos = {"l": s["tdb"], "c": s["tdcb"], "r": s["tdrb"]}
+    rows = [[_celda(h, s["th"]) for h in headers]]
+    for f in filas:
+        rows.append([_celda(v, fila_estilos[a]) for v, a in zip(f, alineacion)])
+    if totales is not None:
+        rows.append([_celda(v, tot_estilos[a]) for v, a in zip(totales, alineacion)])
+
+    t = Table(rows, colWidths=col_widths, repeatRows=1)
+    st = [
+        ("BACKGROUND", (0, 0), (-1, 0), ORO),
+        ("TEXTCOLOR", (0, 0), (-1, 0), BLANCO),
+        ("BACKGROUND", (0, 1), (-1, -1), FONDO_TABLA),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [FONDO_TABLA, BLANCO]),
+        ("GRID", (0, 0), (-1, -1), 0.5, GRIS),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ("LEFTPADDING", (0, 0), (-1, -1), 6),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+    ]
+    if totales is not None:
+        n = len(rows) - 1
+        st += [
+            ("BACKGROUND", (0, n), (-1, n), FONDO_TOTAL),
+            ("TEXTCOLOR", (0, n), (-1, n), NEGRO),
+        ]
+    t.setStyle(TableStyle(st))
+    return t
+
+
+def generar_reporte_completo_pdf(
+    datos: dict,
     periodo: str,
     inicio: date,
     fin: date,
-    tecnico_nombre: str | None,
 ) -> io.BytesIO:
-    wb = Workbook()
+    """Reporte general del panel en PDF profesional: portada con logo,
+    resumen ejecutivo, análisis con gráficas reales, detalle con tablas
+    (encabezados repetidos y totales) y resumen final."""
+    s = _styles()
+    resumen = datos["resumen"]
+    ventas = datos["ventas_por_periodo"]
+    citas_por_periodo = datos["citas_por_periodo"]
+    citas_detalle = datos["citas_detalle"]
+    servicios = datos["servicios"]
+    tecnicos_reporte = datos.get("tecnicos_reporte", [])
+    clientes_citas = datos.get("clientes_citas", [])
+    hay_datos = bool(datos.get("hay_datos"))
+    pe = resumen.get("citas_por_estado", {})
+    label = _LABEL_PERIODO.get(periodo, periodo.capitalize())
+    ahora = datetime.now()
 
-    # ── Hoja Resumen ─────────────────────────────────────
-    ws1 = wb.active
-    ws1.title = "Resumen"
-    ws1.append(["REPORTE DE VENTAS"])
-    ws1.merge_cells("A1:B1")
-    ws1["A1"].font = Font(name="Calibri", bold=True, size=14, color=ORO_HEX)
+    historia: list = []
 
-    ws1.append([f"Periodo: {periodo.capitalize()}"])
-    ws1.append([f"Del {inicio} al {fin}"])
-    if tecnico_nombre:
-        ws1.append([f"Técnico: {tecnico_nombre}"])
-    ws1.append([])
+    # ── Portada ──────────────────────────────────────────
+    historia.append(Spacer(1, 14 * mm))
+    logo = _logo_pdf()
+    if logo:
+        t_logo = Table([[logo]], colWidths=[170 * mm])
+        t_logo.setStyle(TableStyle([
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ]))
+        historia.append(t_logo)
+        historia.append(Spacer(1, 6 * mm))
+    historia.append(Paragraph("NEODOMUS", s["marca"]))
+    historia.append(Paragraph("Soluciones Domóticas Inteligentes", s["portada_sub"]))
+    historia.append(Spacer(1, 7 * mm))
 
-    headers_r = ["Concepto", "Valor"]
-    ws1.append(headers_r)
-    for cell in ws1[ws1.max_row]:
-        cell.font = _header_font
-        cell.fill = _header_fill
-        cell.border = _thin_border
-        cell.alignment = _center
+    banda = Table([[""]], colWidths=[150 * mm], rowHeights=[2])
+    banda.setStyle(TableStyle([
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("BACKGROUND", (0, 0), (-1, -1), ORO),
+    ]))
+    historia.append(banda)
+    historia.append(Spacer(1, 11 * mm))
 
-    res_rows = [
-        ("Total Pedidos", resumen["total_pedidos"]),
-        ("Ventas Productos", resumen["total_ventas_pedidos"]),
-        ("Ingresos Citas", resumen["total_ingresos_citas"]),
-        ("TOTAL INGRESOS", resumen["total_ingresos"]),
+    historia.append(Paragraph("REPORTE GENERAL DE GESTIÓN", s["portada_titulo"]))
+    historia.append(Spacer(1, 3 * mm))
+    historia.append(
+        Paragraph(
+            f"Informe ejecutivo {label.lower()} de las operaciones del sistema",
+            s["portada_sub"],
+        )
+    )
+    historia.append(Spacer(1, 13 * mm))
+
+    meta = [
+        ("Período del reporte", label),
+        ("Rango de fechas", f"Del {inicio.strftime('%d/%m/%Y')} al {fin.strftime('%d/%m/%Y')}"),
+        ("Fecha de generación", ahora.strftime("%d/%m/%Y %H:%M")),
+        ("Preparado por", "Equipo Administrativo NEODOMUS"),
     ]
-    for label, val in res_rows:
-        ws1.append([label, val])
-        ws1.cell(row=ws1.max_row, column=1).font = _label_font
-        ws1.cell(row=ws1.max_row, column=1).border = _thin_border
-        ws1.cell(row=ws1.max_row, column=1).alignment = _left
-        ws1.cell(row=ws1.max_row, column=2).font = _total_font if "TOTAL" in label else _valor_font
-        ws1.cell(row=ws1.max_row, column=2).border = _thin_border
-        ws1.cell(row=ws1.max_row, column=2).alignment = _right
-        ws1.cell(row=ws1.max_row, column=2).number_format = '#,##0'
+    t_meta = Table(
+        [[_celda(k, s["meta_label"]), _celda(v, s["meta_valor"])] for k, v in meta],
+        colWidths=[55 * mm, 65 * mm],
+        hAlign="CENTER",
+    )
+    t_meta.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("TOPPADDING", (0, 0), (-1, -1), 3),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+        ("LINEBELOW", (0, 0), (-1, -2), 0.25, GRIS),
+    ]))
+    historia.append(t_meta)
+    historia.append(Spacer(1, 11 * mm))
 
-    _auto_width(ws1, 2)
+    def _kpi_caja(label_t: str, valor_t: str) -> Table:
+        return Table(
+            [
+                [Paragraph(valor_t, s["kpi_valor"])],
+                [Paragraph(label_t, s["kpi_label"])],
+            ],
+            colWidths=[70 * mm],
+        )
 
-    # ── Hoja Detalle ─────────────────────────────────────
-    ws2 = wb.create_sheet("Detalle")
-    headers_d = ["Periodo", "Pedidos", "Ventas Productos", "Ingresos Citas", "Total"]
-    ws2.append(headers_d)
-    for cell in ws2[1]:
-        cell.font = _header_font
-        cell.fill = _header_fill
-        cell.border = _thin_border
-        cell.alignment = _center
-
-    for v in ventas_por_periodo:
-        ws2.append([
-            str(v["periodo"]),
-            v["pedidos"],
-            v["ventas_pedidos"],
-            v["ingresos_citas"],
-            v["total"],
-        ])
-        row_num = ws2.max_row
-        ws2.cell(row=row_num, column=1).alignment = _center
-        for col in range(2, 6):
-            ws2.cell(row=row_num, column=col).number_format = '#,##0'
-            ws2.cell(row=row_num, column=col).alignment = _right
-        for col in range(1, 6):
-            ws2.cell(row=row_num, column=col).border = _thin_border
-
-    _auto_width(ws2, 5)
-
-    buf = io.BytesIO()
-    wb.save(buf)
-    buf.seek(0)
-    return buf
-
-
-# ── Excel: Reporte de Citas ──────────────────────────────────────
-
-
-def generar_citas_excel(
-    resumen: dict,
-    citas_por_periodo: list[dict],
-    periodo: str,
-    inicio: date,
-    fin: date,
-    tecnico_nombre: str | None,
-) -> io.BytesIO:
-    wb = Workbook()
-
-    # ── Hoja Resumen ─────────────────────────────────────
-    ws1 = wb.active
-    ws1.title = "Resumen"
-    ws1.append(["REPORTE DE CITAS"])
-    ws1.merge_cells("A1:B1")
-    ws1["A1"].font = Font(name="Calibri", bold=True, size=14, color=ORO_HEX)
-
-    ws1.append([f"Periodo: {periodo.capitalize()}"])
-    ws1.append([f"Del {inicio} al {fin}"])
-    if tecnico_nombre:
-        ws1.append([f"Técnico: {tecnico_nombre}"])
-    ws1.append([])
-
-    ws1.append(["Concepto", "Valor"])
-    for cell in ws1[ws1.max_row]:
-        cell.font = _header_font
-        cell.fill = _header_fill
-        cell.border = _thin_border
-        cell.alignment = _center
-
-    pe = resumen["por_estado"]
-    res_rows = [
-        ("Total Citas", resumen["total_citas"]),
-        ("Pendiente", pe.get("Pendiente", 0)),
-        ("Confirmada", pe.get("Confirmada", 0)),
-        ("Finalizada", pe.get("Finalizada", 0)),
-        ("Cancelada", pe.get("Cancelada", 0)),
-        ("Ingresos Totales", resumen["ingresos_total"]),
+    kpis = [
+        ("Ventas del período", _cop(resumen.get("ventas_total", 0))),
+        ("Ingresos por citas", _cop(resumen.get("ingresos_citas", 0))),
+        ("Citas del período", str(resumen.get("citas_total", 0))),
+        ("Clientes registrados", str(resumen.get("clientes_registrados", 0))),
     ]
-    for label, val in res_rows:
-        ws1.append([label, val])
-        ws1.cell(row=ws1.max_row, column=1).font = _label_font
-        ws1.cell(row=ws1.max_row, column=1).border = _thin_border
-        ws1.cell(row=ws1.max_row, column=1).alignment = _left
-        ws1.cell(row=ws1.max_row, column=2).font = _valor_font
-        ws1.cell(row=ws1.max_row, column=2).border = _thin_border
-        ws1.cell(row=ws1.max_row, column=2).alignment = _right
-        ws1.cell(row=ws1.max_row, column=2).number_format = '#,##0'
+    t_kpis = Table(
+        [
+            [_kpi_caja(k[0], k[1]) for k in kpis[:2]],
+            [_kpi_caja(k[0], k[1]) for k in kpis[2:]],
+        ],
+        colWidths=[82 * mm, 82 * mm],
+        hAlign="CENTER",
+    )
+    t_kpis.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), FONDO_TABLA),
+        ("BOX", (0, 0), (-1, -1), 0.5, GRIS),
+        ("INNERGRID", (0, 0), (-1, -1), 0.5, GRIS),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("TOPPADDING", (0, 0), (-1, -1), 10),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+    ]))
+    historia.append(t_kpis)
+    historia.append(Spacer(1, 16 * mm))
+    historia.append(
+        Paragraph(
+            "© 2026 NEODOMUS · Documento generado automáticamente por el sistema de gestión.",
+            s["nota"],
+        )
+    )
+    historia.append(PageBreak())
 
-    _auto_width(ws1, 2)
+    # ── 1. Resumen ejecutivo ─────────────────────────────
+    historia.append(Paragraph("<b>1 · RESUMEN EJECUTIVO</b>", s["seccion"]))
+    kpis_resumen = [
+        ("Ventas totales del período", _cop(resumen.get("ventas_total", 0))),
+        ("Pedidos del período", str(resumen.get("pedidos_total", 0))),
+        ("Ingresos por citas (pagadas)", _cop(resumen.get("ingresos_citas", 0))),
+        ("Ingresos por citas finalizadas", _cop(resumen.get("ingresos_citas_finalizadas", 0))),
+        ("TOTAL INGRESOS DEL PERÍODO", _cop(resumen.get("total_ingresos", 0))),
+        ("Citas del período", str(resumen.get("citas_total", 0))),
+        ("Citas pendientes", str(pe.get("Pendiente", 0))),
+        ("Citas confirmadas", str(pe.get("Confirmada", 0))),
+        ("Citas finalizadas", str(pe.get("Finalizada", 0))),
+        ("Citas canceladas", str(pe.get("Cancelada", 0))),
+        ("Valor promedio de cita", _cop(resumen.get("promedio_costo_cita", 0))),
+        ("Tipos de servicio atendidos", str(resumen.get("servicios_distintos", 0))),
+        ("Clientes registrados en el período", str(resumen.get("clientes_registrados", 0))),
+        ("Clientes totales", str(resumen.get("clientes_total", 0))),
+        ("Técnicos activos", str(resumen.get("tecnicos_activos", 0))),
+        ("Técnicos totales", str(resumen.get("tecnicos_total", 0))),
+        ("Técnicos con citas en el período", str(resumen.get("tecnicos_con_citas", 0))),
+        ("Productos activos", str(resumen.get("productos_activos", 0))),
+        ("Productos totales", str(resumen.get("productos_total", 0))),
+        ("Solicitudes pendientes", str(resumen.get("solicitudes_pendientes", 0))),
+    ]
+    res_rows = []
+    for k, v in kpis_resumen:
+        if k.startswith("TOTAL"):
+            res_rows.append([_celda(k, s["total_label"]), _celda(v, s["total_valor"])])
+        else:
+            res_rows.append([_celda(k, s["label"]), _celda(v, s["valor"])])
+    t_resumen = Table(res_rows, colWidths=[90 * mm, 70 * mm])
+    t_resumen.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), FONDO_TABLA),
+        ("ROWBACKGROUNDS", (0, 0), (-1, -1), [FONDO_TABLA, BLANCO]),
+        ("GRID", (0, 0), (-1, -1), 0.5, GRIS),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 8),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+    ]))
+    historia.append(KeepTogether([t_resumen]))
 
-    # ── Hoja Detalle ─────────────────────────────────────
-    ws2 = wb.create_sheet("Detalle")
-    headers_d = ["Periodo", "Total", "Pendiente", "Confirmada", "Finalizada", "Cancelada"]
-    ws2.append(headers_d)
-    for cell in ws2[1]:
-        cell.font = _header_font
-        cell.fill = _header_fill
-        cell.border = _thin_border
-        cell.alignment = _center
+    # ── 2. Análisis del período ──────────────────────────
+    historia.append(Paragraph("<b>2 · ANÁLISIS DEL PERÍODO</b>", s["seccion"]))
 
-    for c in citas_por_periodo:
-        ws2.append([
-            str(c["periodo"]),
-            c["total"],
-            c.get("Pendiente", 0),
-            c.get("Confirmada", 0),
-            c.get("Finalizada", 0),
-            c.get("Cancelada", 0),
-        ])
-        row_num = ws2.max_row
-        ws2.cell(row=row_num, column=1).alignment = _center
-        for col in range(2, 7):
-            ws2.cell(row=row_num, column=col).alignment = _center
-        for col in range(1, 7):
-            ws2.cell(row=row_num, column=col).border = _thin_border
+    if ventas:
+        historia.append(
+            _grafica_barras_vertical(
+                s,
+                "Ventas del período (miles de COP)",
+                [str(v["periodo"]) for v in ventas],
+                [
+                    ("Ventas productos", [v["ventas_pedidos"] for v in ventas], "#caa24d"),
+                    ("Ingresos citas", [v["ingresos_citas"] for v in ventas], "#6b6b6b"),
+                ],
+                divisor=1000,
+            )
+        )
 
-    _auto_width(ws2, 6)
+    if citas_por_periodo:
+        estados_series = [
+            ("Pendiente", [c.get("Pendiente", 0) for c in citas_por_periodo], "#caa24d"),
+            ("Confirmada", [c.get("Confirmada", 0) for c in citas_por_periodo], "#f0c96f"),
+            ("Finalizada", [c.get("Finalizada", 0) for c in citas_por_periodo], "#3d3d3d"),
+            ("Cancelada", [c.get("Cancelada", 0) for c in citas_por_periodo], "#9f9f9f"),
+        ]
+        historia.append(
+            _grafica_barras_vertical(
+                s,
+                "Citas del período por estado",
+                [str(c["periodo"]) for c in citas_por_periodo],
+                estados_series,
+            )
+        )
 
+    total_estados = sum(int(pe.get(e, 0)) for e in ("Pendiente", "Confirmada", "Finalizada", "Cancelada"))
+    if total_estados > 0:
+        historia.append(
+            _grafica_dona(
+                s,
+                "Distribución de citas por estado",
+                [
+                    ("Pendiente", pe.get("Pendiente", 0), "#caa24d"),
+                    ("Confirmada", pe.get("Confirmada", 0), "#f0c96f"),
+                    ("Finalizada", pe.get("Finalizada", 0), "#3d3d3d"),
+                    ("Cancelada", pe.get("Cancelada", 0), "#9f9f9f"),
+                ],
+            )
+        )
+
+    if servicios:
+        historia.append(
+            _grafica_barras_horizontal(
+                s,
+                "Citas por tipo de servicio",
+                [sv["tipo_servicio"][:26] for sv in servicios],
+                [float(sv["cantidad"]) for sv in servicios],
+            )
+        )
+        historia.append(
+            _grafica_barras_horizontal(
+                s,
+                "Ingresos por tipo de servicio (miles de COP)",
+                [sv["tipo_servicio"][:26] for sv in servicios],
+                [sv["ingresos"] for sv in servicios],
+                divisor=1000,
+            )
+        )
+
+    if tecnicos_reporte:
+        top = tecnicos_reporte[:10]
+        historia.append(
+            _grafica_barras_horizontal(
+                s,
+                "Citas por técnico (Top 10)",
+                [t["nombre"][:26] for t in top],
+                [float(t["total_citas"]) for t in top],
+            )
+        )
+
+    if not hay_datos:
+        historia.append(
+            Paragraph(
+                "No hay datos registrados para el período seleccionado.",
+                s["sin_datos"],
+            )
+        )
+
+    # ── 3. Detalle del período ───────────────────────────
+    historia.append(Paragraph("<b>3 · DETALLE DEL PERÍODO</b>", s["seccion"]))
+
+    if ventas:
+        historia.append(Paragraph("<b>3.1 · Ventas por período</b>", s["grafico_titulo"]))
+        historia.append(_tabla_pdf(
+            s,
+            ["Período", "Pedidos", "Ventas Productos", "Ingresos Citas", "Total"],
+            [[
+                str(v["periodo"]), str(v["pedidos"]),
+                _cop(v["ventas_pedidos"]), _cop(v["ingresos_citas"]), _cop(v["total"]),
+            ] for v in ventas],
+            [28 * mm, 20 * mm, 40 * mm, 40 * mm, 40 * mm],
+            ["c", "c", "r", "r", "r"],
+            totales=[
+                "TOTAL",
+                str(sum(v["pedidos"] for v in ventas)),
+                _cop(sum(v["ventas_pedidos"] for v in ventas)),
+                _cop(sum(v["ingresos_citas"] for v in ventas)),
+                _cop(sum(v["total"] for v in ventas)),
+            ],
+        ))
+    else:
+        historia.append(Paragraph("Sin ventas registradas en el período.", s["sin_datos"]))
+
+    if citas_por_periodo:
+        historia.append(Paragraph("<b>3.2 · Citas por período y estado</b>", s["grafico_titulo"]))
+        historia.append(_tabla_pdf(
+            s,
+            ["Período", "Total", "Pendiente", "Confirmada", "Finalizada", "Cancelada"],
+            [[
+                str(c["periodo"]), str(c["total"]),
+                str(c.get("Pendiente", 0)), str(c.get("Confirmada", 0)),
+                str(c.get("Finalizada", 0)), str(c.get("Cancelada", 0)),
+            ] for c in citas_por_periodo],
+            [28 * mm, 20 * mm, 26 * mm, 28 * mm, 28 * mm, 28 * mm],
+            ["c", "c", "c", "c", "c", "c"],
+            totales=[
+                "TOTAL",
+                str(sum(c["total"] for c in citas_por_periodo)),
+                str(sum(c.get("Pendiente", 0) for c in citas_por_periodo)),
+                str(sum(c.get("Confirmada", 0) for c in citas_por_periodo)),
+                str(sum(c.get("Finalizada", 0) for c in citas_por_periodo)),
+                str(sum(c.get("Cancelada", 0) for c in citas_por_periodo)),
+            ],
+        ))
+
+    historia.append(Paragraph("<b>3.3 · Detalle de citas del período</b>", s["grafico_titulo"]))
+    if citas_detalle:
+        historia.append(_tabla_pdf(
+            s,
+            ["ID", "Fecha", "Hora", "Cliente", "Técnico", "Servicio", "Estado", "Costo", "Pago"],
+            [[
+                str(c["id_cita"]),
+                c["fecha"].strftime("%d/%m/%Y") if isinstance(c["fecha"], date) else str(c["fecha"]),
+                str(c["hora"]),
+                str(c["cliente"]),
+                str(c["tecnico"]),
+                str(c["servicio"])[:24],
+                str(c["estado"]),
+                _cop(c["costo"]),
+                str(c["estado_pago"]),
+            ] for c in citas_detalle],
+            [10 * mm, 22 * mm, 14 * mm, 28 * mm, 26 * mm, 24 * mm, 18 * mm, 20 * mm, 15 * mm],
+            ["c", "c", "c", "l", "l", "l", "c", "r", "c"],
+        ))
+    else:
+        historia.append(Paragraph("No hay citas registradas en el período.", s["sin_datos"]))
+
+    if servicios:
+        total_citas_serv = sum(sv["cantidad"] for sv in servicios) or 1
+        historia.append(Paragraph("<b>3.4 · Servicios del período</b>", s["grafico_titulo"]))
+        historia.append(_tabla_pdf(
+            s,
+            ["Tipo de servicio", "Citas", "Pend.", "Conf.", "Fin.", "Canc.", "Ingresos", "% del total"],
+            [[
+                sv["tipo_servicio"][:30],
+                str(sv["cantidad"]),
+                str(sv["por_estado"].get("Pendiente", 0)),
+                str(sv["por_estado"].get("Confirmada", 0)),
+                str(sv["por_estado"].get("Finalizada", 0)),
+                str(sv["por_estado"].get("Cancelada", 0)),
+                _cop(sv["ingresos"]),
+                f"{sv['cantidad'] / total_citas_serv * 100:.1f}%",
+            ] for sv in servicios],
+            [32 * mm, 14 * mm, 13 * mm, 14 * mm, 14 * mm, 14 * mm, 34 * mm, 16 * mm],
+            ["l", "c", "c", "c", "c", "c", "r", "c"],
+            totales=[
+                "TOTAL",
+                str(sum(sv["cantidad"] for sv in servicios)),
+                "", "", "", "",
+                _cop(sum(sv["ingresos"] for sv in servicios)),
+                "100.0%",
+            ],
+        ))
+
+    if clientes_citas:
+        historia.append(Paragraph("<b>3.5 · Clientes con citas en el período (Top 15)</b>", s["grafico_titulo"]))
+        historia.append(_tabla_pdf(
+            s,
+            ["Cliente", "Citas", "Gasto en citas"],
+            [[
+                c["nombre"][:40],
+                str(c["citas"]),
+                _cop(c["gasto"]),
+            ] for c in clientes_citas],
+            [90 * mm, 25 * mm, 55 * mm],
+            ["l", "c", "r"],
+            totales=[
+                "TOTAL",
+                str(sum(c["citas"] for c in clientes_citas)),
+                _cop(sum(c["gasto"] for c in clientes_citas)),
+            ],
+        ))
+
+    if tecnicos_reporte:
+        historia.append(Paragraph("<b>3.6 · Rendimiento por técnico</b>", s["grafico_titulo"]))
+        historia.append(_tabla_pdf(
+            s,
+            ["Técnico", "Citas", "Finalizadas", "Ingresos"],
+            [[
+                t["nombre"][:40],
+                str(t["total_citas"]),
+                str(t["finalizadas"]),
+                _cop(t["ingresos"]),
+            ] for t in tecnicos_reporte],
+            [62 * mm, 30 * mm, 30 * mm, 45 * mm],
+            ["l", "c", "c", "r"],
+            totales=[
+                "TOTAL",
+                str(sum(t["total_citas"] for t in tecnicos_reporte)),
+                str(sum(t["finalizadas"] for t in tecnicos_reporte)),
+                _cop(sum(t["ingresos"] for t in tecnicos_reporte)),
+            ],
+        ))
+
+    # ── 4. Resumen final ─────────────────────────────────
+    historia.append(Paragraph("<b>4 · RESUMEN FINAL</b>", s["seccion"]))
+    final = [
+        ("TOTAL INGRESOS DEL PERÍODO", _cop(resumen.get("total_ingresos", 0))),
+        ("Ingresos por citas finalizadas", _cop(resumen.get("ingresos_citas_finalizadas", 0))),
+        ("Citas del período", str(resumen.get("citas_total", 0))),
+        ("Servicios atendidos", str(resumen.get("servicios_distintos", 0))),
+        ("Clientes registrados", str(resumen.get("clientes_registrados", 0))),
+        ("Técnicos activos", str(resumen.get("tecnicos_activos", 0))),
+        ("Valor promedio por cita", _cop(resumen.get("promedio_costo_cita", 0))),
+        ("Solicitudes pendientes", str(resumen.get("solicitudes_pendientes", 0))),
+    ]
+    final_rows = []
+    for k, v in final:
+        if k.startswith("TOTAL"):
+            final_rows.append([_celda(k, s["total_label"]), _celda(v, s["total_valor"])])
+        else:
+            final_rows.append([_celda(k, s["label"]), _celda(v, s["valor"])])
+    t_final = Table(final_rows, colWidths=[90 * mm, 70 * mm], hAlign="CENTER")
+    t_final.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), FONDO_TABLA),
+        ("ROWBACKGROUNDS", (0, 0), (-1, -1), [FONDO_TABLA, BLANCO]),
+        ("GRID", (0, 0), (-1, -1), 0.5, GRIS),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 8),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+    ]))
+    historia.append(KeepTogether([t_final]))
+    historia.append(Spacer(1, 8 * mm))
+    historia.append(
+        Paragraph(
+            "Este reporte fue generado automáticamente por el sistema de gestión NEODOMUS "
+            "con los datos registrados en el período indicado. Para más detalle, "
+            "consulte el panel de administración.",
+            s["parrafo"],
+        )
+    )
+
+    # ── Construcción del documento con pie de página ────
     buf = io.BytesIO()
-    wb.save(buf)
+
+    def _deco_pagina(canvas, doc):
+        canvas.saveState()
+        canvas.setFont("Helvetica", 7.5)
+        canvas.setFillColor(GRIS)
+        canvas.drawString(18 * mm, 10 * mm, f"NEODOMUS · Reporte {label} de gestión")
+        canvas.drawRightString(letter[0] - 18 * mm, 10 * mm, f"Página {doc.page}")
+        canvas.restoreState()
+
+    doc = SimpleDocTemplate(
+        buf,
+        pagesize=letter,
+        rightMargin=18 * mm,
+        leftMargin=18 * mm,
+        topMargin=14 * mm,
+        bottomMargin=14 * mm,
+        title=f"Reporte {label} - NEODOMUS",
+        author="NEODOMUS",
+    )
+    doc.build(historia, onLaterPages=_deco_pagina)
     buf.seek(0)
     return buf

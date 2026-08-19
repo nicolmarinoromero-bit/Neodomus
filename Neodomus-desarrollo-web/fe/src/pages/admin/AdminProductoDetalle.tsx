@@ -15,6 +15,7 @@ import {
 import '@styles/admin-panel.css';
 import '@styles/dashboard-admin.css';
 import api from '@services/api';
+import { useIdioma } from '@i18n/IdiomaContext';
 import { STOCK_MINIMO, badgeStock, textoStock } from '../../constants';
 import type { ProductoAdmin, CategoriaAdmin, ProveedorAdmin, VarianteAdmin } from '../../types';
 
@@ -73,6 +74,7 @@ const VACIO: EstadoForm = {
 };
 
 const AdminProductoDetalle = () => {
+  const { idioma, t } = useIdioma();
   const { id } = useParams<{ id: string }>();
   const esNuevo = !id || id === 'nuevo';
   const navigate = useNavigate();
@@ -126,10 +128,10 @@ const AdminProductoDetalle = () => {
     try {
       const url = await subirArchivo(file);
       setCampo('imagen_url', url);
-      notify('Imagen subida correctamente');
+      notify(t('adm.productoDetalle.notifyImagenSubida'));
     } catch (err: any) {
       const msg = err.response?.data?.detail;
-      notify(typeof msg === 'string' ? msg : 'No se pudo subir la imagen', 'err');
+      notify(typeof msg === 'string' ? msg : t('adm.productoDetalle.notifyImagenError'), 'err');
     } finally {
       setSubiendoImg(false);
       if (e.target) e.target.value = '';
@@ -143,10 +145,10 @@ const AdminProductoDetalle = () => {
     try {
       const url = await subirArchivo(file);
       setVariante(i, 'imagen_url', url);
-      notify('Imagen de la variante subida correctamente');
+      notify(t('adm.productoDetalle.notifyVarianteImagenSubida'));
     } catch (err: any) {
       const msg = err.response?.data?.detail;
-      notify(typeof msg === 'string' ? msg : 'No se pudo subir la imagen de la variante', 'err');
+      notify(typeof msg === 'string' ? msg : t('adm.productoDetalle.notifyVarianteImagenError'), 'err');
     } finally {
       setSubiendoImg(false);
       if (e.target) e.target.value = '';
@@ -229,7 +231,7 @@ const AdminProductoDetalle = () => {
   const crearProveedor = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nuevoProveedor.nombre_proveedor.trim()) {
-      notify('El nombre del proveedor es obligatorio', 'err');
+      notify(t('adm.productoDetalle.notifyNombreProveedorObligatorio'), 'err');
       return;
     }
     setGuardandoProveedor(true);
@@ -256,9 +258,9 @@ const AdminProductoDetalle = () => {
         correo_proveedor: '',
         direccion_proveedor: '',
       });
-      notify('Proveedor creado y seleccionado');
+      notify(t('adm.productoDetalle.notifyProveedorCreado'));
     } catch (err: any) {
-      notify(err.response?.data?.detail || 'No se pudo crear el proveedor', 'err');
+      notify(err.response?.data?.detail || t('adm.productoDetalle.notifyProveedorError'), 'err');
     } finally {
       setGuardandoProveedor(false);
     }
@@ -267,11 +269,11 @@ const AdminProductoDetalle = () => {
   const colores = colorLista.map((c) => c.trim()).filter(Boolean);
 
   const validar = () => {
-    if (!form.nombre_producto.trim()) return 'El nombre del producto es obligatorio';
+    if (!form.nombre_producto.trim()) return t('adm.productoDetalle.errorNombreProducto');
     const precio = parseFloat(form.precio_venta_producto);
-    if (!precio || precio <= 0) return 'Ingresa un precio de venta válido';
+    if (!precio || precio <= 0) return t('adm.productoDetalle.errorPrecioVenta');
     const stock = parseInt(form.stock_producto, 10);
-    if (Number.isNaN(stock) || stock < 0) return 'El stock debe ser un número mayor o igual a 0';
+    if (Number.isNaN(stock) || stock < 0) return t('adm.productoDetalle.errorStock');
     return null;
   };
 
@@ -305,20 +307,20 @@ const AdminProductoDetalle = () => {
       };
       if (esNuevo) {
         const res = await api.post<{ id_producto: number }>('/productos', payload);
-        notify('Producto creado correctamente');
+        notify(t('adm.productoDetalle.notifyProductoCreado'));
         window.dispatchEvent(new CustomEvent('admin-producto-updated'));
         navigate(`/admin/productos/${res.data.id_producto}`, { replace: true });
         return;
       } else {
         await api.put(`/productos/${id}`, payload);
-        notify('Producto actualizado correctamente');
+        notify(t('adm.productoDetalle.notifyProductoActualizado'));
       }
       window.dispatchEvent(new CustomEvent('admin-producto-updated'));
       setEditar(false);
       await cargar();
     } catch (err: any) {
       const msg = err.response?.data?.detail;
-      notify(typeof msg === 'string' ? msg : 'Error al guardar el producto', 'err');
+      notify(typeof msg === 'string' ? msg : t('adm.productoDetalle.notifyGuardarError'), 'err');
     } finally {
       setGuardando(false);
     }
@@ -334,10 +336,10 @@ const AdminProductoDetalle = () => {
       setGuardando(true);
       try {
         await api.delete(`/productos/${id}/variantes/${v.id}`);
-        notify('Variante eliminada');
+        notify(t('adm.productoDetalle.notifyVarianteEliminada'));
       } catch (err: any) {
         const msg = err.response?.data?.detail;
-        notify(typeof msg === 'string' ? msg : 'No se pudo eliminar la variante', 'err');
+        notify(typeof msg === 'string' ? msg : t('adm.productoDetalle.notifyVarianteErrorEliminar'), 'err');
         setGuardando(false);
         return;
       } finally {
@@ -349,12 +351,12 @@ const AdminProductoDetalle = () => {
 
   const guardarVariante = async (v: VarianteForm) => {
     if (!v.nombre.trim()) {
-      notify('El nombre de la variante es obligatorio', 'err');
+      notify(t('adm.productoDetalle.errorNombreVariante'), 'err');
       return;
     }
     const stock = parseInt(v.stock, 10);
     if (Number.isNaN(stock) || stock < 0) {
-      notify('El stock de la variante debe ser un número mayor o igual a 0', 'err');
+      notify(t('adm.productoDetalle.errorStockVariante'), 'err');
       return;
     }
     setGuardando(true);
@@ -374,7 +376,7 @@ const AdminProductoDetalle = () => {
               : x,
           ),
         );
-        notify('Variante actualizada');
+        notify(t('adm.productoDetalle.notifyVarianteActualizada'));
       } else {
         const res = await api.post<VarianteAdmin>(`/productos/${id}/variantes`, payload);
         setVariantesForm((prev) =>
@@ -384,12 +386,12 @@ const AdminProductoDetalle = () => {
               : x,
           ),
         );
-        notify('Variante creada correctamente');
+        notify(t('adm.productoDetalle.notifyVarianteCreada'));
       }
       window.dispatchEvent(new CustomEvent('admin-producto-updated'));
     } catch (err: any) {
       const msg = err.response?.data?.detail;
-      notify(typeof msg === 'string' ? msg : 'Error al guardar la variante', 'err');
+      notify(typeof msg === 'string' ? msg : t('adm.productoDetalle.notifyVarianteGuardarError'), 'err');
     } finally {
       setGuardando(false);
     }
@@ -400,11 +402,11 @@ const AdminProductoDetalle = () => {
     try {
       const res = await api.delete(`/productos/${id}`);
       window.dispatchEvent(new CustomEvent('admin-producto-updated'));
-      notify(res.data?.msg || 'Producto eliminado');
+      notify(res.data?.msg || t('adm.productoDetalle.notifyProductoEliminado'));
       window.setTimeout(() => navigate('/admin/productos', { replace: true }), 600);
     } catch (err: any) {
       const msg = err.response?.data?.detail;
-      notify(typeof msg === 'string' ? msg : 'No se pudo eliminar el producto', 'err');
+      notify(typeof msg === 'string' ? msg : t('adm.productoDetalle.notifyEliminarError'), 'err');
       setConfirmarBorrar(false);
     } finally {
       setGuardando(false);
@@ -421,25 +423,25 @@ const AdminProductoDetalle = () => {
       transition={{ duration: 0.3 }}
     >
       <Link to="/admin/productos" className="ap-back-link">
-        <FaArrowLeft /> Volver a productos
+        <FaArrowLeft /> {t('adm.productoDetalle.volver')}
       </Link>
 
       <div className="ap-header">
         <div>
-          <h1 className="ap-title">{esNuevo ? 'Nuevo producto' : producto?.nombre_producto || 'Producto'}</h1>
+          <h1 className="ap-title">{esNuevo ? t('adm.productoDetalle.tituloNuevo') : producto?.nombre_producto || t('adm.productoDetalle.tituloProducto')}</h1>
           <p className="ap-subtitle">
             {esNuevo
-              ? 'Agrega un nuevo producto al catálogo de la tienda.'
-              : 'Gestiona la información del producto y su disponibilidad en la tienda.'}
+              ? t('adm.productoDetalle.subtituloNuevo')
+              : t('adm.productoDetalle.subtituloEditar')}
           </p>
         </div>
         {!esNuevo && !editar && producto && (
           <div className="ap-header-actions">
             <button type="button" className="ap-btn ap-btn-primary" onClick={() => setEditar(true)}>
-              <FaPen /> Editar producto
+              <FaPen /> {t('adm.productoDetalle.editarProducto')}
             </button>
             <button type="button" className="ap-btn ap-btn-danger" onClick={() => setConfirmarBorrar(true)}>
-              <FaTrash /> Eliminar
+              <FaTrash /> {t('adm.productoDetalle.eliminar')}
             </button>
           </div>
         )}
@@ -449,8 +451,8 @@ const AdminProductoDetalle = () => {
         <div className="ap-card">
           <div className="ap-states">
             <span className="ap-loader" />
-            <h3>Cargando producto</h3>
-            <p>Consultando la información del catálogo...</p>
+            <h3>{t('adm.productoDetalle.cargandoTitulo')}</h3>
+            <p>{t('adm.productoDetalle.cargandoTexto')}</p>
           </div>
         </div>
       ) : error ? (
@@ -459,67 +461,67 @@ const AdminProductoDetalle = () => {
             <div className="ap-states-icon">
               <FaCircleInfo />
             </div>
-            <h3>No se pudo cargar el producto</h3>
-            <p>Verifica tu conexión e inténtalo nuevamente.</p>
+            <h3>{t('adm.productoDetalle.errorTitulo')}</h3>
+            <p>{t('adm.productoDetalle.errorTexto')}</p>
             <button type="button" className="ap-btn ap-btn-ghost" onClick={cargar}>
-              Reintentar
+              {t('adm.productoDetalle.reintentar')}
             </button>
           </div>
         </div>
       ) : editar ? (
         <form onSubmit={guardar} className="ap-card">
           <div className="ap-card-head">
-            <h2>{esNuevo ? <><FaCirclePlus /> Nuevo producto</> : <><FaPen /> Editando producto</>}</h2>
+            <h2>{esNuevo ? <><FaCirclePlus /> {t('adm.productoDetalle.tituloNuevo')}</> : <><FaPen /> {t('adm.productoDetalle.editandoProducto')}</>}</h2>
           </div>
 
           <div className="ap-form-grid">
             <div className="ap-form-group full">
-              <label className="ap-form-label" htmlFor="apf-nombre">Nombre *</label>
+              <label className="ap-form-label" htmlFor="apf-nombre">{t('adm.productoDetalle.labelNombre')}</label>
               <input
                 id="apf-nombre"
                 className="ap-form-input"
                 type="text"
                 value={form.nombre_producto}
                 onChange={(e) => setCampo('nombre_producto', e.target.value)}
-                placeholder="Ej: Sensor de movimiento PIR"
+                placeholder={t('adm.productoDetalle.phNombre')}
               />
             </div>
 
             <div className="ap-form-group">
-              <label className="ap-form-label" htmlFor="apf-marca">Marca</label>
+              <label className="ap-form-label" htmlFor="apf-marca">{t('adm.productoDetalle.labelMarca')}</label>
               <input
                 id="apf-marca"
                 className="ap-form-input"
                 type="text"
                 value={form.marca}
                 onChange={(e) => setCampo('marca', e.target.value)}
-                placeholder="Ej: Sonoff, Philips"
+                placeholder={t('adm.productoDetalle.phMarca')}
               />
-              <span className="ap-form-hint">Opcional. Se muestra junto al nombre en la tienda.</span>
+              <span className="ap-form-hint">{t('adm.productoDetalle.hintMarca')}</span>
             </div>
 
             <div className="ap-form-group">
-              <label className="ap-form-label" htmlFor="apf-ref">Referencia</label>
+              <label className="ap-form-label" htmlFor="apf-ref">{t('adm.productoDetalle.labelReferencia')}</label>
               <input
                 id="apf-ref"
                 className="ap-form-input"
                 type="text"
                 value={form.referencia_producto}
                 onChange={(e) => setCampo('referencia_producto', e.target.value)}
-                placeholder="Ej: smi-001"
+                placeholder={t('adm.productoDetalle.phReferencia')}
               />
-              <span className="ap-form-hint">Se genera automáticamente si la dejas vacía.</span>
+              <span className="ap-form-hint">{t('adm.productoDetalle.hintReferencia')}</span>
             </div>
 
             <div className="ap-form-group">
-              <label className="ap-form-label" htmlFor="apf-cat">Categoría</label>
+              <label className="ap-form-label" htmlFor="apf-cat">{t('adm.productoDetalle.labelCategoria')}</label>
               <select
                 id="apf-cat"
                 className="ap-form-select"
                 value={form.id_cate_pr}
                 onChange={(e) => setCampo('id_cate_pr', e.target.value)}
               >
-                <option value="">Sin categoría</option>
+                <option value="">{t('adm.productoDetalle.sinCategoria')}</option>
                 {categorias.map((c) => (
                   <option key={c.id_categoria} value={c.id_categoria}>
                     {c.nombre_categoria}
@@ -528,13 +530,13 @@ const AdminProductoDetalle = () => {
               </select>
               {esNuevo && categoriaInicial && (
                 <span className="ap-form-hint">
-                  Categoría preseleccionada desde el catálogo. Puedes cambiarla aquí.
+                  {t('adm.productoDetalle.hintCategoriaPresel')}
                 </span>
               )}
             </div>
 
             <div className="ap-form-group">
-              <label className="ap-form-label" htmlFor="apf-prov">Proveedor</label>
+              <label className="ap-form-label" htmlFor="apf-prov">{t('adm.productoDetalle.labelProveedor')}</label>
               <div style={{ display: 'flex', gap: 8 }}>
                 <select
                   id="apf-prov"
@@ -543,7 +545,7 @@ const AdminProductoDetalle = () => {
                   onChange={(e) => setCampo('id_proveedor_pr', e.target.value)}
                   style={{ flex: 1 }}
                 >
-                  <option value="">Sin proveedor</option>
+                  <option value="">{t('adm.productoDetalle.sinProveedor')}</option>
                   {proveedores.map((p) => (
                     <option key={p.id_proveedor} value={p.id_proveedor}>
                       {p.nombre_proveedor}
@@ -554,17 +556,17 @@ const AdminProductoDetalle = () => {
                   type="button"
                   className="ap-btn ap-btn-ghost"
                   onClick={() => setMostrarNuevoProveedor(true)}
-                  title="Agregar proveedor nuevo"
-                  aria-label="Agregar proveedor nuevo"
+                  title={t('adm.productoDetalle.agregarProveedorTitle')}
+                  aria-label={t('adm.productoDetalle.agregarProveedorAria')}
                 >
                   <FaCirclePlus />
                 </button>
               </div>
-              <span className="ap-form-hint">¿No está el proveedor? Agrégale aquí.</span>
+              <span className="ap-form-hint">{t('adm.productoDetalle.hintProveedor')}</span>
             </div>
 
             <div className="ap-form-group">
-              <label className="ap-form-label" htmlFor="apf-pv">Precio de venta (COP) *</label>
+              <label className="ap-form-label" htmlFor="apf-pv">{t('adm.productoDetalle.labelPrecioVenta')}</label>
               <input
                 id="apf-pv"
                 className="ap-form-input"
@@ -578,7 +580,7 @@ const AdminProductoDetalle = () => {
             </div>
 
             <div className="ap-form-group">
-              <label className="ap-form-label" htmlFor="apf-pc">Precio de compra (COP)</label>
+              <label className="ap-form-label" htmlFor="apf-pc">{t('adm.productoDetalle.labelPrecioCompra')}</label>
               <input
                 id="apf-pc"
                 className="ap-form-input"
@@ -592,8 +594,8 @@ const AdminProductoDetalle = () => {
             </div>
 
             <div className="ap-form-group">
-              <label className="ap-form-label" htmlFor="apf-stock">Stock / Cantidad *</label>
-<input
+              <label className="ap-form-label" htmlFor="apf-stock">{t('adm.productoDetalle.labelStock')}</label>
+              <input
                     id="apf-stock"
                     className="ap-form-input"
                     type="number"
@@ -603,30 +605,30 @@ const AdminProductoDetalle = () => {
                     onChange={(e) => setCampo('stock_producto', e.target.value)}
                   />
                   <span className="ap-form-hint">
-                    Stock bajo por debajo de {STOCK_MINIMO} unidades.
+                    {t('adm.productoDetalle.hintStockBajo', { minimo: STOCK_MINIMO })}
                   </span>
             </div>
 
             <div className="ap-form-group">
-              <label className="ap-form-label" htmlFor="apf-estado">Estado</label>
+              <label className="ap-form-label" htmlFor="apf-estado">{t('adm.productoDetalle.labelEstado')}</label>
               <select
                 id="apf-estado"
                 className="ap-form-select"
                 value={form.estado_producto}
                 onChange={(e) => setCampo('estado_producto', e.target.value)}
               >
-                <option value="activo">Activo (visible en la tienda)</option>
-                <option value="inactivo">Inactivo (oculto en la tienda)</option>
+                <option value="activo">{t('adm.productoDetalle.estadoActivo')}</option>
+                <option value="inactivo">{t('adm.productoDetalle.estadoInactivo')}</option>
               </select>
             </div>
 
             <div className="ap-form-group">
               <div className="ap-nuevo-head">
                 <label className="ap-form-label" htmlFor="apf-nuevo">
-                  Etiqueta de producto nuevo
+                  {t('adm.productoDetalle.labelNuevo')}
                 </label>
                 <span className={`ap-nuevo-sino ${form.es_nuevo_producto ? 'on' : ''}`}>
-                  {form.es_nuevo_producto ? 'Sí' : 'No'}
+                  {form.es_nuevo_producto ? t('adm.productoDetalle.si') : t('adm.productoDetalle.no')}
                 </span>
               </div>
               <button
@@ -644,7 +646,7 @@ const AdminProductoDetalle = () => {
             </div>
 
             <div className="ap-form-group">
-              <label className="ap-form-label" htmlFor="apf-dcto">Descuento (%)</label>
+              <label className="ap-form-label" htmlFor="apf-dcto">{t('adm.productoDetalle.labelDescuento')}</label>
               <input
                 id="apf-dcto"
                 className="ap-form-input"
@@ -656,11 +658,11 @@ const AdminProductoDetalle = () => {
                 onChange={(e) => setCampo('descuento_activo', e.target.value)}
                 placeholder="0"
               />
-              <span className="ap-form-hint">Ej: 20 = 20% de descuento. Déjalo vacío para precio normal.</span>
+              <span className="ap-form-hint">{t('adm.productoDetalle.hintDescuento')}</span>
             </div>
 
             <div className="ap-form-group">
-              <label className="ap-form-label" htmlFor="apf-dcto-fin">La promoción termina el (opcional)</label>
+              <label className="ap-form-label" htmlFor="apf-dcto-fin">{t('adm.productoDetalle.labelPromoFin')}</label>
               <input
                 id="apf-dcto-fin"
                 className="ap-form-input"
@@ -668,11 +670,11 @@ const AdminProductoDetalle = () => {
                 value={form.promocion_hasta}
                 onChange={(e) => setCampo('promocion_hasta', e.target.value)}
               />
-              <span className="ap-form-hint">Tras esa fecha el precio vuelve a la normalidad automáticamente.</span>
+              <span className="ap-form-hint">{t('adm.productoDetalle.hintPromoFin')}</span>
             </div>
 
             <div className="ap-form-group full">
-              <label className="ap-form-label" htmlFor="apf-img">Imagen</label>
+              <label className="ap-form-label" htmlFor="apf-img">{t('adm.productoDetalle.labelImagen')}</label>
               <div style={{ display: 'flex', gap: 8 }}>
                 <input
                   id="apf-img"
@@ -680,7 +682,7 @@ const AdminProductoDetalle = () => {
                   type="url"
                   value={form.imagen_url}
                   onChange={(e) => setCampo('imagen_url', e.target.value)}
-                  placeholder="https://ejemplo.com/imagen.jpg"
+                  placeholder={t('adm.productoDetalle.phImagenUrl')}
                   style={{ flex: 1 }}
                 />
                 <button
@@ -688,9 +690,9 @@ const AdminProductoDetalle = () => {
                   className="ap-btn ap-btn-ghost"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={subiendoImg}
-                  title="Subir imagen desde tu computador"
+                  title={t('adm.productoDetalle.subirTitle')}
                 >
-                  <FaUpload /> {subiendoImg ? 'Subiendo...' : 'Subir'}
+                  <FaUpload /> {subiendoImg ? t('adm.productoDetalle.subiendo') : t('adm.productoDetalle.subir')}
                 </button>
                 <input
                   ref={fileInputRef}
@@ -700,11 +702,11 @@ const AdminProductoDetalle = () => {
                   onChange={subirImagen}
                 />
               </div>
-              <span className="ap-form-hint">Sube una imagen (JPG, PNG, WEBP o GIF, máx. 5 MB) o pega una URL.</span>
+              <span className="ap-form-hint">{t('adm.productoDetalle.hintImagen')}</span>
               {(form.imagen_url || !esNuevo) && (
                 <img
                   src={form.imagen_url || `/productos/${id}.jpg`}
-                  alt="Vista previa"
+                  alt={t('adm.productoDetalle.altVistaPrevia')}
                   className="ap-thumb"
                   style={{ width: 80, height: 80, marginTop: 8, background: '#222' }}
                   onError={(e) => {
@@ -720,7 +722,7 @@ const AdminProductoDetalle = () => {
             </div>
 
             <div className="ap-form-group full">
-              <label className="ap-form-label" htmlFor="apf-colores">Colores disponibles</label>
+              <label className="ap-form-label" htmlFor="apf-colores">{t('adm.productoDetalle.labelColores')}</label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {colorLista.map((c, i) => (
                   <div
@@ -739,14 +741,14 @@ const AdminProductoDetalle = () => {
                       onChange={(e) =>
                         setColorLista((prev) => prev.map((v, j) => (j === i ? e.target.value : v)))
                       }
-                      placeholder={`Color ${i + 1} (Ej: Blanco)`}
+                      placeholder={t('adm.productoDetalle.phColor', { n: i + 1 })}
                       style={{ flex: 1 }}
                     />
                     <button
                       type="button"
                       onClick={() => setColorLista((prev) => prev.filter((_, j) => j !== i))}
-                      title="Quitar este color"
-                      aria-label="Quitar color"
+                      title={t('adm.productoDetalle.quitarColorTitle')}
+                      aria-label={t('adm.productoDetalle.quitarColorAria')}
                       style={{
                         width: 34,
                         height: 34,
@@ -773,7 +775,7 @@ const AdminProductoDetalle = () => {
                   style={{ alignSelf: 'flex-start' }}
                   onClick={() => setColorLista((prev) => [...prev, ''])}
                 >
-                  <FaCirclePlus /> Agregar color
+                  <FaCirclePlus /> {t('adm.productoDetalle.agregarColor')}
                 </button>
               </div>
               {colores.length > 0 && (
@@ -786,16 +788,16 @@ const AdminProductoDetalle = () => {
                 </div>
               )}
               <span className="ap-form-hint">
-                Se muestran como chips de color en el detalle de la tienda. Escribe el nombre del color.
+                {t('adm.productoDetalle.hintColores')}
               </span>
             </div>
 
             <div className="ap-form-group full">
-              <label className="ap-form-label">Variantes de color (imagen y stock por variante)</label>
+              <label className="ap-form-label">{t('adm.productoDetalle.labelVariantes')}</label>
               <div className="ap-variantes">
                 {variantesForm.length === 0 && (
                   <span className="ap-form-hint">
-                    Sin variantes: el producto usará su imagen y stock general. Agrega una variante si lo deseas.
+                    {t('adm.productoDetalle.hintSinVariantes')}
                   </span>
                 )}
                 {variantesForm.map((v, i) => (
@@ -803,14 +805,14 @@ const AdminProductoDetalle = () => {
                     <input
                       className="ap-form-input"
                       type="text"
-                      placeholder="Color (Ej: Blanco)"
+                      placeholder={t('adm.productoDetalle.phVarianteColor')}
                       value={v.nombre}
                       onChange={(e) => setVariante(i, 'nombre', e.target.value)}
                     />
                     <input
                       className="ap-form-input"
                       type="color"
-                      title="Color"
+                      title={t('adm.productoDetalle.titleVarianteHex')}
                       value={/^#[0-9a-fA-F]{6}$/.test(v.hex) ? v.hex : '#d4a54b'}
                       onChange={(e) => setVariante(i, 'hex', e.target.value)}
                     />
@@ -818,7 +820,7 @@ const AdminProductoDetalle = () => {
                       <input
                         className="ap-form-input"
                         type="text"
-                        placeholder="Imagen de la variante (URL)"
+                        placeholder={t('adm.productoDetalle.phVarianteUrl')}
                         value={v.imagen_url}
                         onChange={(e) => setVariante(i, 'imagen_url', e.target.value)}
                         style={{ flex: 1, minWidth: 0 }}
@@ -827,7 +829,7 @@ const AdminProductoDetalle = () => {
                         type="button"
                         className="ap-btn ap-btn-ghost"
                         disabled={subiendoImg}
-                        title="Subir imagen desde tu computador"
+                        title={t('adm.productoDetalle.subirTitle')}
                         onClick={() => varianteFileRefs.current[i]?.click()}
                       >
                         <FaUpload />
@@ -843,7 +845,7 @@ const AdminProductoDetalle = () => {
                     {v.imagen_url && (
                       <img
                         src={v.imagen_url}
-                        alt="Variante"
+                        alt={t('adm.productoDetalle.altVariante')}
                         className="ap-thumb"
                         style={{ width: 48, height: 48, background: '#222', objectFit: 'cover' }}
                         onError={(e) => (e.currentTarget.style.display = 'none')}
@@ -853,7 +855,7 @@ const AdminProductoDetalle = () => {
                       className="ap-form-input"
                       type="number"
                       min="0"
-                      placeholder="Stock"
+                      placeholder={t('adm.productoDetalle.phVarianteStock')}
                       value={v.stock}
                       onChange={(e) => setVariante(i, 'stock', e.target.value)}
                     />
@@ -862,10 +864,10 @@ const AdminProductoDetalle = () => {
                         type="button"
                         className="ap-btn ap-btn-ghost"
                         disabled={guardando || esNuevo}
-                        title={esNuevo ? 'Guarda primero el producto para agregar variantes' : undefined}
+                        title={esNuevo ? t('adm.productoDetalle.guardarVarianteTitle') : undefined}
                         onClick={() => guardarVariante(v)}
                       >
-                        <FaFloppyDisk /> Guardar
+                        <FaFloppyDisk /> {t('adm.productoDetalle.guardarVariante')}
                       </button>
                       <button
                         type="button"
@@ -885,24 +887,24 @@ const AdminProductoDetalle = () => {
                   onClick={agregarVariante}
                   disabled={esNuevo}
                 >
-                  <FaCirclePlus /> Agregar variante
+                  <FaCirclePlus /> {t('adm.productoDetalle.agregarVariante')}
                 </button>
               </div>
             </div>
 
             <div className="ap-form-group full">
-              <label className="ap-form-label" htmlFor="apf-desc">Descripción</label>
+              <label className="ap-form-label" htmlFor="apf-desc">{t('adm.productoDetalle.labelDescripcion')}</label>
               <textarea
                 id="apf-desc"
                 className="ap-form-textarea"
                 value={form.descripcion_producto}
                 onChange={(e) => setCampo('descripcion_producto', e.target.value)}
-                placeholder="Describe el producto para la tienda..."
+                placeholder={t('adm.productoDetalle.phDescripcion')}
               />
             </div>
 
             <div className="ap-form-group full">
-              <label className="ap-form-label">Características principales</label>
+              <label className="ap-form-label">{t('adm.productoDetalle.labelCaracteristicas')}</label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {caractLista.map((c, i) => (
                   <div
@@ -921,14 +923,14 @@ const AdminProductoDetalle = () => {
                       onChange={(e) =>
                         setCaractLista((prev) => prev.map((v, j) => (j === i ? e.target.value : v)))
                       }
-                      placeholder={`Característica ${i + 1}`}
+                      placeholder={t('adm.productoDetalle.phCaracteristica', { n: i + 1 })}
                       style={{ flex: 1 }}
                     />
                     <button
                       type="button"
                       onClick={() => setCaractLista((prev) => prev.filter((_, j) => j !== i))}
-                      title="Quitar esta característica"
-                      aria-label="Quitar característica"
+                      title={t('adm.productoDetalle.quitarCaractTitle')}
+                      aria-label={t('adm.productoDetalle.quitarCaractAria')}
                       style={{
                         width: 34,
                         height: 34,
@@ -955,11 +957,11 @@ const AdminProductoDetalle = () => {
                   style={{ alignSelf: 'flex-start' }}
                   onClick={() => setCaractLista((prev) => [...prev, ''])}
                 >
-                  <FaCirclePlus /> Agregar característica
+                  <FaCirclePlus /> {t('adm.productoDetalle.agregarCaracteristica')}
                 </button>
               </div>
               <span className="ap-form-hint">
-                Se muestran como lista en el detalle de la tienda. Si el producto no tiene, se usan las de su categoría.
+                {t('adm.productoDetalle.hintCaracteristicas')}
               </span>
             </div>
           </div>
@@ -974,10 +976,10 @@ const AdminProductoDetalle = () => {
               }}
               disabled={guardando}
             >
-              <FaXmark /> Cancelar
+              <FaXmark /> {t('adm.productoDetalle.cancelar')}
             </button>
             <button type="submit" className="ap-btn ap-btn-primary" disabled={guardando}>
-              <FaFloppyDisk /> {guardando ? 'Guardando...' : esNuevo ? 'Crear producto' : 'Guardar cambios'}
+              <FaFloppyDisk /> {guardando ? t('adm.productoDetalle.guardando') : esNuevo ? t('adm.productoDetalle.crearProducto') : t('adm.productoDetalle.guardarCambios')}
             </button>
           </div>
         </form>
@@ -1001,7 +1003,7 @@ const AdminProductoDetalle = () => {
             <div className="ap-prod-info">
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
                 <span className={`ap-badge ${producto.estado_producto === 'activo' ? 'ok' : 'err'}`}>
-                  {producto.estado_producto === 'activo' ? 'Activo en tienda' : 'Inactivo'}
+                  {producto.estado_producto === 'activo' ? t('adm.productoDetalle.estadoActivoTienda') : t('adm.productoDetalle.estadoInactivoBadge')}
                 </span>
                 {producto.nombre_categoria && <span className="ap-badge info">{producto.nombre_categoria}</span>}
                 <span className={`ap-badge ${badgeStock(producto.stock_producto)}`}>
@@ -1015,7 +1017,7 @@ const AdminProductoDetalle = () => {
 
               <div className="ap-def-list">
                 <div className="ap-def">
-                  <div className="ap-def-label">Referencia</div>
+                  <div className="ap-def-label">{t('adm.productoDetalle.defReferencia')}</div>
                   <div className="ap-def-value">{producto.referencia_producto || '—'}</div>
                 </div>
                 <div className="ap-def">
@@ -1023,31 +1025,31 @@ const AdminProductoDetalle = () => {
                   <div className="ap-def-value">#{producto.id_producto}</div>
                 </div>
                 <div className="ap-def">
-                  <div className="ap-def-label">Proveedor</div>
+                  <div className="ap-def-label">{t('adm.productoDetalle.defProveedor')}</div>
                   <div className="ap-def-value">{producto.nombre_proveedor || '—'}</div>
                 </div>
                 <div className="ap-def">
-                  <div className="ap-def-label">Precio de compra</div>
+                  <div className="ap-def-label">{t('adm.productoDetalle.defPrecioCompra')}</div>
                   <div className="ap-def-value">
                     {producto.precio_compra_producto ? formatoPrecio(producto.precio_compra_producto) : '—'}
                   </div>
                 </div>
                 <div className="ap-def">
-                  <div className="ap-def-label">Stock</div>
+                  <div className="ap-def-label">{t('adm.productoDetalle.defStock')}</div>
                   <div className="ap-def-value">
-                    {producto.stock_producto} unidades
+                    {t('adm.productoDetalle.unidades', { n: producto.stock_producto })}
                     {producto.stock_producto > 0 && producto.stock_producto < STOCK_MINIMO && (
                       <span className="ap-badge warn" style={{ marginLeft: 8 }}>
-                        Bajo (mínimo {STOCK_MINIMO})
+                        {t('adm.productoDetalle.stockBajo', { minimo: STOCK_MINIMO })}
                       </span>
                     )}
                   </div>
                 </div>
                 <div className="ap-def">
-                  <div className="ap-def-label">Registrado</div>
+                  <div className="ap-def-label">{t('adm.productoDetalle.defRegistrado')}</div>
                   <div className="ap-def-value">
                     {producto.fecha_registro_producto
-                      ? new Date(producto.fecha_registro_producto).toLocaleDateString('es-CO')
+                      ? new Date(producto.fecha_registro_producto).toLocaleDateString(idioma === 'en' ? 'en-US' : 'es-CO')
                       : '—'}
                   </div>
                 </div>
@@ -1055,7 +1057,7 @@ const AdminProductoDetalle = () => {
 
               {colores.length > 0 && (
                 <div>
-                  <span className="ap-def-label">Colores disponibles</span>
+                  <span className="ap-def-label">{t('adm.productoDetalle.coloresDisponibles')}</span>
                   <div className="ap-colores" style={{ marginTop: 8 }}>
                     {colores.map((color, i) => (
                       <span key={i} className="ap-cchip" style={{ ['--chip-color' as never]: color } as React.CSSProperties}>
@@ -1068,7 +1070,7 @@ const AdminProductoDetalle = () => {
 
               {producto.variantes && producto.variantes.length > 0 && (
                 <div>
-                  <span className="ap-def-label">Variantes ({producto.variantes.length})</span>
+                  <span className="ap-def-label">{t('adm.productoDetalle.variantes', { n: producto.variantes.length })}</span>
                   <div className="ap-colores" style={{ marginTop: 8 }}>
                     {producto.variantes.map((v) => (
                       <span
@@ -1076,7 +1078,7 @@ const AdminProductoDetalle = () => {
                         className="ap-cchip"
                         style={{ ['--chip-color' as never]: v.hex || '#d4a54b' } as React.CSSProperties}
                       >
-                        {v.nombre} · {v.stock} u.
+                        {t('adm.productoDetalle.varianteInfo', { nombre: v.nombre, stock: v.stock })}
                       </span>
                     ))}
                   </div>
@@ -1092,19 +1094,17 @@ const AdminProductoDetalle = () => {
           <div className="ap-modal" onClick={(e) => e.stopPropagation()}>
             <h3>
               <FaTriangleExclamation style={{ color: '#ff8f93', marginRight: 8 }} />
-              ¿Eliminar este producto?
+              {t('adm.productoDetalle.eliminarTitulo')}
             </h3>
             <p>
-              <strong>{producto?.nombre_producto}</strong> dejará de estar disponible en la tienda.
-              Si el producto tiene historial de pedidos, se desactivará en lugar de eliminarse.
-              Esta acción no se puede deshacer.
+              <strong>{producto?.nombre_producto}</strong> {t('adm.productoDetalle.eliminarTexto')}
             </p>
             <div className="ap-modal-actions">
               <button type="button" className="ap-btn ap-btn-ghost" onClick={() => setConfirmarBorrar(false)} disabled={guardando}>
-                Cancelar
+                {t('adm.productoDetalle.cancelar')}
               </button>
               <button type="button" className="ap-btn ap-btn-danger" onClick={eliminar} disabled={guardando}>
-                <FaTrash /> {guardando ? 'Eliminando...' : 'Sí, eliminar'}
+                <FaTrash /> {guardando ? t('adm.productoDetalle.eliminando') : t('adm.productoDetalle.siEliminar')}
               </button>
             </div>
           </div>
@@ -1116,32 +1116,32 @@ const AdminProductoDetalle = () => {
           <form className="ap-modal" onSubmit={crearProveedor} onClick={(e) => e.stopPropagation()}>
             <h3>
               <FaCirclePlus style={{ color: '#ffd98a', marginRight: 8 }} />
-              Nuevo proveedor
+              {t('adm.productoDetalle.nuevoProveedor')}
             </h3>
             <div className="ap-form-group">
-              <label className="ap-form-label" htmlFor="np-nombre">Nombre *</label>
+              <label className="ap-form-label" htmlFor="np-nombre">{t('adm.productoDetalle.npNombre')}</label>
               <input
                 id="np-nombre"
                 className="ap-form-input"
                 type="text"
                 value={nuevoProveedor.nombre_proveedor}
                 onChange={(e) => setNuevoProveedor((prev) => ({ ...prev, nombre_proveedor: e.target.value }))}
-                placeholder="Ej: Proveedora Olímpica"
+                placeholder={t('adm.productoDetalle.phNombreProv')}
               />
             </div>
             <div className="ap-form-group">
-              <label className="ap-form-label" htmlFor="np-contacto">Contacto</label>
+              <label className="ap-form-label" htmlFor="np-contacto">{t('adm.productoDetalle.npContacto')}</label>
               <input
                 id="np-contacto"
                 className="ap-form-input"
                 type="text"
                 value={nuevoProveedor.contacto_proveedor}
                 onChange={(e) => setNuevoProveedor((prev) => ({ ...prev, contacto_proveedor: e.target.value }))}
-                placeholder="Nombre de la persona de contacto"
+                placeholder={t('adm.productoDetalle.phContacto')}
               />
             </div>
             <div className="ap-form-group">
-              <label className="ap-form-label" htmlFor="np-tel">Teléfono</label>
+              <label className="ap-form-label" htmlFor="np-tel">{t('adm.productoDetalle.npTelefono')}</label>
               <input
                 id="np-tel"
                 className="ap-form-input"
@@ -1152,33 +1152,33 @@ const AdminProductoDetalle = () => {
               />
             </div>
             <div className="ap-form-group">
-              <label className="ap-form-label" htmlFor="np-correo">Correo</label>
+              <label className="ap-form-label" htmlFor="np-correo">{t('adm.productoDetalle.npCorreo')}</label>
               <input
                 id="np-correo"
                 className="ap-form-input"
                 type="email"
                 value={nuevoProveedor.correo_proveedor}
                 onChange={(e) => setNuevoProveedor((prev) => ({ ...prev, correo_proveedor: e.target.value }))}
-                placeholder="contacto@proveedor.com"
+                placeholder={t('adm.productoDetalle.phCorreo')}
               />
             </div>
             <div className="ap-form-group">
-              <label className="ap-form-label" htmlFor="np-dir">Dirección</label>
+              <label className="ap-form-label" htmlFor="np-dir">{t('adm.productoDetalle.npDireccion')}</label>
               <input
                 id="np-dir"
                 className="ap-form-input"
                 type="text"
                 value={nuevoProveedor.direccion_proveedor}
                 onChange={(e) => setNuevoProveedor((prev) => ({ ...prev, direccion_proveedor: e.target.value }))}
-                placeholder="Calle 123 #45-67, Bogotá"
+                placeholder={t('adm.productoDetalle.phDireccion')}
               />
             </div>
             <div className="ap-modal-actions">
               <button type="button" className="ap-btn ap-btn-ghost" onClick={() => setMostrarNuevoProveedor(false)} disabled={guardandoProveedor}>
-                <FaXmark /> Cancelar
+                <FaXmark /> {t('adm.productoDetalle.cancelar')}
               </button>
               <button type="submit" className="ap-btn ap-btn-primary" disabled={guardandoProveedor}>
-                <FaCirclePlus /> {guardandoProveedor ? 'Guardando...' : 'Agregar proveedor'}
+                <FaCirclePlus /> {guardandoProveedor ? t('adm.productoDetalle.guardandoProveedor') : t('adm.productoDetalle.agregarProveedorBtn')}
               </button>
             </div>
           </form>

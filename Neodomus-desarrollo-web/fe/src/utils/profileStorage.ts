@@ -32,6 +32,34 @@ export const removeAvatar = (): void => {
   window.dispatchEvent(new CustomEvent('client-profile-updated'));
 };
 
+export const PF_TECH_AVATAR_KEY = 'technicalAvatar';
+
+export const getTechnicalAvatar = (): string | null => localStorage.getItem(PF_TECH_AVATAR_KEY);
+
+export const setTechnicalAvatar = (dataUrl: string): void => {
+  localStorage.setItem(PF_TECH_AVATAR_KEY, dataUrl);
+  window.dispatchEvent(new CustomEvent('technical-profile-updated'));
+};
+
+export const removeTechnicalAvatar = (): void => {
+  localStorage.removeItem(PF_TECH_AVATAR_KEY);
+  window.dispatchEvent(new CustomEvent('technical-profile-updated'));
+};
+
+export const PF_ADMIN_AVATAR_KEY = 'adminAvatar';
+
+export const getAdminAvatar = (): string | null => localStorage.getItem(PF_ADMIN_AVATAR_KEY);
+
+export const setAdminAvatar = (dataUrl: string): void => {
+  localStorage.setItem(PF_ADMIN_AVATAR_KEY, dataUrl);
+  window.dispatchEvent(new CustomEvent('admin-profile-updated'));
+};
+
+export const removeAdminAvatar = (): void => {
+  localStorage.removeItem(PF_ADMIN_AVATAR_KEY);
+  window.dispatchEvent(new CustomEvent('admin-profile-updated'));
+};
+
 export const getIniciales = (nombre: string): string => {
   const partes = (nombre || '').trim().split(/\s+/).filter(Boolean);
   if (partes.length === 0) return 'N';

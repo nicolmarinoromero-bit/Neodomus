@@ -5,6 +5,7 @@ import { FaTruckField, FaCircleInfo, FaPlus, FaXmark, FaTriangleExclamation, FaC
 import '@styles/admin-panel.css';
 import '@styles/dashboard-admin.css';
 import api from '@services/api';
+import { useIdioma } from '@i18n/IdiomaContext';
 import type { ProveedorAdmin, ProductoAdmin } from '../../types';
 
 interface PaginaProductos {
@@ -21,6 +22,7 @@ const VACIO = {
 };
 
 const AdminProveedores = () => {
+  const { t } = useIdioma();
   const [proveedores, setProveedores] = useState<ProveedorAdmin[]>([]);
   const [productos, setProductos] = useState<ProductoAdmin[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -67,7 +69,7 @@ const AdminProveedores = () => {
   const crearProveedor = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.nombre_proveedor.trim()) {
-      notify('El nombre del proveedor es obligatorio', 'err');
+      notify(t('adm.proveedores.errorNombre'), 'err');
       return;
     }
     setGuardando(true);
@@ -80,7 +82,7 @@ const AdminProveedores = () => {
           correo_proveedor: form.correo_proveedor.trim() || null,
           direccion_proveedor: form.direccion_proveedor.trim() || null,
         });
-        notify('Proveedor actualizado correctamente');
+        notify(t('adm.proveedores.actualizadoOk'));
       } else {
         await api.post('/productos/proveedores', {
           nombre_proveedor: form.nombre_proveedor.trim(),
@@ -89,14 +91,14 @@ const AdminProveedores = () => {
           correo_proveedor: form.correo_proveedor.trim() || null,
           direccion_proveedor: form.direccion_proveedor.trim() || null,
         });
-        notify('Proveedor agregado correctamente');
+        notify(t('adm.proveedores.agregadoOk'));
       }
       setMostrarNuevo(false);
       setEditandoId(null);
       setForm(VACIO);
       await cargar();
     } catch (err: any) {
-      notify(err.response?.data?.detail || 'No se pudo guardar el proveedor', 'err');
+      notify(err.response?.data?.detail || t('adm.proveedores.errorGuardar'), 'err');
     } finally {
       setGuardando(false);
     }
@@ -131,14 +133,14 @@ const AdminProveedores = () => {
     >
       <div className="ap-header">
         <div>
-          <h1 className="ap-title">Proveedores</h1>
+          <h1 className="ap-title">{t('adm.proveedores.titulo')}</h1>
           <p className="ap-subtitle">
-            Proveedores registrados, cuántos productos manejan y su stock para solicitar reabastecimiento.
+            {t('adm.proveedores.subtitulo')}
           </p>
         </div>
         <div className="ap-header-right">
           <button type="button" className="ap-btn ap-btn-primary" onClick={() => setMostrarNuevo(true)}>
-            <FaPlus /> Nuevo proveedor
+            <FaPlus /> {t('adm.proveedores.nuevoProveedor')}
           </button>
         </div>
       </div>
@@ -147,8 +149,8 @@ const AdminProveedores = () => {
         <div className="ap-card">
           <div className="ap-states">
             <span className="ap-loader" />
-            <h3>Cargando proveedores</h3>
-            <p>Consultando proveedores y productos...</p>
+            <h3>{t('adm.proveedores.cargando')}</h3>
+            <p>{t('adm.proveedores.cargandoDesc')}</p>
           </div>
         </div>
       ) : error ? (
@@ -157,10 +159,10 @@ const AdminProveedores = () => {
             <div className="ap-states-icon">
               <FaCircleInfo />
             </div>
-            <h3>No se pudieron cargar los proveedores</h3>
-            <p>Verifica tu conexión e inténtalo nuevamente.</p>
+            <h3>{t('adm.proveedores.errorTitulo')}</h3>
+            <p>{t('adm.proveedores.errorDesc')}</p>
             <button type="button" className="ap-btn ap-btn-ghost" onClick={cargar}>
-              Reintentar
+              {t('adm.proveedores.reintentar')}
             </button>
           </div>
         </div>
@@ -170,8 +172,8 @@ const AdminProveedores = () => {
             <div className="ap-states-icon">
               <FaTruckField />
             </div>
-            <h3>No hay proveedores registrados</h3>
-            <p>Agrega tu primer proveedor para asociar productos a sus marcas.</p>
+            <h3>{t('adm.proveedores.sinProveedores')}</h3>
+            <p>{t('adm.proveedores.sinProveedoresDesc')}</p>
           </div>
         </div>
       ) : (
@@ -180,12 +182,12 @@ const AdminProveedores = () => {
             <table className="ap-table">
               <thead>
                 <tr>
-                  <th>Proveedor</th>
-                  <th>Contacto</th>
-                  <th>Teléfono / Correo</th>
-                  <th>Productos</th>
-                  <th>Stock total</th>
-                  <th>Acciones</th>
+                  <th>{t('adm.proveedores.colProveedor')}</th>
+                  <th>{t('adm.proveedores.colContacto')}</th>
+                  <th>{t('adm.proveedores.colTelefonoCorreo')}</th>
+                  <th>{t('adm.proveedores.colProductos')}</th>
+                  <th>{t('adm.proveedores.colStockTotal')}</th>
+                  <th>{t('adm.proveedores.colAcciones')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -213,19 +215,21 @@ const AdminProveedores = () => {
                       <td>
                         <span className="ap-badge info">
                           <FaBoxesStacked style={{ marginRight: 6 }} />
-                          {r.cantidad} producto{r.cantidad === 1 ? '' : 's'}
+                          {r.cantidad === 1
+                            ? t('adm.proveedores.badgeProductoUno', { n: r.cantidad })
+                            : t('adm.proveedores.badgeProductos', { n: r.cantidad })}
                         </span>
                       </td>
                       <td>
-                        <span className="ap-badge ok">{r.stock} u.</span>
+                        <span className="ap-badge ok">{t('adm.proveedores.stockUnidades', { n: r.stock })}</span>
                       </td>
                       <td>
                         <div className="ap-table-acciones">
                           <button type="button" className="ap-btn ap-btn-ghost" onClick={() => abrirEdicion(prov)}>
-                            <FaPen /> Editar
+                            <FaPen /> {t('adm.proveedores.editar')}
                           </button>
                           <Link to={`/admin/productos?proveedor=${prov.id_proveedor}`} className="ap-btn ap-btn-ghost">
-                            Ver productos
+                            {t('adm.proveedores.verProductos')}
                           </Link>
                         </div>
                       </td>
@@ -243,69 +247,69 @@ const AdminProveedores = () => {
           <form className="ap-modal" onSubmit={crearProveedor} onClick={(e) => e.stopPropagation()}>
             <h3>
               <FaTruckField style={{ color: '#ffd98a', marginRight: 8 }} />
-              {editandoId !== null ? 'Editar proveedor' : 'Nuevo proveedor'}
+              {editandoId !== null ? t('adm.proveedores.editarTitulo') : t('adm.proveedores.nuevoTitulo')}
             </h3>
             <div className="ap-form-group">
-              <label className="ap-form-label" htmlFor="apf-nombre">Nombre *</label>
+              <label className="ap-form-label" htmlFor="apf-nombre">{t('adm.proveedores.nombreLabel')}</label>
               <input
                 id="apf-nombre"
                 className="ap-form-input"
                 type="text"
                 value={form.nombre_proveedor}
                 onChange={(e) => setCampo('nombre_proveedor', e.target.value)}
-                placeholder="Ej: Proveedora Olímpica"
+                placeholder={t('adm.proveedores.nombrePlaceholder')}
               />
             </div>
             <div className="ap-form-group">
-              <label className="ap-form-label" htmlFor="apf-contacto">Contacto</label>
+              <label className="ap-form-label" htmlFor="apf-contacto">{t('adm.proveedores.contactoLabel')}</label>
               <input
                 id="apf-contacto"
                 className="ap-form-input"
                 type="text"
                 value={form.contacto_proveedor}
                 onChange={(e) => setCampo('contacto_proveedor', e.target.value)}
-                placeholder="Nombre de la persona de contacto"
+                placeholder={t('adm.proveedores.contactoPlaceholder')}
               />
             </div>
             <div className="ap-form-group">
-              <label className="ap-form-label" htmlFor="apf-tel">Teléfono</label>
+              <label className="ap-form-label" htmlFor="apf-tel">{t('adm.proveedores.telefonoLabel')}</label>
               <input
                 id="apf-tel"
                 className="ap-form-input"
                 type="text"
                 value={form.telefono_proveedor}
                 onChange={(e) => setCampo('telefono_proveedor', e.target.value.replace(/\D/g, ''))}
-                placeholder="+57 300 000 0000"
+                placeholder={t('adm.proveedores.telefonoPlaceholder')}
               />
             </div>
             <div className="ap-form-group">
-              <label className="ap-form-label" htmlFor="apf-correo">Correo</label>
+              <label className="ap-form-label" htmlFor="apf-correo">{t('adm.proveedores.correoLabel')}</label>
               <input
                 id="apf-correo"
                 className="ap-form-input"
                 type="email"
                 value={form.correo_proveedor}
                 onChange={(e) => setCampo('correo_proveedor', e.target.value)}
-                placeholder="contacto@proveedor.com"
+                placeholder={t('adm.proveedores.correoPlaceholder')}
               />
             </div>
             <div className="ap-form-group">
-              <label className="ap-form-label" htmlFor="apf-dir">Dirección</label>
+              <label className="ap-form-label" htmlFor="apf-dir">{t('adm.proveedores.direccionLabel')}</label>
               <input
                 id="apf-dir"
                 className="ap-form-input"
                 type="text"
                 value={form.direccion_proveedor}
                 onChange={(e) => setCampo('direccion_proveedor', e.target.value)}
-                placeholder="Calle 123 #45-67, Bogotá"
+                placeholder={t('adm.proveedores.direccionPlaceholder')}
               />
             </div>
             <div className="ap-modal-actions">
               <button type="button" className="ap-btn ap-btn-ghost" onClick={() => { setMostrarNuevo(false); setEditandoId(null); setForm(VACIO); }} disabled={guardando}>
-                <FaXmark /> Cancelar
+                <FaXmark /> {t('adm.proveedores.cancelar')}
               </button>
               <button type="submit" className="ap-btn ap-btn-primary" disabled={guardando}>
-                <FaPen /> {guardando ? 'Guardando...' : editandoId !== null ? 'Guardar cambios' : 'Agregar proveedor'}
+                <FaPen /> {guardando ? t('adm.proveedores.guardando') : editandoId !== null ? t('adm.proveedores.guardarCambios') : t('adm.proveedores.agregarProveedor')}
               </button>
             </div>
           </form>

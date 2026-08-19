@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaBars, FaChevronDown, FaRightFromBracket, FaUserPen } from 'react-icons/fa6';
+import { FaBars, FaChevronDown, FaRightFromBracket } from 'react-icons/fa6';
 import { useAuth } from '@contexts/AuthContext';
+import { useIdioma } from '@i18n/IdiomaContext';
+import { getAdminAvatar, getIniciales } from '@utils/profileStorage';
 import logo from '@assets/images/Logo.jpg';
-import defaultPerfil from '@assets/images/perfil.png';
 import type { NotifAdmin } from '../../hooks/useAdminNotificaciones';
 import NotificacionesBell from './NotificacionesBell';
 import "../../styles/admin-navbar.css";
@@ -16,6 +17,7 @@ interface AdminNavbarProps {
 }
 
 const AdminNavbar = ({ onMenuToggle, notificaciones, cargandoNotificaciones = false, marcarLeida }: AdminNavbarProps) => {
+  const { t } = useIdioma();
   const { logout } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -38,19 +40,19 @@ const AdminNavbar = ({ onMenuToggle, notificaciones, cargandoNotificaciones = fa
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const avatar = localStorage.getItem('adminAvatar') || defaultPerfil;
+  const avatar = getAdminAvatar();
   const userData = (() => {
     try {
       const stored = localStorage.getItem('user');
       if (stored) {
         const parsed = JSON.parse(stored);
         return {
-          nombre: parsed.nombre || 'Administrador',
+          nombre: parsed.nombre || t('adm.navbar.administrador'),
           correo: parsed.correo || 'admin@neodomus.com',
         };
       }
     } catch {}
-    return { nombre: 'Administrador', correo: 'admin@neodomus.com' };
+    return { nombre: t('adm.navbar.administrador'), correo: 'admin@neodomus.com' };
   })();
 
   const handleLogout = () => {
@@ -65,17 +67,17 @@ const AdminNavbar = ({ onMenuToggle, notificaciones, cargandoNotificaciones = fa
           type="button"
           className="anr-menu-btn"
           onClick={onMenuToggle}
-          aria-label="Abrir menú"
-          title="Abrir menú"
+          aria-label={t('adm.navbar.abrirMenu')}
+          title={t('adm.navbar.abrirMenu')}
         >
           <FaBars />
         </button>
 
-        <Link to="/dashboard/admin" className="anr-brand" title="Panel de administración">
+        <Link to="/dashboard/admin" className="anr-brand" title={t('adm.navbar.panel')}>
           <img src={logo} alt="Neodomus" />
           <div>
             <span className="anr-brand-name">NEODOMUS</span>
-            <span className="anr-brand-sub">Administrador</span>
+            <span className="anr-brand-sub">{t('adm.navbar.administrador')}</span>
           </div>
         </Link>
 
@@ -87,7 +89,7 @@ const AdminNavbar = ({ onMenuToggle, notificaciones, cargandoNotificaciones = fa
             cargando={cargandoNotificaciones}
             verTodasTo="/admin/notificaciones"
             marcarLeida={marcarLeida}
-            titulo="Notificaciones"
+            titulo={t('adm.navbar.notificaciones')}
           />
 
           <span className="anr-sep" />
@@ -98,12 +100,18 @@ const AdminNavbar = ({ onMenuToggle, notificaciones, cargandoNotificaciones = fa
               className={`anr-user-btn ${open ? 'open' : ''}`}
               onClick={() => setOpen(v => !v)}
               aria-expanded={open}
-              aria-label="Menú de perfil"
+              aria-label={t('adm.navbar.menuPerfil')}
             >
-              <img src={avatar} alt={`Perfil de ${userData.nombre}`} className="anr-avatar" />
+              {avatar ? (
+                <img src={avatar} alt={t('adm.navbar.perfilDe', { nombre: userData.nombre })} className="anr-avatar" />
+              ) : (
+                <span className="anr-avatar anr-avatar-iniciales" aria-hidden="true">
+                  {getIniciales(userData.nombre)}
+                </span>
+              )}
               <span className="anr-user-info">
                 <span className="anr-user-name">{userData.nombre}</span>
-                <span className="anr-user-role">Administrador</span>
+                <span className="anr-user-role">{t('adm.navbar.administrador')}</span>
               </span>
               <FaChevronDown className="anr-chevron" />
             </button>
@@ -113,12 +121,8 @@ const AdminNavbar = ({ onMenuToggle, notificaciones, cargandoNotificaciones = fa
                 <div className="anr-dd-name">{userData.nombre}</div>
                 <div className="anr-dd-mail">{userData.correo}</div>
               </div>
-              <Link to="/perfil/admin" className="anr-dd-item" onClick={() => setOpen(false)}>
-                <FaUserPen /> Editar perfil
-              </Link>
-              <div className="anr-dd-sep" />
               <button type="button" className="anr-dd-item danger" onClick={handleLogout}>
-                <FaRightFromBracket /> Cerrar sesión
+                <FaRightFromBracket /> {t('adm.navbar.cerrarSesion')}
               </button>
             </div>
           </div>

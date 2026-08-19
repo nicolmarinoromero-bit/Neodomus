@@ -13,7 +13,6 @@ from app.models.tecnico import Tecnico
 from app.models.cita import Cita
 from app.models.cliente import Cliente
 from app.schemas.user import EmployeeResponse, PerfilEmpleadoResponse, UserUpdate
-from app.services.especialidades import compatible_especialidad, tecnico_ocupado
 from app.utils.respaldo_usuarios import respaldar_usuarios
 from app.utils.security import get_current_employee, require_roles, hash_password
 
@@ -113,286 +112,52 @@ async def _notificar_estado_empleado(
         pass
 
 
-def _programar_correo(correo: str, subject: str, body: str) -> None:
-    """Programa el envío de un correo en segundo plano (fire-and-forget)."""
-    import asyncio
-
-    from app.utils.email import send_email
-
-    async def _tarea():
-        try:
-            await send_email(correo, subject, body)
-        except HTTPException:
-            pass
-        except Exception as e:
-            print(f"Error enviando correo en segundo plano a {correo}: {e}")
-
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        return
-    loop.create_task(_tarea())
-
-
-def _notificar_cliente_cambio_tecnico(
-    cliente: Cliente,
-    cita: Cita,
-    tecnico_anterior: str | None,
-    nuevo_tecnico: str,
-) -> None:
-    """Envía correo al cliente informando que el técnico de su cita cambió."""
-    nombre_cliente = f"{cliente.first_name} {cliente.last_name}".strip() or "cliente"
-    subject = "Neodomus: el técnico de tu cita cambió"
-    detalle_cambio = (
-        f"La cita de <strong>{cita.tipo_servicio}</strong> que tenías para el "
-        f"<strong>{cita.fecha.strftime('%d/%m/%Y')}</strong> a las <strong>{cita.hora}</strong>"
-    )
-    if tecnico_anterior and tecnico_anterior.strip():
-        detalle_cambio += f" era con <strong>{tecnico_anterior}</strong>"
-    detalle_cambio += (
-        f" y ahora será atendida por <strong>{nuevo_tecnico}</strong>. "
-        "La fecha, hora y los demás datos de tu cita se mantienen igual."
-    )
-    body = (
-        "<div style='background:#f6f4ef;padding:24px;font-family:Arial,Helvetica,sans-serif'>"
-        "<div style='max-width:560px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e8e2d6'>"
-        "<div style='background:#1f1a12;padding:20px 26px;border-bottom:4px solid #d4a54b'>"
-        "<h2 style='margin:0;color:#ffffff;font-size:19px'>Neodomus</h2>"
-        "<p style='margin:4px 0 0;color:#d4a54b;font-size:12px;font-weight:600;letter-spacing:1px'>CAMBIO DE TÉCNICO</p></div>"
-        "<div style='padding:26px'>"
-        f"<p style='margin:0 0 8px;color:#333;font-size:14px'>Hola <strong>{nombre_cliente}</strong>,</p>"
-        f"<p style='margin:0 0 16px;color:#555;font-size:14px'>{detalle_cambio}</p>"
-        "<table style='border-collapse:collapse;width:100%;font-family:Arial,Helvetica,sans-serif'>"
-        f"<tr><td style='padding:10px 12px;border:1px solid #eee;font-size:13px;color:#666'>Servicio</td>"
-        f"<td style='padding:10px 12px;border:1px solid #eee;font-size:13px;color:#333;font-weight:700'>{cita.tipo_servicio}</td></tr>"
-        f"<tr><td style='padding:10px 12px;border:1px solid #eee;font-size:13px;color:#666'>Fecha</td>"
-        f"<td style='padding:10px 12px;border:1px solid #eee;font-size:13px;color:#333;font-weight:700'>{cita.fecha.strftime('%d/%m/%Y')}</td></tr>"
-        f"<tr><td style='padding:10px 12px;border:1px solid #eee;font-size:13px;color:#666'>Hora</td>"
-        f"<td style='padding:10px 12px;border:1px solid #eee;font-size:13px;color:#333;font-weight:700'>{cita.hora}</td></tr>"
-        f"<tr><td style='padding:10px 12px;border:1px solid #eee;font-size:13px;color:#666'>Nuevo técnico</td>"
-        f"<td style='padding:10px 12px;border:1px solid #eee;font-size:13px;color:#1f6f43;font-weight:700'>{nuevo_tecnico}</td></tr>"
-        "</table>"
-        "<p style='margin:18px 0 0;padding:12px 14px;background:#fdf6e7;border:1px solid #eed7a8;border-radius:8px;color:#7a5a14;font-size:13px'>"
-        "Si tienes alguna inquietud, responde este correo o contacta al equipo de Neodomus.</p>"
-        "</div>"
-        "<div style='background:#f6f4ef;padding:14px 26px;border-top:1px solid #e8e2d6'>"
-        "<p style='margin:0;color:#999;font-size:12px'>Neodomus — Sistema de gestión inteligente.</p>"
-        "</div></div></div>"
-    )
-    _programar_correo(cliente.email, subject, body)
-
-
-def _reasignar_citas_tecnico_inhabilitado(db: Session, usuario: User) -> dict | None:
-    """Reasigna las citas pendientes/confirmadas de un técnico inhabilitado a
-    otro técnico activo con la especialidad compatible. Devuelve un resumen o
-    None si el usuario no es técnico."""
+def _cancelar_citas_tecnico_inhabilitado(db: Session, usuario: User) -> int:
+    """Al inhabilitar un técnico: cancela automáticamente sus citas
+    pendientes/confirmadas futuras y notifica a cada cliente que su cita fue
+    cancelada porque el técnico asignado fue deshabilitado. Devuelve la
+    cantidad de citas canceladas."""
     ficha = db.query(Tecnico).filter(Tecnico.id_usuario_t == usuario.id_usuario).first()
     if not ficha:
-        return None
-    hoy = date.today()
+        return 0
     citas = (
         db.query(Cita)
         .filter(
             Cita.id_tecnico == ficha.id_tecnico,
             Cita.estado.in_(("Pendiente", "Confirmada")),
-            Cita.fecha >= hoy,
+            Cita.fecha >= date.today(),
         )
         .order_by(Cita.fecha.asc(), Cita.hora.asc())
         .all()
     )
-    resumen = {
-        "total": len(citas),
-        "reasignadas": [],
-        "sin_reasignar": [],
-        "tecnico": ficha,
-    }
     if not citas:
-        return resumen
-    candidatos = (
-        db.query(Tecnico)
-        .join(User, User.id_usuario == Tecnico.id_usuario_t)
-        .filter(
-            User.is_active == True,  # noqa: E712
-            Tecnico.id_tecnico != ficha.id_tecnico,
-        )
-        .order_by(Tecnico.id_tecnico.asc())
-        .all()
-    )
+        return 0
     clientes = {c.id_cliente: c for c in db.query(Cliente).all()}
-    reservados: set[tuple] = set()
     for cita in citas:
-        elegido = None
-        for t in candidatos:
-            if not compatible_especialidad(cita.tipo_servicio, t.certificacion_t):
-                continue
-            if (cita.fecha, cita.hora, t.id_tecnico) in reservados:
-                continue
-            if tecnico_ocupado(db, t.id_tecnico, cita.fecha, cita.hora, cita.id_cita):
-                continue
-            elegido = t
-            break
-        cliente = clientes.get(cita.id_cliente)
-        nombre_cliente = (
-            f"{cliente.first_name} {cliente.last_name}".strip()
-            if cliente
-            else "cliente"
-        )
-        item = {
-            "cita_id": cita.id_cita,
-            "fecha": cita.fecha,
-            "hora": cita.hora,
-            "servicio": cita.tipo_servicio,
-            "cliente": nombre_cliente,
-        }
-        if elegido:
-            nuevo_nombre = (
-                f"{elegido.usuario.first_name} {elegido.usuario.last_name}".strip()
-                if elegido.usuario
-                else None
-            )
-            tecnico_anterior = cita.nombre_tecnico
-            cita.id_tecnico = elegido.id_tecnico
-            if nuevo_nombre:
-                cita.nombre_tecnico = nuevo_nombre
-            reservados.add((cita.fecha, cita.hora, elegido.id_tecnico))
-            if cliente and cliente.email:
-                _notificar_cliente_cambio_tecnico(
-                    cliente,
-                    cita,
-                    tecnico_anterior,
-                    nuevo_nombre or f"Técnico #{elegido.id_tecnico}",
-                )
-            resumen["reasignadas"].append(
-                {**item, "nuevo_tecnico": nuevo_nombre or f"Técnico #{elegido.id_tecnico}"}
-            )
-        else:
-            resumen["sin_reasignar"].append(item)
+        cita.estado = "Cancelada"
     db.commit()
-    return resumen
 
+    from app.services.notificaciones import notificar_cita_estado_cliente
 
-def _alertar_admin_tecnico_inhabilitado(
-    db: Session,
-    usuario: User,
-    motivo: Optional[str],
-    resumen: dict,
-) -> None:
-    """Envía correo a los administradores cuando un técnico es inhabilitado,
-    con el detalle de las citas reasignadas o pendientes de reasignación."""
-    from app.config import settings
-
-    admins = (
-        db.query(User)
-        .join(RolesUsuario, RolesUsuario.id_rol == User.id_rol_u)
-        .filter(RolesUsuario.nombre_rol.in_(["admin", "administrador"]), User.is_active == True)  # noqa: E712
-        .all()
-    )
-    destinatarios = [a.email for a in admins if a.email] or [settings.SMTP_USERNAME]
-
-    nombre = f"{usuario.first_name} {usuario.last_name}".strip() or "técnico"
-    ficha = resumen.get("tecnico")
-    cargo = ficha.cargo_t if ficha else None
-    reasignadas = resumen["reasignadas"]
-    sin_reasignar = resumen["sin_reasignar"]
-
-    filas_reasignadas = "".join(
-        "<tr>"
-        f"<td style='padding:10px 12px;border:1px solid #eee;font-size:13px;color:#333'>{r['fecha'].strftime('%d/%m/%Y')}</td>"
-        f"<td style='padding:10px 12px;border:1px solid #eee;font-size:13px;color:#333'>{r['hora']}</td>"
-        f"<td style='padding:10px 12px;border:1px solid #eee;font-size:13px;color:#666'>{r['servicio']}</td>"
-        f"<td style='padding:10px 12px;border:1px solid #eee;font-size:13px;color:#333'>{r['cliente']}</td>"
-        f"<td style='padding:10px 12px;border:1px solid #eee;font-size:13px;color:#1f6f43;font-weight:700'>{r['nuevo_tecnico']}</td>"
-        "</tr>"
-        for r in reasignadas
-    )
-    filas_sin = "".join(
-        "<tr>"
-        f"<td style='padding:10px 12px;border:1px solid #eee;font-size:13px;color:#333'>{r['fecha'].strftime('%d/%m/%Y')}</td>"
-        f"<td style='padding:10px 12px;border:1px solid #eee;font-size:13px;color:#333'>{r['hora']}</td>"
-        f"<td style='padding:10px 12px;border:1px solid #eee;font-size:13px;color:#666'>{r['servicio']}</td>"
-        f"<td style='padding:10px 12px;border:1px solid #eee;font-size:13px;color:#333'>{r['cliente']}</td>"
-        "</tr>"
-        for r in sin_reasignar
-    )
-
-    if resumen["total"] == 0:
-        detalle_citas = (
-            "<p style='margin:18px 0 0;padding:12px 14px;background:#faf7f0;border:1px solid #e8e2d6;border-radius:8px;color:#7a6a4a;font-size:13px'>"
-            "El técnico no tenía citas pendientes ni confirmadas que reasignar.</p>"
+    for cita in citas:
+        cliente = clientes.get(cita.id_cliente)
+        if not cliente or not cliente.email:
+            continue
+        nombre_cliente = f"{cliente.first_name} {cliente.last_name}".strip() or "Cliente"
+        notificar_cita_estado_cliente(
+            db,
+            cliente_id=cliente.id_cliente,
+            correo=cliente.email,
+            cliente_nombre=nombre_cliente,
+            datos={
+                "servicio": cita.tipo_servicio,
+                "fecha": cita.fecha.strftime("%d/%m/%Y"),
+                "tecnico": cita.nombre_tecnico or "técnico",
+            },
+            nuevo_estado="Cancelada",
+            motivo="El técnico asignado fue deshabilitado por el administrador.",
         )
-    else:
-        seccion_reasignadas = (
-            "<p style='margin:18px 0 4px;color:#333;font-size:14px'><strong>Citas reasignadas</strong></p>"
-            "<table style='border-collapse:collapse;width:100%;font-family:Arial,Helvetica,sans-serif'>"
-            "<thead><tr style='background:#1f1a12'>"
-            "<th style='padding:10px 12px;border:1px solid #1f1a12;color:#ffffff;font-size:12px;text-transform:uppercase;text-align:left'>Fecha</th>"
-            "<th style='padding:10px 12px;border:1px solid #1f1a12;color:#ffffff;font-size:12px;text-transform:uppercase;text-align:left'>Hora</th>"
-            "<th style='padding:10px 12px;border:1px solid #1f1a12;color:#ffffff;font-size:12px;text-transform:uppercase;text-align:left'>Servicio</th>"
-            "<th style='padding:10px 12px;border:1px solid #1f1a12;color:#ffffff;font-size:12px;text-transform:uppercase;text-align:left'>Cliente</th>"
-            "<th style='padding:10px 12px;border:1px solid #1f1a12;color:#ffd98a;font-size:12px;text-transform:uppercase;text-align:left'>Nuevo técnico</th>"
-            "</tr></thead><tbody>"
-            f"{filas_reasignadas}"
-            "</tbody></table>"
-        ) if reasignadas else (
-            "<p style='margin:18px 0 4px;color:#333;font-size:14px'><strong>Citas reasignadas</strong></p>"
-            "<p style='margin:0 0 8px;color:#666;font-size:13px'>Ninguna cita pudo reasignarse automáticamente.</p>"
-        )
-        seccion_sin = (
-            "<p style='margin:18px 0 4px;color:#333;font-size:14px'><strong>Citas sin reasignar (requieren asignación manual)</strong></p>"
-            "<table style='border-collapse:collapse;width:100%;font-family:Arial,Helvetica,sans-serif'>"
-            "<thead><tr style='background:#3d1212'>"
-            "<th style='padding:10px 12px;border:1px solid #3d1212;color:#ffffff;font-size:12px;text-transform:uppercase;text-align:left'>Fecha</th>"
-            "<th style='padding:10px 12px;border:1px solid #3d1212;color:#ffffff;font-size:12px;text-transform:uppercase;text-align:left'>Hora</th>"
-            "<th style='padding:10px 12px;border:1px solid #3d1212;color:#ffffff;font-size:12px;text-transform:uppercase;text-align:left'>Servicio</th>"
-            "<th style='padding:10px 12px;border:1px solid #3d1212;color:#ffffff;font-size:12px;text-transform:uppercase;text-align:left'>Cliente</th>"
-            "</tr></thead><tbody>"
-            f"{filas_sin}"
-            "</tbody></table>"
-        ) if sin_reasignar else ""
-        detalle_citas = seccion_reasignadas + seccion_sin
-
-    motivo_html = (
-        f"<p style='margin:0 0 16px;padding:12px 14px;background:#fdf3f3;border:1px solid #f1caca;border-radius:8px;color:#9a3b3b;font-size:13px'>"
-        f"<strong>Motivo de la inhabilitación:</strong> {motivo}</p>"
-        if motivo
-        else ""
-    )
-    subject = f"Técnico inhabilitado: {nombre}"
-    body = (
-        "<div style='background:#f6f4ef;padding:24px;font-family:Arial,Helvetica,sans-serif'>"
-        "<div style='max-width:640px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e8e2d6'>"
-        "<div style='background:#3d1212;padding:20px 26px;border-bottom:4px solid #e05c5c'>"
-        "<h2 style='margin:0;color:#ffffff;font-size:19px'>Neodomus</h2>"
-        "<p style='margin:4px 0 0;color:#ff9b9b;font-size:12px;font-weight:600;letter-spacing:1px'>TÉCNICO INHABILITADO</p></div>"
-        "<div style='padding:26px'>"
-        "<p style='margin:0 0 8px;color:#333;font-size:14px'>Hola,</p>"
-        f"<p style='margin:0 0 18px;color:#555;font-size:14px'>El técnico <strong>{nombre}</strong> ({usuario.email}) fue <strong>inhabilitado</strong>."
-        + (f" Cargo: <strong>{cargo}</strong>." if cargo else "")
-        + "</p>"
-        f"{motivo_html}"
-        f"{detalle_citas}"
-        "<p style='margin:18px 0 0;padding:12px 14px;background:#fdf6e7;border:1px solid #eed7a8;border-radius:8px;color:#7a5a14;font-size:13px'>"
-        "Revisa las citas pendientes en el panel de administración y confirma las asignaciones.</p>"
-        "</div>"
-        "<div style='background:#f6f4ef;padding:14px 26px;border-top:1px solid #e8e2d6'>"
-        "<p style='margin:0;color:#999;font-size:12px'>Neodomus — Sistema de gestión inteligente.</p>"
-        "</div></div></div>"
-    )
-    for correo in destinatarios:
-        _programar_correo(correo, subject, body)
-
-
-def _gestionar_inhabilitacion_tecnico(
-    db: Session,
-    usuario: User,
-    motivo: Optional[str] = None,
-) -> None:
-    """Al inhabilitar un técnico: reasigna sus citas pendientes/confirmadas a
-    otro técnico disponible y alerta a los administradores por correo."""
-    resumen = _reasignar_citas_tecnico_inhabilitado(db, usuario)
-    if resumen is None:
-        return
-    _alertar_admin_tecnico_inhabilitado(db, usuario, motivo, resumen)
+    return len(citas)
 
 
 def _admin(
@@ -600,7 +365,7 @@ async def editar_empleado(
     if cambio_estado:
         await _notificar_estado_empleado(usuario, activo, desactivado_hasta, motivo)
         if not activo:
-            _gestionar_inhabilitacion_tecnico(db, usuario, motivo)
+            _cancelar_citas_tecnico_inhabilitado(db, usuario)
     return {"msg": "Usuario actualizado correctamente", "id": user_id}
 
 
@@ -618,7 +383,7 @@ async def desactivar_empleado(
     usuario.is_active = False
     db.commit()
     await _notificar_estado_empleado(usuario, False, usuario.desactivado_hasta)
-    _gestionar_inhabilitacion_tecnico(db, usuario)
+    _cancelar_citas_tecnico_inhabilitado(db, usuario)
     return {"msg": "Usuario desactivado", "id": user_id}
 
 

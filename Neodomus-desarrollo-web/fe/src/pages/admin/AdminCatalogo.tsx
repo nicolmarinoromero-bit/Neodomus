@@ -5,6 +5,7 @@ import { FaTags, FaCircleInfo, FaBoxOpen, FaPen, FaArrowRight, FaPlus, FaMagnify
 import '@styles/admin-panel.css';
 import '@styles/dashboard-admin.css';
 import api from '@services/api';
+import { useIdioma } from '@i18n/IdiomaContext';
 import { badgeStock, textoStock } from '../../constants';
 import type { CategoriaAdmin, ProductoAdmin } from '../../types';
 
@@ -14,6 +15,7 @@ interface PaginaProductos {
 }
 
 const AdminCatalogo = () => {
+  const { t } = useIdioma();
   const [categorias, setCategorias] = useState<CategoriaAdmin[]>([]);
   const [productos, setProductos] = useState<ProductoAdmin[]>([]);
   const [vista, setVista] = useState<'todos' | 'categorias'>('todos');
@@ -61,17 +63,21 @@ const AdminCatalogo = () => {
     >
       <div className="ap-header">
         <div>
-          <h1 className="ap-title">Catálogo</h1>
+          <h1 className="ap-title">{t('adm.catalogo.titulo')}</h1>
           <p className="ap-subtitle">
             {vista === 'todos'
-              ? 'Todos los productos del catálogo de la tienda.'
-              : `${categorias.length} categoría${categorias.length === 1 ? '' : 's'} de productos disponibles en la tienda Neodomus.`}
+              ? t('adm.catalogo.subtituloTodos')
+              : categorias.length === 1
+                ? t('adm.catalogo.subtituloCategoriasUno', { n: categorias.length })
+                : t('adm.catalogo.subtituloCategorias', { n: categorias.length })}
           </p>
         </div>
         <div className="ap-header-right">
           <span className="welcome-badge">
             <FaTags />
-            {categorias.length} categoría{categorias.length === 1 ? '' : 's'}
+            {categorias.length === 1
+              ? t('adm.catalogo.badgeCategoriaUno', { n: categorias.length })
+              : t('adm.catalogo.badgeCategorias', { n: categorias.length })}
           </span>
         </div>
       </div>
@@ -82,7 +88,7 @@ const AdminCatalogo = () => {
             <FaMagnifyingGlass />
             <input
               type="text"
-              placeholder="Buscar producto..."
+              placeholder={t('adm.catalogo.buscarPlaceholder')}
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
             />
@@ -92,14 +98,14 @@ const AdminCatalogo = () => {
           className="ap-filtro-estado"
           value={vista}
           onChange={(e) => setVista(e.target.value as 'todos' | 'categorias')}
-          title="Cómo ver el catálogo"
+          title={t('adm.catalogo.verSelect')}
           style={{ minWidth: 220 }}
         >
-          <option value="todos">Todos los productos</option>
-          <option value="categorias">Por categorías</option>
+          <option value="todos">{t('adm.catalogo.opcionTodos')}</option>
+          <option value="categorias">{t('adm.catalogo.opcionCategorias')}</option>
         </select>
         <Link to="/admin/productos/nuevo" className="ap-btn ap-btn-primary" style={{ marginLeft: 'auto' }}>
-          <FaPlus /> Nuevo producto
+          <FaPlus /> {t('adm.catalogo.nuevoProducto')}
         </Link>
       </div>
 
@@ -107,8 +113,8 @@ const AdminCatalogo = () => {
         <div className="ap-card">
           <div className="ap-states">
             <span className="ap-loader" />
-            <h3>Cargando catálogo</h3>
-            <p>Consultando categorías y productos...</p>
+            <h3>{t('adm.catalogo.cargando')}</h3>
+            <p>{t('adm.catalogo.cargandoDesc')}</p>
           </div>
         </div>
       ) : error ? (
@@ -117,10 +123,10 @@ const AdminCatalogo = () => {
             <div className="ap-states-icon">
               <FaCircleInfo />
             </div>
-            <h3>No se pudo cargar el catálogo</h3>
-            <p>Verifica tu conexión e inténtalo nuevamente.</p>
+            <h3>{t('adm.catalogo.errorTitulo')}</h3>
+            <p>{t('adm.catalogo.errorDesc')}</p>
             <button type="button" className="ap-btn ap-btn-ghost" onClick={() => window.location.reload()}>
-              Reintentar
+              {t('adm.catalogo.reintentar')}
             </button>
           </div>
         </div>
@@ -131,8 +137,8 @@ const AdminCatalogo = () => {
               <div className="ap-states-icon">
                 <FaTags />
               </div>
-              <h3>No hay categorías registradas</h3>
-              <p>El catálogo de categorías se encuentra vacío por el momento.</p>
+              <h3>{t('adm.catalogo.sinCategorias')}</h3>
+              <p>{t('adm.catalogo.sinCategoriasDesc')}</p>
             </div>
           </div>
         ) : (
@@ -145,16 +151,20 @@ const AdminCatalogo = () => {
                     <div className="an-icon cuenta">
                       <FaTags />
                     </div>
-                    <span className="ap-badge info">{cantidad} producto{cantidad === 1 ? '' : 's'}</span>
+                    <span className="ap-badge info">
+                      {cantidad === 1
+                        ? t('adm.catalogo.badgeProductoUno', { n: cantidad })
+                        : t('adm.catalogo.badgeProductos', { n: cantidad })}
+                    </span>
                   </div>
                   <h3>{categoria.nombre_categoria}</h3>
-                  <p>{categoria.descripcion || 'Sin descripción disponible.'}</p>
+                  <p>{categoria.descripcion || t('adm.catalogo.sinDescripcion')}</p>
                   <Link
                     to={`/admin/productos?categoria=${categoria.id_categoria}`}
                     className="ap-btn ap-btn-ghost"
                     style={{ marginTop: 'auto' }}
                   >
-                    Ver productos <FaArrowRight />
+                    {t('adm.catalogo.verProductos')} <FaArrowRight />
                   </Link>
                 </div>
               );
@@ -167,8 +177,8 @@ const AdminCatalogo = () => {
             <div className="ap-states-icon">
               <FaCircleInfo />
             </div>
-            <h3>Sin resultados</h3>
-            <p>No hay productos que coincidan con la búsqueda.</p>
+            <h3>{t('adm.catalogo.sinResultados')}</h3>
+            <p>{t('adm.catalogo.sinResultadosDesc')}</p>
           </div>
         </div>
       ) : productos.length === 0 ? (
@@ -177,10 +187,10 @@ const AdminCatalogo = () => {
             <div className="ap-states-icon">
               <FaBoxOpen />
             </div>
-            <h3>No hay productos registrados</h3>
-            <p>El catálogo de productos se encuentra vacío por el momento.</p>
+            <h3>{t('adm.catalogo.sinProductos')}</h3>
+            <p>{t('adm.catalogo.sinProductosDesc')}</p>
             <Link to="/admin/productos/nuevo" className="ap-btn ap-btn-primary">
-              Crear el primer producto
+              {t('adm.catalogo.crearPrimerProducto')}
             </Link>
           </div>
         </div>
@@ -190,11 +200,11 @@ const AdminCatalogo = () => {
             <table className="ap-table">
               <thead>
                 <tr>
-                  <th>Producto</th>
-                  <th>Categoría</th>
-                  <th>Stock</th>
-                  <th>Precio</th>
-                  <th>Acciones</th>
+                  <th>{t('adm.catalogo.colProducto')}</th>
+                  <th>{t('adm.catalogo.colCategoria')}</th>
+                  <th>{t('adm.catalogo.colStock')}</th>
+                  <th>{t('adm.catalogo.colPrecio')}</th>
+                  <th>{t('adm.catalogo.colAcciones')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -221,7 +231,7 @@ const AdminCatalogo = () => {
                       {producto.nombre_categoria ? (
                         <span className="ap-badge info">{producto.nombre_categoria}</span>
                       ) : (
-                        <span className="ap-badge neutral">Sin categoría</span>
+                        <span className="ap-badge neutral">{t('adm.catalogo.sinCategoria')}</span>
                       )}
                     </td>
                     <td>
@@ -235,7 +245,7 @@ const AdminCatalogo = () => {
                     </td>
                     <td>
                       <Link to={`/admin/productos/${producto.id_producto}`} className="ap-btn ap-btn-ghost">
-                        <FaPen /> Gestionar
+                        <FaPen /> {t('adm.catalogo.gestionar')}
                       </Link>
                     </td>
                   </tr>

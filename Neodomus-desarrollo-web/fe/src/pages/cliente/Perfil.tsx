@@ -5,7 +5,7 @@ import { useIdioma } from '@i18n/IdiomaContext';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   FaUserPen, FaLock, FaBox, FaTruck, FaStar, FaScrewdriverWrench,
-  FaFileInvoice, FaGlobe, FaBell, FaRightFromBracket, FaXmark, FaCheck,
+  FaFileInvoice, FaGlobe, FaBell, FaXmark, FaCheck,
   FaCamera, FaUser, FaFloppyDisk, FaHeart, FaUserSlash, FaHourglassHalf,
   FaTrashCan,
 } from 'react-icons/fa6';
@@ -61,7 +61,7 @@ interface Producto {
 type TabId = 'perfil' | 'contrasena' | 'pedidos' | 'mensajes' | 'resenas' | 'tecnicos' | 'facturas' | 'idioma' | 'notificaciones' | 'favoritos';
 
 const Perfil = () => {
-  const { user, logout, refreshUserProfile } = useAuth();
+  const { user, refreshUserProfile } = useAuth();
   const { t } = useIdioma();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -69,7 +69,6 @@ const Perfil = () => {
   const [activo, setActivo] = useState<TabId>(initialTab);
   const [toast, setToast] = useState<ToastState>(null);
   const [tick, setTick] = useState(0);
-  const [confirmarSalida, setConfirmarSalida] = useState(false);
   const [confirmarInhabilitar, setConfirmarInhabilitar] = useState(false);
   const [enviandoSolicitud, setEnviandoSolicitud] = useState(false);
   const [solicitudEstado, setSolicitudEstado] = useState<string | null>(null);
@@ -197,11 +196,6 @@ const Perfil = () => {
     }
     return t('perfil.miPerfil');
   }, [grupos, activo, t]);
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
 
   // Estado de la solicitud de inhabilitación
   useEffect(() => {
@@ -545,10 +539,6 @@ const Perfil = () => {
               </div>
             ))}
           </nav>
-
-          <button type="button" className="pf-logout-btn" onClick={() => setConfirmarSalida(true)}>
-            <FaRightFromBracket /> {t('nav.cerrarSesion')}
-          </button>
         </aside>
 
         {/* ── Contenido ─────────────────────────────────────── */}
@@ -599,25 +589,6 @@ const Perfil = () => {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* ── Modal cerrar sesión ─────────────────────────────── */}
-      {confirmarSalida && (
-        <div className="pf-modal-backdrop" onClick={() => setConfirmarSalida(false)}>
-          <div className="pf-modal pf-modal-small" onClick={(e) => e.stopPropagation()}>
-            <div className="pf-modal-header">
-              <h3>Cerrar sesión</h3>
-              <button type="button" className="pf-modal-close" onClick={() => setConfirmarSalida(false)} aria-label="Cerrar">×</button>
-            </div>
-            <p className="pf-modal-text">¿Seguro que deseas cerrar tu sesión? Deberás iniciar sesión nuevamente para acceder a tu cuenta.</p>
-            <div className="pf-form-actions">
-              <button type="button" className="pf-btn pf-btn-ghost" onClick={() => setConfirmarSalida(false)}>Cancelar</button>
-              <button type="button" className="pf-btn pf-btn-danger" onClick={handleLogout}>
-                <FaRightFromBracket /> Cerrar sesión
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ── Modal inhabilitar cuenta ─────────────────────────── */}
       {confirmarInhabilitar && (

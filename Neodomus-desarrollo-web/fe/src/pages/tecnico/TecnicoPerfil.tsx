@@ -12,18 +12,17 @@ import {
   FaGlobe,
   FaCheck,
   FaXmark,
+  FaTrashCan,
 } from 'react-icons/fa6';
 import '@styles/perfil-cliente.css';
 import '@styles/admin-panel.css';
-import perfilIcon from '@assets/images/perfil.png';
 
+import { getIniciales, getTechnicalAvatar, removeTechnicalAvatar, setTechnicalAvatar } from '@utils/profileStorage';
 import SectionHeader from '@components/profile/SectionHeader';
 import PasswordTab from '@components/profile/PasswordTab';
 import LanguageTab from '@components/profile/LanguageTab';
 
 type TabTecnico = 'cuenta' | 'contrasena' | 'idioma';
-
-const PERFIL_KEY = 'technicalAvatar';
 
 interface PerfilTecnico {
   first_name: string;
@@ -42,7 +41,7 @@ const TechnicalPerfil = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [activo, setActivo] = useState<TabTecnico>('cuenta');
-  const [avatar, setAvatar] = useState<string>(() => localStorage.getItem(PERFIL_KEY) || perfilIcon);
+  const [avatar, setAvatar] = useState<string | null>(() => getTechnicalAvatar());
   const [nombre, setNombre] = useState('');
   const [apellido, setApellido] = useState('');
   const [email, setEmail] = useState('');
@@ -81,8 +80,7 @@ const TechnicalPerfil = () => {
 
   useEffect(() => {
     const sync = () => {
-      const saved = localStorage.getItem(PERFIL_KEY);
-      if (saved) setAvatar(saved);
+      setAvatar(getTechnicalAvatar());
     };
     window.addEventListener('technical-profile-updated', sync);
     return () => window.removeEventListener('technical-profile-updated', sync);
@@ -104,11 +102,16 @@ const TechnicalPerfil = () => {
     reader.onload = (ev) => {
       const dataUrl = ev.target?.result as string;
       setAvatar(dataUrl);
-      localStorage.setItem(PERFIL_KEY, dataUrl);
-      window.dispatchEvent(new CustomEvent('technical-profile-updated'));
+      setTechnicalAvatar(dataUrl);
       notify(t('tec.fotoActualizada'));
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleEliminarFoto = () => {
+    setAvatar(null);
+    removeTechnicalAvatar();
+    notify(t('tec.fotoEliminada'));
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -165,7 +168,11 @@ const TechnicalPerfil = () => {
 
       <div className="pf-avatar-zone">
         <div className="pf-avatar-big">
-          <img src={avatar} alt={t('tec.fotoPerfil')} />
+          {avatar ? (
+            <img src={avatar} alt={t('tec.fotoPerfil')} />
+          ) : (
+            <span className="pf-avatar-iniciales" aria-hidden="true">{getIniciales(nombreCompleto)}</span>
+          )}
           <button
             type="button"
             className="pf-avatar-camera"
@@ -185,6 +192,11 @@ const TechnicalPerfil = () => {
           >
             <FaCamera /> {t('tec.cambiarFoto')}
           </button>
+          {avatar && (
+            <button type="button" className="pf-btn pf-btn-danger" onClick={handleEliminarFoto}>
+              <FaTrashCan /> {t('tec.eliminarFoto')}
+            </button>
+          )}
           <input
             ref={fileInputRef}
             type="file"
@@ -321,7 +333,13 @@ const TechnicalPerfil = () => {
         <aside className="perfil-sidebar">
           <div className="pf-usuario-card">
             <span className="pf-avatar-wrap">
-              <img src={avatar} alt={t('tec.fotoPerfil')} className="pf-avatar-img" />
+              {avatar ? (
+                <img src={avatar} alt={t('tec.fotoPerfil')} className="pf-avatar-img" />
+              ) : (
+                <span className="pf-avatar-img pf-avatar-img-iniciales" aria-hidden="true">
+                  {getIniciales(nombreCompleto)}
+                </span>
+              )}
             </span>
             <strong className="pf-usuario-nombre">{nombreCompleto}</strong>
             <span className="pf-usuario-correo">{correoUsuario}</span>

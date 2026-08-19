@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { useIdioma } from '@i18n/IdiomaContext';
 import {
   FaChartLine,
   FaCircleInfo,
@@ -15,21 +16,35 @@ import {
   FaArrowTrendUp,
   FaXmark,
   FaTriangleExclamation,
+  FaFilePdf,
 } from 'react-icons/fa6';
 import '@styles/admin-panel.css';
 import '@styles/dashboard-admin.css';
-import api from '@services/api';
+import api, { descargarReportePdf } from '@services/api';
 import type { ReporteResumen } from '../../types';
 
-const MESES = [
-  'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
-  'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
-];
-
 const AdminReportes = () => {
+  const { t } = useIdioma();
   const [datos, setDatos] = useState<ReporteResumen | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(false);
+  const [periodo, setPeriodo] = useState<'semana' | 'mes' | 'anio'>('mes');
+  const [descargando, setDescargando] = useState(false);
+
+  const MESES = [
+    t('adm.reportes.mesEne'),
+    t('adm.reportes.mesFeb'),
+    t('adm.reportes.mesMar'),
+    t('adm.reportes.mesAbr'),
+    t('adm.reportes.mesMay'),
+    t('adm.reportes.mesJun'),
+    t('adm.reportes.mesJul'),
+    t('adm.reportes.mesAgo'),
+    t('adm.reportes.mesSep'),
+    t('adm.reportes.mesOct'),
+    t('adm.reportes.mesNov'),
+    t('adm.reportes.mesDic'),
+  ];
 
   const cargar = async () => {
     setCargando(true);
@@ -48,10 +63,25 @@ const AdminReportes = () => {
     cargar();
   }, []);
 
+  const PERIODOS: { id: 'semana' | 'mes' | 'anio'; label: string }[] = [
+    { id: 'semana', label: t('adm.reportes.periodoSemanal') },
+    { id: 'mes', label: t('adm.reportes.periodoMensual') },
+    { id: 'anio', label: t('adm.reportes.periodoAnual') },
+  ];
+
+  const descargar = async () => {
+    setDescargando(true);
+    try {
+      await descargarReportePdf(periodo, t('adm.reportes.errorDescarga'));
+    } finally {
+      setDescargando(false);
+    }
+  };
+
   const formatoPesos = (v: number) => `$${Math.round(v).toLocaleString('es-CO')}`;
 
   const mesLabel = (mes: string | null | undefined) => {
-    if (!mes) return 'Sin fecha';
+    if (!mes) return t('adm.reportes.sinFecha');
     const [y, m] = mes.split('-');
     return `${MESES[(parseInt(m, 10) || 1) - 1] ?? m} ${y}`;
   };
@@ -67,12 +97,32 @@ const AdminReportes = () => {
     >
       <div className="ap-header">
         <div>
-          <h1 className="ap-title">Reportes</h1>
-          <p className="ap-subtitle">Estadísticas actualizadas con los datos reales del sistema.</p>
+          <h1 className="ap-title">{t('adm.reportes.titulo')}</h1>
+          <p className="ap-subtitle">{t('adm.reportes.subtitulo')}</p>
         </div>
         <div className="ap-header-right">
+          <div className="ap-tabs" role="group" aria-label={t('adm.reportes.periodoAria')}>
+            {PERIODOS.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                className={`ap-tab ${periodo === p.id ? 'active' : ''}`}
+                onClick={() => setPeriodo(p.id)}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            className="ap-btn ap-btn-primary"
+            onClick={descargar}
+            disabled={descargando || cargando}
+          >
+            <FaFilePdf /> {descargando ? t('adm.reportes.descargando') : t('adm.reportes.descargarPdf')}
+          </button>
           <button type="button" className="ap-btn ap-btn-ghost" onClick={cargar} disabled={cargando}>
-            <FaRotate className={cargando ? 'spin' : ''} /> Actualizar
+            <FaRotate className={cargando ? 'spin' : ''} /> {t('adm.reportes.actualizar')}
           </button>
         </div>
       </div>
@@ -81,8 +131,8 @@ const AdminReportes = () => {
         <div className="ap-card">
           <div className="ap-states">
             <span className="ap-loader" />
-            <h3>Generando reportes</h3>
-            <p>Calculando las estadísticas del sistema...</p>
+            <h3>{t('adm.reportes.generando')}</h3>
+            <p>{t('adm.reportes.generandoSub')}</p>
           </div>
         </div>
       ) : error ? (
@@ -91,10 +141,10 @@ const AdminReportes = () => {
             <div className="ap-states-icon">
               <FaCircleInfo />
             </div>
-            <h3>No se pudieron generar los reportes</h3>
-            <p>Verifica tu conexión e inténtalo nuevamente.</p>
+            <h3>{t('adm.reportes.errorTitulo')}</h3>
+            <p>{t('adm.reportes.errorSub')}</p>
             <button type="button" className="ap-btn ap-btn-ghost" onClick={cargar}>
-              Reintentar
+              {t('adm.reportes.reintentar')}
             </button>
           </div>
         </div>
@@ -103,39 +153,46 @@ const AdminReportes = () => {
           <div className="ap-kpis">
             <div className="ap-card ap-kpi">
               <div className="ap-kpi-label">
-                <FaWallet /> Ventas totales
+                <FaWallet /> {t('adm.reportes.ventasTotales')}
               </div>
               <div className="ap-kpi-value">{formatoPesos(datos.ventas_total)}</div>
-              <div className="ap-mini-sub">{datos.pedidos_total} pedidos registrados</div>
+              <div className="ap-mini-sub">
+                {t('adm.reportes.pedidosRegistrados', { n: datos.pedidos_total })}
+              </div>
             </div>
             <div className="ap-card ap-kpi">
               <div className="ap-kpi-label">
-                <FaBagShopping /> Pedidos
+                <FaBagShopping /> {t('adm.reportes.pedidos')}
               </div>
               <div className="ap-kpi-value">{datos.pedidos_total}</div>
               <div className="ap-mini-sub">
-                {datos.pedidos_por_mes.length > 0 ? 'Con histórico mensual' : 'Sin pedidos aún'}
+                {datos.pedidos_por_mes.length > 0
+                  ? t('adm.reportes.conHistorico')
+                  : t('adm.reportes.sinPedidos')}
               </div>
             </div>
             <div className="ap-card ap-kpi">
               <div className="ap-kpi-label">
-                <FaUsers /> Clientes registrados
+                <FaUsers /> {t('adm.reportes.clientesRegistrados')}
               </div>
               <div className="ap-kpi-value">{datos.clientes_total}</div>
             </div>
             <div className="ap-card ap-kpi">
               <div className="ap-kpi-label">
-                <FaCalendarCheck /> Citas / instalaciones
+                <FaCalendarCheck /> {t('adm.reportes.citasInstalaciones')}
               </div>
               <div className="ap-kpi-value">{datos.citas_total}</div>
               <div className="ap-mini-sub">
-                {datos.citas_por_estado.Pendiente} pendientes · {datos.citas_por_estado.Confirmada} confirmadas ·{' '}
-                {datos.citas_por_estado.Finalizada} finalizadas
+                {t('adm.reportes.citasResumen', {
+                  pendientes: datos.citas_por_estado.Pendiente,
+                  confirmadas: datos.citas_por_estado.Confirmada,
+                  finalizadas: datos.citas_por_estado.Finalizada,
+                })}
               </div>
             </div>
             <div className="ap-card ap-kpi">
               <div className="ap-kpi-label">
-                <FaUserGear /> Técnicos
+                <FaUserGear /> {t('adm.reportes.tecnicos')}
               </div>
               <div className="ap-kpi-value">
                 {datos.tecnicos_activos}
@@ -144,14 +201,16 @@ const AdminReportes = () => {
                   / {datos.tecnicos_total}
                 </span>
               </div>
-              <div className="ap-mini-sub">activos en el sistema</div>
+              <div className="ap-mini-sub">{t('adm.reportes.tecnicosActivosSub')}</div>
             </div>
             <div className="ap-card ap-kpi">
               <div className="ap-kpi-label">
-                <FaBoxesStacked /> Productos
+                <FaBoxesStacked /> {t('adm.reportes.productos')}
               </div>
               <div className="ap-kpi-value">{datos.productos_total}</div>
-              <div className="ap-mini-sub">{datos.productos_activos} activos en tienda</div>
+              <div className="ap-mini-sub">
+                {t('adm.reportes.productosActivos', { n: datos.productos_activos })}
+              </div>
             </div>
           </div>
 
@@ -160,11 +219,11 @@ const AdminReportes = () => {
               <div className="ap-card">
                 <div className="ap-card-head">
                   <h2>
-                    <FaChartLine /> Ventas por mes
+                    <FaChartLine /> {t('adm.reportes.ventasPorMes')}
                   </h2>
                 </div>
                 {datos.pedidos_por_mes.length === 0 ? (
-                  <p className="solicitudes-vacio">Aún no hay ventas registradas para graficar.</p>
+                  <p className="solicitudes-vacio">{t('adm.reportes.sinVentasGraficar')}</p>
                 ) : (
                   <div className="ap-chart-wrap">
                     {datos.pedidos_por_mes.map((p) => (
@@ -184,11 +243,11 @@ const AdminReportes = () => {
               <div className="ap-card">
                 <div className="ap-card-head">
                   <h2>
-                    <FaArrowTrendUp /> Productos más vendidos
+                    <FaArrowTrendUp /> {t('adm.reportes.productosMasVendidos')}
                   </h2>
                 </div>
                 {datos.productos_mas_vendidos.length === 0 ? (
-                  <p className="solicitudes-vacio">Aún no hay ventas de productos registradas.</p>
+                  <p className="solicitudes-vacio">{t('adm.reportes.sinVentasProductos')}</p>
                 ) : (
                   <div className="ap-mini">
                     {datos.productos_mas_vendidos.map((p, i) => (
@@ -196,7 +255,7 @@ const AdminReportes = () => {
                         <span className="ap-mini-icon">{i + 1}</span>
                         <div className="ap-mini-info">
                           <div className="ap-mini-title">{p.nombre_producto}</div>
-                          <div className="ap-mini-sub">{p.cantidad} unidad(es) vendida(s)</div>
+                          <div className="ap-mini-sub">{t('adm.reportes.unidadesVendidas', { n: p.cantidad })}</div>
                         </div>
                         <span className="ap-mini-val">{formatoPesos(p.total)}</span>
                       </div>
@@ -210,7 +269,7 @@ const AdminReportes = () => {
               <div className="ap-card">
                 <div className="ap-card-head">
                   <h2>
-                    <FaCalendarCheck /> Citas por estado
+                    <FaCalendarCheck /> {t('adm.reportes.citasPorEstado')}
                   </h2>
                 </div>
                 <div className="ap-mini">
@@ -219,8 +278,8 @@ const AdminReportes = () => {
                       <FaClock />
                     </span>
                     <div className="ap-mini-info">
-                      <div className="ap-mini-title">Pendientes</div>
-                      <div className="ap-mini-sub">Por confirmar o finalizar</div>
+                      <div className="ap-mini-title">{t('adm.reportes.estadoPendientes')}</div>
+                      <div className="ap-mini-sub">{t('adm.reportes.estadoPendientesSub')}</div>
                     </div>
                     <span className="ap-mini-val">{datos.citas_por_estado.Pendiente}</span>
                   </div>
@@ -229,8 +288,8 @@ const AdminReportes = () => {
                       <FaCircleCheck />
                     </span>
                     <div className="ap-mini-info">
-                      <div className="ap-mini-title">Confirmadas</div>
-                      <div className="ap-mini-sub">Con fecha y técnico asignado</div>
+                      <div className="ap-mini-title">{t('adm.reportes.estadoConfirmadas')}</div>
+                      <div className="ap-mini-sub">{t('adm.reportes.estadoConfirmadasSub')}</div>
                     </div>
                     <span className="ap-mini-val">{datos.citas_por_estado.Confirmada}</span>
                   </div>
@@ -239,8 +298,8 @@ const AdminReportes = () => {
                       <FaCircleCheck />
                     </span>
                     <div className="ap-mini-info">
-                      <div className="ap-mini-title">Finalizadas</div>
-                      <div className="ap-mini-sub">Instalaciones completadas</div>
+                      <div className="ap-mini-title">{t('adm.reportes.estadoFinalizadas')}</div>
+                      <div className="ap-mini-sub">{t('adm.reportes.estadoFinalizadasSub')}</div>
                     </div>
                     <span className="ap-mini-val">{datos.citas_por_estado.Finalizada}</span>
                   </div>
@@ -249,8 +308,8 @@ const AdminReportes = () => {
                       <FaXmark />
                     </span>
                     <div className="ap-mini-info">
-                      <div className="ap-mini-title">Canceladas</div>
-                      <div className="ap-mini-sub">Canceladas por el cliente</div>
+                      <div className="ap-mini-title">{t('adm.reportes.estadoCanceladas')}</div>
+                      <div className="ap-mini-sub">{t('adm.reportes.estadoCanceladasSub')}</div>
                     </div>
                     <span className="ap-mini-val">{datos.citas_por_estado.Cancelada}</span>
                   </div>
@@ -260,7 +319,7 @@ const AdminReportes = () => {
               <div className="ap-card">
                 <div className="ap-card-head">
                   <h2>
-                    <FaUsers /> Resumen del sistema
+                    <FaUsers /> {t('adm.reportes.resumenSistema')}
                   </h2>
                 </div>
                 <div className="ap-mini">
@@ -269,8 +328,8 @@ const AdminReportes = () => {
                       <FaUsers />
                     </span>
                     <div className="ap-mini-info">
-                      <div className="ap-mini-title">Clientes</div>
-                      <div className="ap-mini-sub">Cuentas registradas</div>
+                      <div className="ap-mini-title">{t('adm.reportes.resumenClientes')}</div>
+                      <div className="ap-mini-sub">{t('adm.reportes.resumenClientesSub')}</div>
                     </div>
                     <span className="ap-mini-val">{datos.clientes_total}</span>
                   </div>
@@ -279,8 +338,8 @@ const AdminReportes = () => {
                       <FaUserGear />
                     </span>
                     <div className="ap-mini-info">
-                      <div className="ap-mini-title">Técnicos activos</div>
-                      <div className="ap-mini-sub">Con acceso al sistema</div>
+                      <div className="ap-mini-title">{t('adm.reportes.resumenTecnicos')}</div>
+                      <div className="ap-mini-sub">{t('adm.reportes.resumenTecnicosSub')}</div>
                     </div>
                     <span className="ap-mini-val">{datos.tecnicos_activos}</span>
                   </div>
@@ -289,8 +348,8 @@ const AdminReportes = () => {
                       <FaTriangleExclamation />
                     </span>
                     <div className="ap-mini-info">
-                      <div className="ap-mini-title">Solicitudes pendientes</div>
-                      <div className="ap-mini-sub">Por revisar en el dashboard</div>
+                      <div className="ap-mini-title">{t('adm.reportes.resumenSolicitudes')}</div>
+                      <div className="ap-mini-sub">{t('adm.reportes.resumenSolicitudesSub')}</div>
                     </div>
                     <span className="ap-mini-val">{datos.solicitudes_pendientes}</span>
                   </div>

@@ -1,3 +1,5 @@
+import { ADMIN_TRADUCCIONES } from './adminTranslations';
+
 export type Idioma = 'es' | 'en';
 
 export const IDIOMAS_DISPONIBLES: { codigo: Idioma; nombre: string; nombreNativo: string; bandera: string }[] = [
@@ -5,7 +7,7 @@ export const IDIOMAS_DISPONIBLES: { codigo: Idioma; nombre: string; nombreNativo
   { codigo: 'en', nombre: 'English', nombreNativo: 'English', bandera: '🇺🇸' },
 ];
 
-export const TRADUCCIONES: Record<string, Record<string, string>> = {
+export const TRADUCCIONES_BASE: Record<string, Record<string, string>> = {
   // ─── Navegación ─────────────────────────────────────────
   'nav.productos': { es: 'Productos', en: 'Products' },
   'nav.sobreNosotros': { es: 'Sobre nosotros', en: 'About us' },
@@ -103,6 +105,7 @@ export const TRADUCCIONES: Record<string, Record<string, string>> = {
   // ─── Carrito ───────────────────────────────────────────────
   'carrito.titulo': { es: 'Carrito de Compras', en: 'Shopping Cart' },
   'carrito.vacio': { es: 'Tu carrito está vacío', en: 'Your cart is empty' },
+  'carrito.vacioExterior': { es: 'Tu carrito está vacío', en: 'Your cart is empty' },
   'carrito.irTienda': { es: 'Ir a la tienda', en: 'Go to store' },
   'carrito.total': { es: 'Total', en: 'Total' },
   'carrito.subtotal': { es: 'Subtotal', en: 'Subtotal' },
@@ -193,6 +196,7 @@ export const TRADUCCIONES: Record<string, Record<string, string>> = {
   'citas.seleccionarTecnico': { es: 'Seleccionar', en: 'Select' },
   'citas.tecnicoSeleccionado': { es: 'Seleccionado', en: 'Selected' },
   'citas.tecnicoNoDisponible': { es: 'No disponible', en: 'Not available' },
+  'citas.tecnicoDisponible': { es: 'Disponible', en: 'Available' },
   'citas.tecnicoOcupado': { es: 'Ocupado', en: 'Busy' },
   'citas.volverProductos': { es: 'Volver a Productos', en: 'Back to Products' },
   'citas.subtituloNeodomus': { es: 'Programa tu servicio en minutos o consulta las citas que ya tienes con Neodomus.', en: 'Book your service in minutes or check the appointments you already have with Neodomus.' },
@@ -363,6 +367,8 @@ export const TRADUCCIONES: Record<string, Record<string, string>> = {
   'tec.telefonoInvalido': { es: 'Ingresa un teléfono válido', en: 'Enter a valid phone number' },
   'tec.fotoPesada': { es: 'La imagen debe pesar menos de 4 MB', en: 'The image must be less than 4 MB' },
   'tec.fotoActualizada': { es: 'Foto de perfil actualizada', en: 'Profile photo updated' },
+  'tec.eliminarFoto': { es: 'Eliminar foto', en: 'Delete photo' },
+  'tec.fotoEliminada': { es: 'Foto de perfil eliminada', en: 'Profile photo deleted' },
   'tec.cargandoDatos': { es: 'Cargando tus datos...', en: 'Loading your data...' },
   'tec.placeholderNombre': { es: 'Tu nombre', en: 'Your first name' },
   'tec.placeholderApellidos': { es: 'Tus apellidos', en: 'Your last name' },
@@ -478,6 +484,92 @@ export const TRADUCCIONES: Record<string, Record<string, string>> = {
   'perfil.verProducto': { es: 'Ver producto', en: 'View product' },
   'perfil.favoritosVacios': { es: 'No tienes productos en favoritos aún.', en: 'You do not have any favorite products yet.' },
   'perfil.favoritosVaciosHint': { es: 'Navega por el catálogo y marca productos con el corazón.', en: 'Browse the catalog and mark products with the heart.' },
+
+  // ─── Panel admin · Navbar ──────────────────────────────────
+  'adm.navbar.abrirMenu': { es: 'Abrir menú', en: 'Open menu' },
+  'adm.navbar.panel': { es: 'Panel de administración', en: 'Admin panel' },
+  'adm.navbar.administrador': { es: 'Administrador', en: 'Administrator' },
+  'adm.navbar.menuPerfil': { es: 'Menú de perfil', en: 'Profile menu' },
+  'adm.navbar.perfilDe': { es: 'Perfil de {nombre}', en: 'Profile of {nombre}' },
+  'adm.navbar.notificaciones': { es: 'Notificaciones', en: 'Notifications' },
+  'adm.navbar.cerrarSesion': { es: 'Cerrar sesión', en: 'Log out' },
+
+  // ─── Panel admin · Sidebar ─────────────────────────────────
+  'adm.sidebar.panel': { es: 'Panel', en: 'Panel' },
+  'adm.sidebar.inicio': { es: 'Inicio', en: 'Home' },
+  'adm.sidebar.notificaciones': { es: 'Notificaciones', en: 'Notifications' },
+  'adm.sidebar.gestion': { es: 'Gestión', en: 'Management' },
+  'adm.sidebar.catalogo': { es: 'Catálogo', en: 'Catalog' },
+  'adm.sidebar.tecnicos': { es: 'Técnicos', en: 'Technicians' },
+  'adm.sidebar.citas': { es: 'Citas', en: 'Appointments' },
+  'adm.sidebar.clientes': { es: 'Clientes', en: 'Customers' },
+  'adm.sidebar.proveedores': { es: 'Proveedores', en: 'Suppliers' },
+  'adm.sidebar.sistema': { es: 'Sistema', en: 'System' },
+  'adm.sidebar.solicitudes': { es: 'Solicitudes', en: 'Requests' },
+  'adm.sidebar.reportes': { es: 'Reportes', en: 'Reports' },
+  'adm.sidebar.miPerfil': { es: 'Mi perfil', en: 'My profile' },
+  'adm.sidebar.menuAria': { es: 'Menú de administración', en: 'Admin menu' },
+
+  // ─── Panel admin · Perfil ───────────────────────────────────
+  'adm.perfil.miPerfil': { es: 'Mi perfil', en: 'My profile' },
+  'adm.perfil.subMiPerfil': { es: 'Administra tu información, contraseña y preferencias.', en: 'Manage your information, password and preferences.' },
+  'adm.perfil.cargandoDatos': { es: 'Cargando tus datos...', en: 'Loading your data...' },
+  'adm.perfil.administrador': { es: 'Administrador', en: 'Administrator' },
+  'adm.perfil.seccionesLabel': { es: 'Secciones del perfil', en: 'Profile sections' },
+  'adm.perfil.miCuenta': { es: 'Mi cuenta', en: 'My account' },
+  'adm.perfil.cambiarContrasena': { es: 'Cambiar contraseña', en: 'Change password' },
+  'adm.perfil.idioma': { es: 'Idioma', en: 'Language' },
+  'adm.perfil.informacionPersonal': { es: 'Información personal', en: 'Personal information' },
+  'adm.perfil.subInformacionPersonal': { es: 'Gestiona los datos de tu cuenta de administrador.', en: 'Manage your administrator account details.' },
+  'adm.perfil.fotoPerfil': { es: 'Foto de perfil', en: 'Profile picture' },
+  'adm.perfil.fotoPerfilHint': { es: 'Formato JPG, PNG o WEBP. Máximo 4 MB.', en: 'JPG, PNG or WEBP format. Maximum 4 MB.' },
+  'adm.perfil.cambiarFoto': { es: 'Cambiar foto', en: 'Change picture' },
+  'adm.perfil.eliminarFoto': { es: 'Eliminar foto', en: 'Remove picture' },
+  'adm.perfil.fotoActualizada': { es: 'Foto de perfil actualizada', en: 'Profile picture updated' },
+  'adm.perfil.fotoEliminada': { es: 'Foto de perfil eliminada', en: 'Profile picture removed' },
+  'adm.perfil.fotoPesada': { es: 'La imagen debe pesar menos de 4 MB', en: 'The image must be smaller than 4 MB' },
+  'adm.perfil.nombre': { es: 'Nombre', en: 'First name' },
+  'adm.perfil.nombrePlaceholder': { es: 'Tu nombre', en: 'Your name' },
+  'adm.perfil.apellido': { es: 'Apellidos', en: 'Last name' },
+  'adm.perfil.apellidoPlaceholder': { es: 'Tus apellidos', en: 'Your last name' },
+  'adm.perfil.correo': { es: 'Correo electrónico', en: 'Email' },
+  'adm.perfil.correoInvalido': { es: 'Ingresa un correo electrónico válido', en: 'Enter a valid email address' },
+  'adm.perfil.telefono': { es: 'Teléfono', en: 'Phone' },
+  'adm.perfil.rol': { es: 'Rol', en: 'Role' },
+  'adm.perfil.guardando': { es: 'Guardando...', en: 'Saving...' },
+  'adm.perfil.guardarCambios': { es: 'Guardar cambios', en: 'Save changes' },
+  'adm.perfil.cambiosGuardados': { es: 'Cambios guardados correctamente', en: 'Changes saved successfully' },
+  'adm.perfil.errorGuardar': { es: 'Error al guardar los cambios. Intenta de nuevo.', en: 'Error saving changes. Try again.' },
+
+  // ─── Panel admin · Clientes ────────────────────────────────
+  'adm.clientes.titulo': { es: 'Clientes', en: 'Customers' },
+  'adm.clientes.subtituloConteo': { es: '{n} clientes registrados en el sistema', en: '{n} registered customers' },
+  'adm.clientes.subtituloVacio': { es: 'Usuarios con cuenta de cliente registrados en el sistema.', en: 'Users with a customer account registered in the system.' },
+  'adm.clientes.buscarPlaceholder': { es: 'Buscar por nombre, correo o documento...', en: 'Search by name, email or document...' },
+  'adm.clientes.cargando': { es: 'Cargando clientes', en: 'Loading customers' },
+  'adm.clientes.cargandoDesc': { es: 'Consultando los usuarios registrados...', en: 'Fetching registered users...' },
+  'adm.clientes.errorTitulo': { es: 'No se pudieron cargar los clientes', en: 'Could not load customers' },
+  'adm.clientes.errorDesc': { es: 'Verifica tu conexión e inténtalo nuevamente.', en: 'Check your connection and try again.' },
+  'adm.clientes.reintentar': { es: 'Reintentar', en: 'Retry' },
+  'adm.clientes.sinResultados': { es: 'Sin resultados', en: 'No results' },
+  'adm.clientes.noHayClientes': { es: 'No hay clientes registrados', en: 'No registered customers' },
+  'adm.clientes.sinResultadosDetalle': { es: 'No se encontraron clientes para "{q}".', en: 'No customers found for "{q}".' },
+  'adm.clientes.vacioDetalle': { es: 'Los usuarios que se registren en la tienda aparecerán aquí.', en: 'Users who register in the store will appear here.' },
+  'adm.clientes.colCliente': { es: 'Cliente', en: 'Customer' },
+  'adm.clientes.colTelefono': { es: 'Teléfono', en: 'Phone' },
+  'adm.clientes.colRegistro': { es: 'Registro', en: 'Registered' },
+  'adm.clientes.colPedidos': { es: 'Pedidos', en: 'Orders' },
+  'adm.clientes.colCitas': { es: 'Citas', en: 'Appointments' },
+  'adm.clientes.colCuenta': { es: 'Cuenta', en: 'Account' },
+  'adm.clientes.pedidos': { es: '{n} pedidos', en: '{n} orders' },
+  'adm.clientes.citas': { es: '{n} citas', en: '{n} appointments' },
+  'adm.clientes.activa': { es: 'Activa', en: 'Active' },
+  'adm.clientes.inhabilitada': { es: 'Inhabilitada', en: 'Disabled' },
+};
+
+export const TRADUCCIONES: Record<string, Record<string, string>> = {
+  ...TRADUCCIONES_BASE,
+  ...ADMIN_TRADUCCIONES,
 };
 
 export type TFunc = (clave: string, vars?: Record<string, string | number>) => string;

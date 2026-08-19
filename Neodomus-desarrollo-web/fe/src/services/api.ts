@@ -125,3 +125,43 @@ export const descargarFactura = async (pdfUrl: string) => {
     window.alert(msg);
   }
 };
+
+// ────────────────────────────────────────────────────────────────
+// Descarga del reporte general del panel en PDF
+// ────────────────────────────────────────────────────────────────
+
+export const descargarReportePdf = async (
+  periodo: 'semana' | 'mes' | 'anio',
+  mensajeError = 'No se pudo descargar el reporte.',
+) => {
+  try {
+    const res = await api.get('/reports/pdf', {
+      params: { periodo },
+      responseType: 'blob',
+    });
+    const blob = new Blob([res.data], {
+      type: 'application/pdf',
+    });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const cd = res.headers?.['content-disposition'] as string | undefined;
+    const match = cd ? /filename="?([^"]+)"?/.exec(cd) : null;
+    a.download = match?.[1] || `Reporte_${periodo}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  } catch (err: any) {
+    let msg = mensajeError;
+    if (err.response?.data instanceof Blob) {
+      try {
+        const parsed = JSON.parse(await err.response.data.text());
+        if (parsed?.detail) msg = parsed.detail;
+      } catch {
+        /* noop */
+      }
+    }
+    window.alert(msg);
+  }
+};

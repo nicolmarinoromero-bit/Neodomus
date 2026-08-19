@@ -15,6 +15,7 @@ import {
 import '@styles/admin-panel.css';
 import '@styles/dashboard-admin.css';
 import api from '@services/api';
+import { useIdioma } from '@i18n/IdiomaContext';
 import { badgeStock, textoStock } from '../../constants';
 import type { ProductoAdmin, ProveedorAdmin } from '../../types';
 
@@ -24,6 +25,7 @@ interface PaginaProductos {
 }
 
 const AdminProductos = () => {
+  const { t } = useIdioma();
   const [productos, setProductos] = useState<ProductoAdmin[]>([]);
   const [total, setTotal] = useState(0);
   const [busqueda, setBusqueda] = useState('');
@@ -39,7 +41,7 @@ const AdminProductos = () => {
   const [searchParams] = useSearchParams();
   const categoriaId = searchParams.get('categoria');
   const proveedorId = searchParams.get('proveedor');
-  const nombreProveedor = productos[0]?.nombre_proveedor || 'seleccionado';
+  const nombreProveedor = productos[0]?.nombre_proveedor || t('adm.productos.proveedorSeleccionado');
 
   const cargar = async (search = '') => {
     setCargando(true);
@@ -144,16 +146,16 @@ const AdminProductos = () => {
       .map((p) => ({ id_producto: p.id_producto, cantidad: parseInt(cantidades[p.id_producto] || '0', 10) }))
       .filter((i) => i.cantidad > 0);
     if (items.length === 0) {
-      notify('Escribe la cantidad de al menos un producto', 'err');
+      notify(t('adm.productos.notifyCantidad'), 'err');
       return;
     }
     setSolicitando(true);
     try {
       const res = await api.post(`/productos/proveedores/${proveedorId}/solicitar-reabastecimiento`, items);
       setMostrarSolicitud(false);
-      notify(res.data?.msg || 'Solicitud enviada al proveedor');
+      notify(res.data?.msg || t('adm.productos.notifyEnviada'));
     } catch (err: any) {
-      notify(err.response?.data?.detail || 'No se pudo enviar la solicitud', 'err');
+      notify(err.response?.data?.detail || t('adm.productos.notifyError'), 'err');
     } finally {
       setSolicitando(false);
     }
@@ -168,11 +170,11 @@ const AdminProductos = () => {
     >
       <div className="ap-header">
         <div>
-          <h1 className="ap-title">Productos</h1>
+          <h1 className="ap-title">{t('adm.productos.titulo')}</h1>
           <p className="ap-subtitle">
             {total > 0
-              ? `${total} productos en el catálogo de la tienda`
-              : 'Gestiona el catálogo de productos de Neodomus.'}
+              ? t('adm.productos.subtituloConteo', { n: total })
+              : t('adm.productos.subtituloVacio')}
           </p>
         </div>
         <div className="ap-header-right">
@@ -186,7 +188,7 @@ const AdminProductos = () => {
             }
             className="ap-btn ap-btn-primary"
           >
-            <FaPlus /> Nuevo producto
+            <FaPlus /> {t('adm.productos.nuevoProducto')}
           </Link>
         </div>
       </div>
@@ -196,7 +198,7 @@ const AdminProductos = () => {
           <FaMagnifyingGlass />
           <input
             type="text"
-            placeholder="Buscar producto..."
+            placeholder={t('adm.productos.buscarPlaceholder')}
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
           />
@@ -205,11 +207,11 @@ const AdminProductos = () => {
           className="ap-filtro-estado"
           value={filtroEstado}
           onChange={(e) => setFiltroEstado(e.target.value)}
-          title="Filtrar productos por visibilidad"
+          title={t('adm.productos.filtroVisibilidadTitle')}
         >
-          <option value="todos">Todos los estados</option>
-          <option value="activo">Solo activos</option>
-          <option value="inactivo">Solo ocultos</option>
+          <option value="todos">{t('adm.productos.filtroTodosEstados')}</option>
+          <option value="activo">{t('adm.productos.filtroSoloActivos')}</option>
+          <option value="inactivo">{t('adm.productos.filtroSoloOcultos')}</option>
         </select>
         <select
           className="ap-filtro-estado"
@@ -219,9 +221,9 @@ const AdminProductos = () => {
             setBusqueda('');
             navigate(v ? `/admin/productos?proveedor=${v}` : '/admin/productos');
           }}
-          title="Filtrar por proveedor"
+          title={t('adm.productos.filtroProveedorTitle')}
         >
-          <option value="">Todos los proveedores</option>
+          <option value="">{t('adm.productos.todosProveedores')}</option>
           {proveedores.map((pr) => (
             <option key={pr.id_proveedor} value={pr.id_proveedor}>
               {pr.nombre_proveedor}
@@ -237,9 +239,12 @@ const AdminProductos = () => {
               setBusqueda('');
               navigate('/admin/productos');
             }}
-            title="Quitar filtro de categoría"
+            title={t('adm.productos.quitarFiltroCategoriaTitle')}
           >
-            Categoría: {productos[0]?.nombre_categoria || 'seleccionada'} <FaXmark />
+            {t('adm.productos.categoriaFiltro', {
+              nombre: productos[0]?.nombre_categoria || t('adm.productos.categoriaSeleccionada'),
+            })}{' '}
+            <FaXmark />
           </button>
         )}
       </div>
@@ -248,8 +253,8 @@ const AdminProductos = () => {
         <div className="ap-card">
           <div className="ap-states">
             <span className="ap-loader" />
-            <h3>Cargando productos</h3>
-            <p>Consultando el catálogo...</p>
+            <h3>{t('adm.productos.cargandoTitulo')}</h3>
+            <p>{t('adm.productos.cargandoTexto')}</p>
           </div>
         </div>
       ) : error ? (
@@ -258,10 +263,10 @@ const AdminProductos = () => {
             <div className="ap-states-icon">
               <FaCircleInfo />
             </div>
-            <h3>No se pudieron cargar los productos</h3>
-            <p>Verifica tu conexión e inténtalo nuevamente.</p>
+            <h3>{t('adm.productos.errorTitulo')}</h3>
+            <p>{t('adm.productos.errorTexto')}</p>
             <button type="button" className="ap-btn ap-btn-ghost" onClick={() => cargar('')}>
-              Reintentar
+              {t('adm.productos.reintentar')}
             </button>
           </div>
         </div>
@@ -271,20 +276,20 @@ const AdminProductos = () => {
             <div className="ap-states-icon">
               <FaBoxOpen />
             </div>
-            <h3>{busqueda || categoriaId ? 'Sin resultados' : 'No hay productos'}</h3>
+            <h3>{busqueda || categoriaId ? t('adm.productos.sinResultados') : t('adm.productos.sinProductos')}</h3>
             <p>
               {busqueda
-                ? `No se encontraron productos para "${busqueda.trim()}".`
+                ? t('adm.productos.sinResultadosTexto', { busqueda: busqueda.trim() })
                 : categoriaId
-                  ? 'No hay productos registrados en esta categoría.'
-                  : 'El catálogo aún no tiene productos registrados.'}
+                  ? t('adm.productos.sinCategoriaTexto')
+                  : t('adm.productos.sinProductosTexto')}
             </p>
             {!busqueda && !categoriaId && (
               <Link
                 to={categoriaId ? `/admin/productos/nuevo?categoria=${categoriaId}` : '/admin/productos/nuevo'}
                 className="ap-btn ap-btn-primary"
               >
-                <FaPlus /> Crear el primer producto
+                <FaPlus /> {t('adm.productos.crearPrimerProducto')}
               </Link>
             )}
           </div>
@@ -295,12 +300,12 @@ const AdminProductos = () => {
             <table className="ap-table">
               <thead>
                 <tr>
-                  <th>Producto</th>
-                  <th>Categoría</th>
-                  <th>Stock</th>
-                  <th>Estado</th>
-                  <th>Precio</th>
-                  <th>Acciones</th>
+                  <th>{t('adm.productos.tabProducto')}</th>
+                  <th>{t('adm.productos.tabCategoria')}</th>
+                  <th>{t('adm.productos.tabStock')}</th>
+                  <th>{t('adm.productos.tabEstado')}</th>
+                  <th>{t('adm.productos.tabPrecio')}</th>
+                  <th>{t('adm.productos.tabAcciones')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -327,7 +332,7 @@ const AdminProductos = () => {
                       {producto.nombre_categoria ? (
                         <span className="ap-badge info">{producto.nombre_categoria}</span>
                       ) : (
-                        <span className="ap-badge neutral">Sin categoría</span>
+                        <span className="ap-badge neutral">{t('adm.productos.sinCategoriaBadge')}</span>
                       )}
                     </td>
                     <td>
@@ -337,7 +342,7 @@ const AdminProductos = () => {
                     </td>
                     <td>
                       <span className={`ap-badge ${producto.estado_producto === 'activo' ? 'ok' : 'err'}`}>
-                        {producto.estado_producto === 'activo' ? 'Activo' : 'Inactivo'}
+                        {producto.estado_producto === 'activo' ? t('adm.productos.estadoActivo') : t('adm.productos.estadoInactivo')}
                       </span>
                     </td>
                     <td>
@@ -352,7 +357,7 @@ const AdminProductos = () => {
                           <span className="ap-badge err">-{producto.descuento_activo}%</span>
                           {producto.promocion_hasta && (
                             <span className="muted" style={{ display: 'block', fontSize: 11, marginTop: 2 }}>
-                              Hasta {producto.promocion_hasta}
+                              {t('adm.productos.promoHasta', { fecha: producto.promocion_hasta })}
                             </span>
                           )}
                         </>
@@ -365,26 +370,26 @@ const AdminProductos = () => {
                     </td>
                     <td>
                       <Link to={`/admin/productos/${producto.id_producto}`} className="ap-btn ap-btn-ghost">
-                        Gestionar
+                        {t('adm.productos.gestionar')}
                       </Link>
                       <button
                         type="button"
                         className={`ap-btn ${producto.estado_producto === 'activo' ? 'ap-btn-danger' : 'ap-btn-primary'}`}
                         style={{ marginLeft: 8 }}
-                        title={producto.estado_producto === 'activo' ? 'Ocultar del catálogo del cliente' : 'Mostrar en el catálogo del cliente'}
+                        title={producto.estado_producto === 'activo' ? t('adm.productos.ocultarTitle') : t('adm.productos.mostrarTitle')}
                         onClick={() => toggleEstado(producto)}
                       >
-                        {producto.estado_producto === 'activo' ? 'Ocultar' : 'Mostrar'}
+                        {producto.estado_producto === 'activo' ? t('adm.productos.ocultar') : t('adm.productos.mostrar')}
                       </button>
                       {proveedorId && (
                         <button
                           type="button"
                           className="ap-btn ap-btn-primary"
                           style={{ marginLeft: 8 }}
-                          title={`Solicitar más unidades de ${producto.nombre_producto} a ${nombreProveedor}`}
+                          title={t('adm.productos.solicitarMasTitle', { nombre: producto.nombre_producto, proveedor: nombreProveedor })}
                           onClick={() => abrirSolicitud(producto.id_producto)}
                         >
-                          <FaPaperPlane /> Solicitar más
+                          <FaPaperPlane /> {t('adm.productos.solicitarMas')}
                         </button>
                       )}
                     </td>
@@ -401,9 +406,9 @@ const AdminProductos = () => {
           <form className="ap-modal" onSubmit={solicitarReabastecimiento} onClick={(e) => e.stopPropagation()} style={{ maxWidth: 560 }}>
             <h3>
               <FaTruckField style={{ color: '#ffd98a', marginRight: 8 }} />
-              Solicitar más productos a {nombreProveedor}
+              {t('adm.productos.modalTitulo', { proveedor: nombreProveedor })}
             </h3>
-            <p>Indica cuántas unidades necesitas de cada producto. Se enviará un correo al proveedor.</p>
+            <p>{t('adm.productos.modalTexto')}</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 360, overflowY: 'auto' }}>
               {productos.map((p) => (
                 <div
@@ -424,7 +429,7 @@ const AdminProductos = () => {
                       {p.nombre_producto}
                     </strong>
                     <span style={{ fontSize: 11, color: '#c9c9c9' }}>
-                      Stock actual: {p.stock_producto ?? 0} u.
+                      {t('adm.productos.stockActual', { stock: p.stock_producto ?? 0 })}
                     </span>
                   </div>
                   <input
@@ -441,10 +446,10 @@ const AdminProductos = () => {
             </div>
             <div className="ap-modal-actions">
               <button type="button" className="ap-btn ap-btn-ghost" onClick={() => setMostrarSolicitud(false)} disabled={solicitando}>
-                <FaXmark /> Cancelar
+                <FaXmark /> {t('adm.productos.cancelar')}
               </button>
               <button type="submit" className="ap-btn ap-btn-primary" disabled={solicitando}>
-                <FaPaperPlane /> {solicitando ? 'Enviando...' : 'Enviar solicitud'}
+                <FaPaperPlane /> {solicitando ? t('adm.productos.enviando') : t('adm.productos.enviarSolicitud')}
               </button>
             </div>
           </form>

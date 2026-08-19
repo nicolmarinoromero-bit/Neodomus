@@ -1,5 +1,5 @@
-import { NavLink, useNavigate } from "react-router-dom";
-import { useAuth } from "@contexts/AuthContext";
+import { NavLink } from "react-router-dom";
+import { useIdioma } from "@i18n/IdiomaContext";
 import {
   FaHouse,
   FaBell,
@@ -9,8 +9,6 @@ import {
   FaEnvelopeOpenText,
   FaUsers,
   FaChartColumn,
-  FaGear,
-  FaRightFromBracket,
   FaUserShield,
   FaTruckField,
 } from "react-icons/fa6";
@@ -28,51 +26,44 @@ interface Seccion {
 }
 
 const AdminSidebar = ({ open, pendientes, onNavigate }: AdminSidebarProps) => {
-  const { logout } = useAuth();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
+  const { t } = useIdioma();
 
   const secciones: Seccion[] = [
     {
-      titulo: "Panel",
+      titulo: t('adm.sidebar.panel'),
       links: [
-        { to: "/dashboard/admin", icon: <FaHouse />, label: "Inicio" },
+        { to: "/dashboard/admin", icon: <FaHouse />, label: t('adm.sidebar.inicio') },
         {
           to: "/admin/notificaciones",
           icon: <FaBell />,
-          label: "Notificaciones",
+          label: t('adm.sidebar.notificaciones'),
           badge: pendientes,
         },
       ],
     },
     {
-      titulo: "Gestión",
+      titulo: t('adm.sidebar.gestion'),
       links: [
-        { to: "/admin/catalogo", icon: <FaTags />, label: "Catálogo" },
-        { to: "/admin/tecnicos", icon: <FaUserGear />, label: "Técnicos" },
-        { to: "/admin/instalaciones", icon: <FaCalendarCheck />, label: "Citas" },
-        { to: "/admin/clientes", icon: <FaUsers />, label: "Clientes" },
-        { to: "/admin/proveedores", icon: <FaTruckField />, label: "Proveedores" },
+        { to: "/admin/catalogo", icon: <FaTags />, label: t('adm.sidebar.catalogo') },
+        { to: "/admin/tecnicos", icon: <FaUserGear />, label: t('adm.sidebar.tecnicos') },
+        { to: "/admin/instalaciones", icon: <FaCalendarCheck />, label: t('adm.sidebar.citas') },
+        { to: "/admin/clientes", icon: <FaUsers />, label: t('adm.sidebar.clientes') },
+        { to: "/admin/proveedores", icon: <FaTruckField />, label: t('adm.sidebar.proveedores') },
       ],
     },
     {
-      titulo: "Sistema",
+      titulo: t('adm.sidebar.sistema'),
       links: [
-        { to: "/admin/consultas", icon: <FaEnvelopeOpenText />, label: "Solicitudes" },
-        { to: "/admin/reportes", icon: <FaChartColumn />, label: "Reportes" },
-        { to: "/admin/configuracion", icon: <FaGear />, label: "Configuración" },
-        { to: "/perfil/admin", icon: <FaUserShield />, label: "Mi perfil" },
+        { to: "/admin/consultas", icon: <FaEnvelopeOpenText />, label: t('adm.sidebar.solicitudes') },
+        { to: "/admin/reportes", icon: <FaChartColumn />, label: t('adm.sidebar.reportes') },
+        { to: "/perfil/admin", icon: <FaUserShield />, label: t('adm.sidebar.miPerfil') },
       ],
     },
   ];
 
   return (
     <aside className={`admin-sidebar ${open ? 'open' : ''}`}>
-      <nav className="sidebar-nav" aria-label="Menú de administración">
+      <nav className="sidebar-nav" aria-label={t('adm.sidebar.menuAria')}>
         {secciones.map((seccion) => (
           <div key={seccion.titulo}>
             <span className="sidebar-section-title">{seccion.titulo}</span>
@@ -91,13 +82,6 @@ const AdminSidebar = ({ open, pendientes, onNavigate }: AdminSidebarProps) => {
           </div>
         ))}
       </nav>
-
-      <div className="sidebar-divider" />
-
-      <button className="sidebar-logout" onClick={handleLogout}>
-        <FaRightFromBracket />
-        <span>Cerrar sesión</span>
-      </button>
     </aside>
   );
 };

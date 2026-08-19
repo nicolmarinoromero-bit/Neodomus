@@ -13,6 +13,7 @@ import '@styles/dashboard-admin.css';
 import api from '@services/api';
 import type { CitaAdmin, TecnicoAdmin, TarifaServicio } from '../../types';
 import { nombreCompleto } from '@utils/formatoNombre';
+import { useIdioma } from '@i18n/IdiomaContext';
 
 const ESTADOS = ['Pendiente', 'Confirmada', 'Finalizada', 'Cancelada'];
 
@@ -30,15 +31,29 @@ const CLASE_PAGO: Record<string, string> = {
   rechazado: 'err',
 };
 
+const ESTADO_TRAD: Record<string, string> = {
+  Pendiente: 'adm.instalaciones.estadoPendiente',
+  Confirmada: 'adm.instalaciones.estadoConfirmada',
+  Finalizada: 'adm.instalaciones.estadoFinalizada',
+  Cancelada: 'adm.instalaciones.estadoCancelada',
+};
+
+const ESTADO_PAGO_TRAD: Record<string, string> = {
+  aprobado: 'adm.instalaciones.pagoAprobado',
+  pagado: 'adm.instalaciones.pagoPagado',
+  pendiente: 'adm.instalaciones.pagoPendiente',
+  rechazado: 'adm.instalaciones.pagoRechazado',
+};
+
 const formatoPeso = (value: number) =>
   value.toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
 
 const NOMBRE_SERVICIO: Record<string, string> = {
-  instalacion: 'Instalación',
-  mantenimiento: 'Mantenimiento',
-  reparacion: 'Reparación',
-  revision: 'Revisión técnica',
-  soporte: 'Soporte técnico',
+  instalacion: 'adm.instalaciones.servicio.Instalación',
+  mantenimiento: 'adm.instalaciones.servicio.Mantenimiento',
+  reparacion: 'adm.instalaciones.servicio.Reparación',
+  revision: 'adm.instalaciones.servicio.Revisión técnica',
+  soporte: 'adm.instalaciones.servicio.Soporte técnico',
 };
 
 const normalizar = (s?: string | null) =>
@@ -74,6 +89,7 @@ const esCompatible = (tipoServicio: string, certificacion?: string | null) => {
 };
 
 const AdminInstalaciones = () => {
+  const { idioma, t } = useIdioma();
   const [citas, setCitas] = useState<CitaAdmin[]>([]);
   const [tecnicos, setTecnicos] = useState<TecnicoAdmin[]>([]);
   const [tarifas, setTarifas] = useState<TarifaServicio[]>([]);
@@ -121,7 +137,7 @@ const AdminInstalaciones = () => {
   const guardarTarifa = async (tipo: string) => {
     const valor = Number((edicionTarifas[tipo] ?? '').replace(/\./g, '').replace(',', '.'));
     if (!valor || valor <= 0) {
-      notify('El costo debe ser un número mayor a cero', 'err');
+      notify(t('adm.instalaciones.errorCostoCero'), 'err');
       return;
     }
     setGuardandoTarifa(tipo);
@@ -133,10 +149,10 @@ const AdminInstalaciones = () => {
         delete copia[tipo];
         return copia;
       });
-      notify('Tarifa actualizada correctamente');
+      notify(t('adm.instalaciones.tarifaActualizada'));
     } catch (err: any) {
       const msg = err.response?.data?.detail;
-      notify(typeof msg === 'string' ? msg : 'No se pudo actualizar la tarifa', 'err');
+      notify(typeof msg === 'string' ? msg : t('adm.instalaciones.errorActualizarTarifa'), 'err');
     } finally {
       setGuardandoTarifa(null);
     }
@@ -173,12 +189,12 @@ const AdminInstalaciones = () => {
       });
       notify(
         cambios.id_comision_c === null
-          ? 'Comisión retirada de la cita'
-          : 'Comisión aplicada a la cita',
+          ? t('adm.instalaciones.comisionRetirada')
+          : t('adm.instalaciones.comisionAplicada'),
       );
     } catch (err: any) {
       const msg = err.response?.data?.detail;
-      notify(typeof msg === 'string' ? msg : 'No se pudo actualizar la cita', 'err');
+      notify(typeof msg === 'string' ? msg : t('adm.instalaciones.errorActualizarCita'), 'err');
     } finally {
       setGuardandoId(null);
     }
@@ -187,7 +203,7 @@ const AdminInstalaciones = () => {
   const guardarComision = async (cita: CitaAdmin) => {
     const pct = Number((edicionComision[cita.id_cita] ?? '').replace(',', '.'));
     if (!pct || pct <= 0) {
-      notify('El porcentaje debe ser un número mayor a cero', 'err');
+      notify(t('adm.instalaciones.errorPorcentajeCero'), 'err');
       return;
     }
     await actualizar(cita, { comision_porcentaje: pct });
@@ -217,7 +233,7 @@ const AdminInstalaciones = () => {
 
   const formatFecha = (f: string) => {
     try {
-      return new Date(`${f}T00:00:00`).toLocaleDateString('es-CO', {
+      return new Date(`${f}T00:00:00`).toLocaleDateString(idioma === 'en' ? 'en-US' : 'es-CO', {
         weekday: 'short',
         day: 'numeric',
         month: 'short',
@@ -237,11 +253,11 @@ const AdminInstalaciones = () => {
     >
       <div className="ap-header">
         <div>
-          <h1 className="ap-title">Citas</h1>
+          <h1 className="ap-title">{t('adm.instalaciones.titulo')}</h1>
           <p className="ap-subtitle">
             {citas.length > 0
-              ? `${citas.length} citas agendadas por los clientes`
-              : 'Citas de instalación y servicio agendadas por los usuarios.'}
+              ? t('adm.instalaciones.subtituloConteo', { n: citas.length })
+              : t('adm.instalaciones.subtituloVacio')}
           </p>
         </div>
       </div>
@@ -255,7 +271,7 @@ const AdminInstalaciones = () => {
             setPagina(1);
           }}
         >
-          Todas <span className="ap-pill-count">{citas.length}</span>
+          {t('adm.instalaciones.todas')} <span className="ap-pill-count">{citas.length}</span>
         </button>
         {ESTADOS.map((e) => (
           <button
@@ -267,7 +283,7 @@ const AdminInstalaciones = () => {
               setPagina(1);
             }}
           >
-            {e} <span className="ap-pill-count">{contadores[e] || 0}</span>
+            {t(ESTADO_TRAD[e] || e)} <span className="ap-pill-count">{contadores[e] || 0}</span>
           </button>
         ))}
       </div>
@@ -277,7 +293,7 @@ const AdminInstalaciones = () => {
           <FaMagnifyingGlass />
           <input
             type="text"
-            placeholder="Buscar cita..."
+            placeholder={t('adm.instalaciones.buscarPlaceholder')}
             value={busqueda}
             onChange={(e) => {
               setBusqueda(e.target.value);
@@ -291,38 +307,38 @@ const AdminInstalaciones = () => {
         <div className="ap-card">
           <div className="ap-states">
             <span className="ap-loader" />
-            <h3>Cargando citas</h3>
-            <p>Consultando las citas agendadas...</p>
+            <h3>{t('adm.instalaciones.cargando')}</h3>
+            <p>{t('adm.instalaciones.cargandoDesc')}</p>
           </div>
         </div>
       ) : (
         <div className="ap-card ap-tarifas-card">
           <div className="ap-card-head">
-            <h3><FaMoneyBillWave /> Tarifas de servicio</h3>
-            <p>Costos fijos que se cobran al agendar cada tipo de cita.</p>
+            <h3><FaMoneyBillWave /> {t('adm.instalaciones.tarifasTitulo')}</h3>
+            <p>{t('adm.instalaciones.tarifasDesc')}</p>
           </div>
           <div className="ap-tarifas-grid">
-            {tarifas.map((t) => (
-              <div className="ap-tarifa-item" key={t.tipo_servicio}>
+            {tarifas.map((tar) => (
+              <div className="ap-tarifa-item" key={tar.tipo_servicio}>
                 <span className="ap-tarifa-nombre">
-                  {NOMBRE_SERVICIO[t.tipo_servicio] || t.tipo_servicio}
+                  {t(NOMBRE_SERVICIO[tar.tipo_servicio] || tar.tipo_servicio)}
                 </span>
-                {edicionTarifas[t.tipo_servicio] !== undefined ? (
+                {edicionTarifas[tar.tipo_servicio] !== undefined ? (
                   <div className="ap-tarifa-editar">
                     <input
                       type="text"
                       inputMode="numeric"
                       className="ap-form-input"
-                      value={edicionTarifas[t.tipo_servicio]}
+                      value={edicionTarifas[tar.tipo_servicio]}
                       onChange={(e) =>
-                        setEdicionTarifas((prev) => ({ ...prev, [t.tipo_servicio]: e.target.value }))
+                        setEdicionTarifas((prev) => ({ ...prev, [tar.tipo_servicio]: e.target.value }))
                       }
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter') guardarTarifa(t.tipo_servicio);
+                        if (e.key === 'Enter') guardarTarifa(tar.tipo_servicio);
                         if (e.key === 'Escape') {
                           setEdicionTarifas((prev) => {
                             const copia = { ...prev };
-                            delete copia[t.tipo_servicio];
+                            delete copia[tar.tipo_servicio];
                             return copia;
                           });
                         }
@@ -331,21 +347,21 @@ const AdminInstalaciones = () => {
                     <button
                       type="button"
                       className="ap-btn ap-btn-primary"
-                      disabled={guardandoTarifa === t.tipo_servicio}
-                      onClick={() => guardarTarifa(t.tipo_servicio)}
+                      disabled={guardandoTarifa === tar.tipo_servicio}
+                      onClick={() => guardarTarifa(tar.tipo_servicio)}
                     >
-                      Guardar
+                      {t('adm.instalaciones.guardar')}
                     </button>
                   </div>
                 ) : (
                   <div className="ap-tarifa-valor">
-                    <strong>{formatoPeso(t.costo)}</strong>
+                    <strong>{formatoPeso(tar.costo)}</strong>
                     <button
                       type="button"
                       className="ap-btn ap-btn-ghost"
-                      onClick={() => setEdicionTarifas((prev) => ({ ...prev, [t.tipo_servicio]: String(t.costo) }))}
+                      onClick={() => setEdicionTarifas((prev) => ({ ...prev, [tar.tipo_servicio]: String(tar.costo) }))}
                     >
-                      Editar
+                      {t('adm.instalaciones.editar')}
                     </button>
                   </div>
                 )}
@@ -361,10 +377,10 @@ const AdminInstalaciones = () => {
             <div className="ap-states-icon">
               <FaCircleInfo />
             </div>
-            <h3>No se pudieron cargar las citas</h3>
-            <p>Verifica tu conexión e inténtalo nuevamente.</p>
+            <h3>{t('adm.instalaciones.errorTitulo')}</h3>
+            <p>{t('adm.instalaciones.errorDesc')}</p>
             <button type="button" className="ap-btn ap-btn-ghost" onClick={cargar}>
-              Reintentar
+              {t('adm.instalaciones.reintentar')}
             </button>
           </div>
         </div>
@@ -376,17 +392,17 @@ const AdminInstalaciones = () => {
             </div>
             <h3>
               {q
-                ? 'Sin resultados'
+                ? t('adm.instalaciones.sinResultados')
                 : filtro === 'todas'
-                  ? 'No hay citas registradas'
-                  : `Sin citas ${filtro.toLowerCase()}`}
+                  ? t('adm.instalaciones.noHayCitas')
+                  : t('adm.instalaciones.sinCitasEstado', { estado: t(ESTADO_TRAD[filtro] || filtro) })}
             </h3>
             <p>
               {q
-                ? 'No hay citas que coincidan con la búsqueda.'
+                ? t('adm.instalaciones.sinResultadosDetalle')
                 : filtro === 'todas'
-                  ? 'Cuando los clientes agenden una instalación o servicio, aparecerá aquí.'
-                  : `No existen citas con estado "${filtro}".`}
+                  ? t('adm.instalaciones.noHayCitasDetalle')
+                  : t('adm.instalaciones.sinCitasEstadoDetalle', { estado: t(ESTADO_TRAD[filtro] || filtro) })}
             </p>
           </div>
         </div>
@@ -398,28 +414,28 @@ const AdminInstalaciones = () => {
                 <span className="ap-initials">
                   {(cita.cliente_nombre || '?').split(' ').map((s) => s[0]).slice(0, 2).join('').toUpperCase()}
                 </span>
-                <span className={`ap-badge ${CLASE_ESTADO[cita.estado] || 'neutral'}`}>{cita.estado}</span>
+                <span className={`ap-badge ${CLASE_ESTADO[cita.estado] || 'neutral'}`}>{t(ESTADO_TRAD[cita.estado] || cita.estado)}</span>
               </div>
               <div>
-                <h3>{cita.cliente_nombre || 'Cliente'}</h3>
+                <h3>{cita.cliente_nombre || t('adm.instalaciones.cliente')}</h3>
                 <p>{cita.cliente_email}</p>
               </div>
 
               <div className="ap-def-list" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))' }}>
                 <div className="ap-def">
-                  <div className="ap-def-label">Servicio</div>
-                  <div className="ap-def-value">{cita.tipo_servicio}</div>
+                  <div className="ap-def-label">{t('adm.instalaciones.colServicio')}</div>
+                  <div className="ap-def-value">{t(NOMBRE_SERVICIO[cita.tipo_servicio] || cita.tipo_servicio)}</div>
                 </div>
                 <div className="ap-def">
-                  <div className="ap-def-label">Fecha</div>
+                  <div className="ap-def-label">{t('adm.instalaciones.colFecha')}</div>
                   <div className="ap-def-value">{formatFecha(cita.fecha)}</div>
                 </div>
                 <div className="ap-def">
-                  <div className="ap-def-label">Hora</div>
+                  <div className="ap-def-label">{t('adm.instalaciones.colHora')}</div>
                   <div className="ap-def-value">{cita.hora}</div>
                 </div>
                 <div className="ap-def">
-                  <div className="ap-def-label">Pago</div>
+                  <div className="ap-def-label">{t('adm.instalaciones.colPago')}</div>
                   <div className="ap-def-value">
                     {cita.costo_cita != null ? formatoPeso(cita.costo_cita) : '—'}
                     {cita.estado_pago && (
@@ -427,18 +443,18 @@ const AdminInstalaciones = () => {
                         className={`ap-badge ${CLASE_PAGO[cita.estado_pago] || 'neutral'}`}
                         style={{ marginLeft: 8 }}
                       >
-                        {cita.estado_pago}
+                        {t(ESTADO_PAGO_TRAD[cita.estado_pago] || cita.estado_pago)}
                       </span>
                     )}
                   </div>
                 </div>
                 <div className="ap-def">
-                  <div className="ap-def-label">Comisión</div>
+                  <div className="ap-def-label">{t('adm.instalaciones.colComision')}</div>
                   <div className="ap-def-value">
                     {cita.comision_valor != null ? (
                       <>
                         <span className="ap-badge ok">
-                          {cita.comision_porcentaje != null ? `${cita.comision_porcentaje}%` : 'Comisión'}
+                          {cita.comision_porcentaje != null ? `${cita.comision_porcentaje}%` : t('adm.instalaciones.comision')}
                         </span>
                         <span style={{ marginLeft: 6 }}>
                           {formatoPeso(cita.comision_valor)}
@@ -451,7 +467,7 @@ const AdminInstalaciones = () => {
                 </div>
                 {cita.metodo_pago && (
                   <div className="ap-def">
-                    <div className="ap-def-label">Método</div>
+                    <div className="ap-def-label">{t('adm.instalaciones.colMetodo')}</div>
                     <div className="ap-def-value" style={{ fontSize: '0.8rem' }}>
                       {cita.metodo_pago.replace(/_/g, ' ')}
                     </div>
@@ -459,21 +475,21 @@ const AdminInstalaciones = () => {
                 )}
                 {cita.numero_transaccion && (
                   <div className="ap-def">
-                    <div className="ap-def-label">Transacción</div>
+                    <div className="ap-def-label">{t('adm.instalaciones.colTransaccion')}</div>
                     <div className="ap-def-value" style={{ fontSize: '0.78rem' }}>
                       {cita.numero_transaccion}
                     </div>
                   </div>
                 )}
                 <div className="ap-def full">
-                  <div className="ap-def-label">Dirección</div>
+                  <div className="ap-def-label">{t('adm.instalaciones.colDireccion')}</div>
                   <div className="ap-def-value" style={{ fontSize: '0.82rem' }}>
                     {cita.direccion}
                   </div>
                 </div>
                 {cita.descripcion && (
                   <div className="ap-def full">
-                    <div className="ap-def-label">Descripción</div>
+                    <div className="ap-def-label">{t('adm.instalaciones.colDescripcion')}</div>
                     <div className="ap-def-value" style={{ fontSize: '0.82rem' }}>
                       {cita.descripcion}
                     </div>
@@ -483,7 +499,7 @@ const AdminInstalaciones = () => {
 
               <div className="ap-form-grid" style={{ marginTop: 8 }}>
                 <div className="ap-form-group">
-                  <label className="ap-form-label">Estado</label>
+                  <label className="ap-form-label">{t('adm.instalaciones.estadoLabel')}</label>
                   <select
                     className="ap-form-select"
                     value={cita.estado}
@@ -492,13 +508,13 @@ const AdminInstalaciones = () => {
                   >
                     {ESTADOS.map((e) => (
                       <option key={e} value={e}>
-                        {e}
+                        {t(ESTADO_TRAD[e] || e)}
                       </option>
                     ))}
                   </select>
                 </div>
                 <div className="ap-form-group">
-                  <label className="ap-form-label">Técnico asignado</label>
+                  <label className="ap-form-label">{t('adm.instalaciones.tecnicoLabel')}</label>
                   <select
                     className="ap-form-select"
                     value={cita.id_tecnico?.toString() || ''}
@@ -507,17 +523,17 @@ const AdminInstalaciones = () => {
                       actualizar(cita, { id_tecnico: e.target.value ? parseInt(e.target.value, 10) : null })
                     }
                   >
-                    <option value="">Sin asignar</option>
+                    <option value="">{t('adm.instalaciones.sinAsignar')}</option>
                     {tecnicos
                       .filter(
-                        (t) =>
-                          esCompatible(cita.tipo_servicio, t.certificacion_t) ||
-                          t.id_tecnico === cita.id_tecnico,
+                        (tec) =>
+                          esCompatible(cita.tipo_servicio, tec.certificacion_t) ||
+                          tec.id_tecnico === cita.id_tecnico,
                       )
-                      .map((t) => (
-                        <option key={t.id_tecnico} value={t.id_tecnico}>
-                          {formatTecnico(t)}
-                          {esCompatible(cita.tipo_servicio, t.certificacion_t) ? '' : ' (sin especialidad)'}
+                      .map((tec) => (
+                        <option key={tec.id_tecnico} value={tec.id_tecnico}>
+                          {formatTecnico(tec)}
+                          {esCompatible(cita.tipo_servicio, tec.certificacion_t) ? '' : t('adm.instalaciones.sinEspecialidad')}
                         </option>
                       ))}
                   </select>
@@ -530,7 +546,7 @@ const AdminInstalaciones = () => {
                     <span className="ap-badge ok">
                       {cita.comision_porcentaje != null
                         ? `${cita.comision_porcentaje}%`
-                        : 'Comisión'}{' '}
+                        : t('adm.instalaciones.comision')}{' '}
                       · {formatoPeso(cita.comision_valor)}
                     </span>
                     <button
@@ -544,7 +560,7 @@ const AdminInstalaciones = () => {
                         }))
                       }
                     >
-                      Cambiar %
+                      {t('adm.instalaciones.cambiarPorcentaje')}
                     </button>
                     <button
                       type="button"
@@ -552,7 +568,7 @@ const AdminInstalaciones = () => {
                       disabled={guardandoId === cita.id_cita}
                       onClick={() => actualizar(cita, { id_comision_c: null })}
                     >
-                      Quitar
+                      {t('adm.instalaciones.quitar')}
                     </button>
                   </>
                 ) : edicionComision[cita.id_cita] !== undefined ? (
@@ -585,7 +601,7 @@ const AdminInstalaciones = () => {
                       disabled={guardandoId === cita.id_cita}
                       onClick={() => guardarComision(cita)}
                     >
-                      Aplicar
+                      {t('adm.instalaciones.aplicar')}
                     </button>
                     <button
                       type="button"
@@ -599,7 +615,7 @@ const AdminInstalaciones = () => {
                         })
                       }
                     >
-                      Cancelar
+                      {t('adm.instalaciones.cancelar')}
                     </button>
                   </>
                 ) : (
@@ -611,7 +627,7 @@ const AdminInstalaciones = () => {
                       setEdicionComision((prev) => ({ ...prev, [cita.id_cita]: '5' }))
                     }
                   >
-                    Agregar comisión
+                    {t('adm.instalaciones.agregarComision')}
                   </button>
                 )}
               </div>
@@ -628,7 +644,7 @@ const AdminInstalaciones = () => {
             disabled={paginaActual === 1}
             onClick={() => setPagina(paginaActual - 1)}
           >
-            ‹ Anterior
+            {t('adm.instalaciones.anterior')}
           </button>
           <div className="ap-page-nums">
             {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((n) => (
@@ -648,7 +664,7 @@ const AdminInstalaciones = () => {
             disabled={paginaActual === totalPaginas}
             onClick={() => setPagina(paginaActual + 1)}
           >
-            Siguiente ›
+            {t('adm.instalaciones.siguiente')}
           </button>
         </div>
       )}

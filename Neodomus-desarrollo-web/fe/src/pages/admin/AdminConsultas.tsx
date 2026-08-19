@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
+import { useIdioma } from '@i18n/IdiomaContext';
 import {
   FaCircleCheck,
   FaRotate,
@@ -25,6 +26,7 @@ type SolicitudCombinada =
   | { fuente: 'empleado'; data: SolicitudEmpleado };
 
 const AdminConsultas = () => {
+  const { idioma, t } = useIdioma();
   const location = useLocation();
   const [vista, setVista] = useState<Vista>('solicitudes');
   const [solicitudes, setSolicitudes] = useState<SolicitudCuenta[]>([]);
@@ -108,10 +110,10 @@ const AdminConsultas = () => {
       await api.put(`/admin/account-requests/${id}/${accion}`);
       await cargarSolicitudes();
       await cargarCuentas();
-      notify(accion === 'aprobar' ? 'Solicitud aprobada' : 'Solicitud rechazada');
+      notify(accion === 'aprobar' ? t('adm.consultas.toastAprobada') : t('adm.consultas.toastRechazada'));
       window.dispatchEvent(new CustomEvent('admin-solicitudes-updated'));
     } catch (err: any) {
-      notify(err.response?.data?.detail || 'No se pudo procesar la solicitud', 'err');
+      notify(err.response?.data?.detail || t('adm.consultas.toastErrorProcesar'), 'err');
     } finally {
       setResolviendo(null);
     }
@@ -123,10 +125,10 @@ const AdminConsultas = () => {
       await api.put(`/admin/account-requests/empleados/${id}/${accion}`);
       await cargarSolicitudes();
       await cargarCuentas();
-      notify(accion === 'aprobar' ? 'Solicitud aprobada' : 'Solicitud rechazada');
+      notify(accion === 'aprobar' ? t('adm.consultas.toastAprobada') : t('adm.consultas.toastRechazada'));
       window.dispatchEvent(new CustomEvent('admin-solicitudes-updated'));
     } catch (err: any) {
-      notify(err.response?.data?.detail || 'No se pudo procesar la solicitud', 'err');
+      notify(err.response?.data?.detail || t('adm.consultas.toastErrorProcesar'), 'err');
     } finally {
       setResolviendo(null);
     }
@@ -137,10 +139,10 @@ const AdminConsultas = () => {
     try {
       await api.put(`/clients/${id}/habilitar`);
       await cargarCuentas();
-      notify('Cuenta del cliente habilitada correctamente');
+      notify(t('adm.consultas.toastClienteHabilitada'));
       window.dispatchEvent(new CustomEvent('admin-solicitudes-updated'));
     } catch (err: any) {
-      notify(err.response?.data?.detail || 'No se pudo habilitar la cuenta', 'err');
+      notify(err.response?.data?.detail || t('adm.consultas.toastErrorHabilitar'), 'err');
     } finally {
       setResolviendo(null);
     }
@@ -151,9 +153,9 @@ const AdminConsultas = () => {
     try {
       await api.put(`/users/${id}`, { is_active: true });
       await cargarCuentas();
-      notify('Cuenta del técnico habilitada correctamente');
+      notify(t('adm.consultas.toastTecnicoHabilitada'));
     } catch (err: any) {
-      notify(err.response?.data?.detail || 'No se pudo habilitar la cuenta', 'err');
+      notify(err.response?.data?.detail || t('adm.consultas.toastErrorHabilitar'), 'err');
     } finally {
       setResolviendo(null);
     }
@@ -213,7 +215,7 @@ const AdminConsultas = () => {
   const fechaLegible = (fecha?: string | null) => {
     if (!fecha) return '';
     try {
-      return new Date(fecha).toLocaleDateString('es-CO', {
+      return new Date(fecha).toLocaleDateString(idioma === 'en' ? 'en-US' : 'es-CO', {
         day: '2-digit',
         month: 'short',
         year: 'numeric',
@@ -234,9 +236,9 @@ const AdminConsultas = () => {
         <article className="scu-card" key={key}>
           <div className="scu-card-top">
             <span className="scu-tipo">
-              <FaUserGear /> Habilitación de cuenta de técnico
+              <FaUserGear /> {t('adm.consultas.tipoHabilitacionTecnico')}
             </span>
-            <span className="scu-estado pendiente">Pendiente</span>
+            <span className="scu-estado pendiente">{t('adm.consultas.estadoPendiente')}</span>
           </div>
           <div className="scu-datos">
             <span className="scu-dato"><FaUser /> {s.empleado_nombre}</span>
@@ -250,7 +252,7 @@ const AdminConsultas = () => {
               disabled={resolviendo === key}
               onClick={() => resolverEmpleado(s.id, 'aprobar')}
             >
-              <FaCircleCheck /> Aprobar
+              <FaCircleCheck /> {t('adm.consultas.aprobar')}
             </button>
             <button
               type="button"
@@ -258,7 +260,7 @@ const AdminConsultas = () => {
               disabled={resolviendo === key}
               onClick={() => resolverEmpleado(s.id, 'rechazar')}
             >
-              <FaUserCheck /> Rechazar
+              <FaUserCheck /> {t('adm.consultas.rechazar')}
             </button>
           </div>
         </article>
@@ -273,10 +275,12 @@ const AdminConsultas = () => {
         <div className="scu-card-top">
           <span className="scu-tipo">
             {s.tipo === 'habilitar' ? <FaUserCheck /> : <FaUserSlash />}
-            {s.tipo === 'habilitar' ? 'Habilitación de cuenta' : 'Inhabilitación de cuenta'}
+            {s.tipo === 'habilitar'
+              ? t('adm.consultas.tipoHabilitacion')
+              : t('adm.consultas.tipoInhabilitacion')}
           </span>
           <span className={`scu-estado ${esPendiente ? 'pendiente' : 'activa'}`}>
-            {esPendiente ? 'Pendiente' : s.estado}
+            {esPendiente ? t('adm.consultas.estadoPendiente') : s.estado}
           </span>
         </div>
         <div className="scu-datos">
@@ -294,7 +298,7 @@ const AdminConsultas = () => {
                 disabled={resolviendo === key}
                 onClick={() => resolver(s.id, 'aprobar')}
               >
-                <FaCircleCheck /> Aprobar
+                <FaCircleCheck /> {t('adm.consultas.aprobar')}
               </button>
               <button
                 type="button"
@@ -302,12 +306,12 @@ const AdminConsultas = () => {
                 disabled={resolviendo === key}
                 onClick={() => resolver(s.id, 'rechazar')}
               >
-                <FaUserCheck /> Rechazar
+                <FaUserCheck /> {t('adm.consultas.rechazar')}
               </button>
             </>
           ) : (
             <span className={`solicitud-btn ${s.estado === 'aprobada' ? 'ok' : 'no'}`}>
-              {s.estado === 'aprobada' ? 'Aprobada' : 'Rechazada'}
+              {s.estado === 'aprobada' ? t('adm.consultas.estadoAprobada') : t('adm.consultas.estadoRechazada')}
             </span>
           )}
         </div>
@@ -325,9 +329,9 @@ const AdminConsultas = () => {
       <div className="scu-card-top">
         <span className="scu-tipo">
           {esTecnico ? <FaUserGear /> : <FaUserSlash />}
-          {esTecnico ? 'Cuenta de técnico' : 'Cuenta de cliente'}
+          {esTecnico ? t('adm.consultas.tipoCuentaTecnico') : t('adm.consultas.tipoCuentaCliente')}
         </span>
-        <span className="scu-estado inhabilitada">Inhabilitada</span>
+        <span className="scu-estado inhabilitada">{t('adm.consultas.estadoInhabilitada')}</span>
       </div>
       <div className="scu-datos">
         <span className="scu-dato"><FaUser /> {nombre}</span>
@@ -340,7 +344,7 @@ const AdminConsultas = () => {
           disabled={resolviendo === `${esTecnico ? 'tecnico' : 'cliente'}-${id}`}
           onClick={() => (esTecnico ? habilitarTecnico(id) : habilitarCliente(id))}
         >
-          <FaCircleCheck /> Habilitar cuenta
+          <FaCircleCheck /> {t('adm.consultas.habilitarCuenta')}
         </button>
       </div>
     </article>
@@ -356,12 +360,12 @@ const AdminConsultas = () => {
       <div className="ap-header">
         <div>
           <h1 className="ap-title">
-            {vista === 'cuentas' ? 'Cuentas inhabilitadas' : 'Solicitudes'}
+            {vista === 'cuentas' ? t('adm.consultas.tituloCuentas') : t('adm.consultas.titulo')}
           </h1>
           <p className="ap-subtitle">
             {vista === 'cuentas'
-              ? 'Cuentas de clientes y técnicos inhabilitadas, con opción de habilitarlas nuevamente.'
-              : 'Solicitudes de inhabilitación y habilitación de cuentas enviadas por los usuarios.'}
+              ? t('adm.consultas.subtituloCuentas')
+              : t('adm.consultas.subtitulo')}
           </p>
         </div>
         <div className="ap-header-right">
@@ -371,12 +375,12 @@ const AdminConsultas = () => {
             onClick={cargarTodo}
             disabled={cargando}
           >
-            <FaRotate className={cargando ? 'spin' : ''} /> Actualizar
+            <FaRotate className={cargando ? 'spin' : ''} /> {t('adm.consultas.actualizar')}
           </button>
         </div>
       </div>
 
-      <div className="ap-tabs" role="tablist" aria-label="Secciones de solicitudes">
+      <div className="ap-tabs" role="tablist" aria-label={t('adm.consultas.tabsAriaLabel')}>
         <button
           type="button"
           role="tab"
@@ -384,7 +388,7 @@ const AdminConsultas = () => {
           className={`ap-tab ${vista === 'solicitudes' ? 'active' : ''}`}
           onClick={() => setVista('solicitudes')}
         >
-          <FaUserSlash /> Solicitudes
+          <FaUserSlash /> {t('adm.consultas.tabSolicitudes')}
           {pendientesCuenta > 0 && (
             <span className="ap-pill-count">
               {pendientesCuenta}
@@ -398,7 +402,7 @@ const AdminConsultas = () => {
           className={`ap-tab ${vista === 'cuentas' ? 'active' : ''}`}
           onClick={() => setVista('cuentas')}
         >
-          <FaUserCheck /> Cuentas inhabilitadas
+          <FaUserCheck /> {t('adm.consultas.tabCuentas')}
           {totalInhabilitadas > 0 && <span className="ap-pill-count">{totalInhabilitadas}</span>}
         </button>
       </div>
@@ -409,8 +413,8 @@ const AdminConsultas = () => {
             <div className="ap-card">
               <div className="ap-states">
                 <span className="ap-loader" />
-                <h3>Cargando solicitudes</h3>
-                <p>Consultando las solicitudes recibidas...</p>
+                <h3>{t('adm.consultas.cargandoSolicitudes')}</h3>
+                <p>{t('adm.consultas.cargandoSolicitudesSub')}</p>
               </div>
             </div>
           ) : solicitudesCombinadas.length === 0 ? (
@@ -419,8 +423,8 @@ const AdminConsultas = () => {
                 <div className="ap-states-icon">
                   <FaUserSlash />
                 </div>
-                <h3>No hay solicitudes</h3>
-                <p>Las solicitudes de inhabilitación o habilitación de cuentas llegarán aquí.</p>
+                <h3>{t('adm.consultas.sinSolicitudes')}</h3>
+                <p>{t('adm.consultas.sinSolicitudesSub')}</p>
               </div>
             </div>
           ) : (
@@ -429,7 +433,7 @@ const AdminConsultas = () => {
                 <input
                   type="search"
                   className="ap-form-input"
-                  placeholder="Buscar por nombre, correo o motivo..."
+                  placeholder={t('adm.consultas.buscarPlaceholder')}
                   value={busqueda}
                   onChange={(e) => setBusqueda(e.target.value)}
                 />
@@ -438,10 +442,10 @@ const AdminConsultas = () => {
                   value={filtroTipo}
                   onChange={(e) => setFiltroTipo(e.target.value)}
                 >
-                  <option value="todos">Todos los tipos</option>
-                  <option value="habilitar">Habilitación (cliente)</option>
-                  <option value="inhabilitar">Inhabilitación (cliente)</option>
-                  <option value="empleado">Habilitación de técnico</option>
+                  <option value="todos">{t('adm.consultas.filtroTodos')}</option>
+                  <option value="habilitar">{t('adm.consultas.filtroHabilitacion')}</option>
+                  <option value="inhabilitar">{t('adm.consultas.filtroInhabilitacion')}</option>
+                  <option value="empleado">{t('adm.consultas.filtroHabilitacionTecnico')}</option>
                 </select>
               </div>
               <div className="solicitudes-list">
@@ -453,8 +457,8 @@ const AdminConsultas = () => {
                     <div className="ap-states-icon">
                       <FaUserSlash />
                     </div>
-                    <h3>Sin resultados</h3>
-                    <p>No hay solicitudes que coincidan con la búsqueda o el filtro seleccionado.</p>
+                    <h3>{t('adm.consultas.sinResultados')}</h3>
+                    <p>{t('adm.consultas.sinResultadosSub')}</p>
                   </div>
                 </div>
               )}
@@ -466,7 +470,7 @@ const AdminConsultas = () => {
                     disabled={paginaActual === 1}
                     onClick={() => setPagina(paginaActual - 1)}
                   >
-                    ‹ Anterior
+                    ‹ {t('adm.consultas.anterior')}
                   </button>
                   <div className="ap-page-nums">
                     {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((n) => (
@@ -486,7 +490,7 @@ const AdminConsultas = () => {
                     disabled={paginaActual === totalPaginas}
                     onClick={() => setPagina(paginaActual + 1)}
                   >
-                    Siguiente ›
+                    {t('adm.consultas.siguiente')} ›
                   </button>
                 </div>
               )}
@@ -499,8 +503,8 @@ const AdminConsultas = () => {
             <div className="ap-card">
               <div className="ap-states">
                 <span className="ap-loader" />
-                <h3>Cargando cuentas</h3>
-                <p>Consultando las cuentas inhabilitadas...</p>
+                <h3>{t('adm.consultas.cargandoCuentas')}</h3>
+                <p>{t('adm.consultas.cargandoCuentasSub')}</p>
               </div>
             </div>
           ) : totalInhabilitadas === 0 ? (
@@ -509,8 +513,8 @@ const AdminConsultas = () => {
                 <div className="ap-states-icon">
                   <FaUserCheck />
                 </div>
-                <h3>No hay cuentas inhabilitadas</h3>
-                <p>Cuando se apruebe una solicitud de inhabilitación, la cuenta aparecerá aquí.</p>
+                <h3>{t('adm.consultas.sinCuentas')}</h3>
+                <p>{t('adm.consultas.sinCuentasSub')}</p>
               </div>
             </div>
           ) : (
@@ -520,7 +524,7 @@ const AdminConsultas = () => {
                   <FaMagnifyingGlass />
                   <input
                     type="text"
-                    placeholder="Buscar cuenta..."
+                    placeholder={t('adm.consultas.buscarCuentaPlaceholder')}
                     value={busquedaCuentas}
                     onChange={(e) => setBusquedaCuentas(e.target.value)}
                   />
@@ -528,7 +532,7 @@ const AdminConsultas = () => {
               </div>
               {clientesInhabilitadosFiltrados.length > 0 && (
                 <>
-                  <h2 className="ap-section-title">Clientes</h2>
+                  <h2 className="ap-section-title">{t('adm.consultas.seccionClientes')}</h2>
                   <div className="solicitudes-list">
                     {clientesInhabilitadosFiltrados.map((c) =>
                       renderTarjetaCuentaInhabilitada(
@@ -543,7 +547,7 @@ const AdminConsultas = () => {
               )}
               {tecnicosInhabilitadosFiltrados.length > 0 && (
                 <>
-                  <h2 className="ap-section-title">Técnicos</h2>
+                  <h2 className="ap-section-title">{t('adm.consultas.seccionTecnicos')}</h2>
                   <div className="solicitudes-list">
                     {tecnicosInhabilitadosFiltrados.map((t) =>
                       renderTarjetaCuentaInhabilitada(
@@ -564,8 +568,8 @@ const AdminConsultas = () => {
                       <div className="ap-states-icon">
                         <FaUserCheck />
                       </div>
-                      <h3>Sin resultados</h3>
-                      <p>No hay cuentas que coincidan con la búsqueda.</p>
+                      <h3>{t('adm.consultas.sinResultados')}</h3>
+                      <p>{t('adm.consultas.sinResultadosCuentasSub')}</p>
                     </div>
                   </div>
                 )}

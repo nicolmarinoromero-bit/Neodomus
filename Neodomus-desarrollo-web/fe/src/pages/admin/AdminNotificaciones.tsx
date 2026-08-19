@@ -14,12 +14,13 @@ import {
 } from 'react-icons/fa6';
 import '@styles/admin-panel.css';
 import '@styles/dashboard-admin.css';
+import { useIdioma } from '@i18n/IdiomaContext';
 import { useAdminNotificaciones, type TipoNotificacion } from '../../hooks/useAdminNotificaciones';
 
-const FILTROS: { id: 'todas' | TipoNotificacion; label: string }[] = [
-  { id: 'todas', label: 'Todas' },
-  { id: 'cuenta', label: 'Solicitudes de cuenta' },
-  { id: 'stock', label: 'Stock' },
+const FILTROS: { id: 'todas' | TipoNotificacion; labelKey: string }[] = [
+  { id: 'todas', labelKey: 'adm.notificaciones.filtroTodas' },
+  { id: 'cuenta', labelKey: 'adm.notificaciones.filtroCuenta' },
+  { id: 'stock', labelKey: 'adm.notificaciones.filtroStock' },
 ];
 
 const ICONO_TIPO: Record<TipoNotificacion, React.ReactNode> = {
@@ -33,16 +34,17 @@ const ICONO_TIPO: Record<TipoNotificacion, React.ReactNode> = {
 };
 
 const ETIQUETA_TIPO: Record<TipoNotificacion, string> = {
-  cuenta: 'Solicitud de cuenta',
-  registro: 'Nuevo registro',
-  cita: 'Cita e instalación',
-  pedido: 'Pedido',
-  stock: 'Stock agotado',
-  sistema: 'Sistema',
-  entrega: 'Entrega',
+  cuenta: 'adm.notificaciones.tipoCuenta',
+  registro: 'adm.notificaciones.tipoRegistro',
+  cita: 'adm.notificaciones.tipoCita',
+  pedido: 'adm.notificaciones.tipoPedido',
+  stock: 'adm.notificaciones.tipoStock',
+  sistema: 'adm.notificaciones.tipoSistema',
+  entrega: 'adm.notificaciones.tipoEntrega',
 };
 
 const AdminNotificaciones = () => {
+  const { t } = useIdioma();
   const { notificaciones, cargando, noLeidas, recargar } = useAdminNotificaciones();
   const [filtro, setFiltro] = useState<'todas' | TipoNotificacion>('todas');
 
@@ -63,15 +65,13 @@ const AdminNotificaciones = () => {
     >
       <div className="ap-header">
         <div>
-          <h1 className="ap-title">Notificaciones</h1>
-          <p className="ap-subtitle">
-            Solicitudes de cuenta y alertas de stock de productos.
-          </p>
+          <h1 className="ap-title">{t('adm.notificaciones.titulo')}</h1>
+          <p className="ap-subtitle">{t('adm.notificaciones.subtitulo')}</p>
         </div>
         <div className="ap-header-right">
           <span className="welcome-badge">
             <FaBell />
-            {noLeidas} sin leer
+            {t('adm.notificaciones.sinLeer', { n: noLeidas })}
           </span>
         </div>
       </div>
@@ -84,7 +84,7 @@ const AdminNotificaciones = () => {
             className={`ap-pill ${filtro === f.id ? 'active' : ''}`}
             onClick={() => setFiltro(f.id)}
           >
-            {f.label}
+            {t(f.labelKey)}
             <span className="ap-pill-count">{conteo(f.id)}</span>
           </button>
         ))}
@@ -94,8 +94,8 @@ const AdminNotificaciones = () => {
         <div className="ap-card">
           <div className="ap-states">
             <span className="ap-loader" />
-            <h3>Cargando notificaciones</h3>
-            <p>Obteniendo la actividad reciente del panel...</p>
+            <h3>{t('adm.notificaciones.cargando')}</h3>
+            <p>{t('adm.notificaciones.cargandoDesc')}</p>
           </div>
         </div>
       ) : visibles.length === 0 ? (
@@ -104,10 +104,10 @@ const AdminNotificaciones = () => {
             <div className="ap-states-icon">
               <FaBell />
             </div>
-            <h3>No hay notificaciones</h3>
-            <p>No hay novedades en esta categoría por el momento.</p>
+            <h3>{t('adm.notificaciones.vacio')}</h3>
+            <p>{t('adm.notificaciones.vacioDesc')}</p>
             <button type="button" className="ap-btn ap-btn-ghost" onClick={() => recargar()}>
-              Actualizar
+              {t('adm.notificaciones.actualizar')}
             </button>
           </div>
         </div>
@@ -129,8 +129,8 @@ const AdminNotificaciones = () => {
                 <div className={`an-icon ${notificacion.tipo}`}>{ICONO_TIPO[notificacion.tipo]}</div>
                 <div className="an-body">
                   <div className="an-top">
-                    <span className="an-type">{ETIQUETA_TIPO[notificacion.tipo]}</span>
-                    {!notificacion.leida && <span className="ap-badge warn">Nueva</span>}
+                    <span className="an-type">{t(ETIQUETA_TIPO[notificacion.tipo])}</span>
+                    {!notificacion.leida && <span className="ap-badge warn">{t('adm.notificaciones.nueva')}</span>}
                     {notificacion.fecha && <span className="an-fecha">{notificacion.fecha}</span>}
                   </div>
                   <h3 className="an-title">{notificacion.titulo}</h3>

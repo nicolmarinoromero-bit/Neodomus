@@ -154,28 +154,6 @@
   justify-content: center;
 }
 
-.pf-logout-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  width: 100%;
-  margin-top: 18px;
-  padding: 12px;
-  border: 1px solid rgba(229, 72, 77, 0.4);
-  border-radius: 12px;
-  background: rgba(229, 72, 77, 0.12);
-  color: var(--pf-danger);
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background 0.18s ease;
-}
-
-.pf-logout-btn:hover {
-  background: rgba(229, 72, 77, 0.22);
-}
-
 /* ── Contenido principal ───────────────────────────────────── */
 .perfil-content {
   min-width: 0;

@@ -268,10 +268,13 @@ def notificar_cita_estado_cliente(
     cliente_nombre: str,
     datos: dict,
     nuevo_estado: str,
+    motivo: str | None = None,
 ) -> None:
     """Notifica al cliente por correo y plataforma cuando el estado de su cita cambia.
 
-    ``datos`` debe contener al menos: servicio, fecha, tecnico.
+    ``datos`` debe contener al menos: servicio, fecha, tecnico. ``motivo``
+    (opcional) personaliza el mensaje de una cancelación, p. ej. cuando la
+    cita se cancela porque el técnico asignado fue deshabilitado.
     """
     header, body_text = _ESTADO_TEXTO.get(
         nuevo_estado,
@@ -292,7 +295,13 @@ def notificar_cita_estado_cliente(
             "Es obligatorio: no podrás agendar nuevas citas hasta que completes la calificación."
         )
     elif nuevo_estado == "Cancelada":
-        body_text += " Puedes reagendarla desde Mis citas."
+        if motivo:
+            body_text = (
+                f"Tu cita de {datos['servicio']} programada para el {datos['fecha']} "
+                f"fue cancelada. {motivo} Puedes reagendarla desde Mis citas."
+            )
+        else:
+            body_text += " Puedes reagendarla desde Mis citas."
     elif nuevo_estado == "Confirmada":
         body_text = (
             f"El técnico {datos['tecnico']} confirmó tu cita de {datos['servicio']} "
@@ -313,6 +322,7 @@ def notificar_cita_estado_cliente(
                 if nuevo_estado == "Finalizada"
                 else ""
             )
+            + (f" {motivo}" if motivo else "")
         ),
     )
 
@@ -323,6 +333,8 @@ def notificar_cita_estado_cliente(
         "Cancelada":  "Tu cita en Neodomus no se pudo completar",
     }
     subject = subject_map.get(nuevo_estado, f"Actualización de tu cita — Neodomus")
+    if nuevo_estado == "Cancelada" and motivo:
+        subject = "Tu cita en Neodomus fue cancelada"
 
     body = _plantilla(header, body_text, filas, "Neodomus — Sistema de gestión inteligente.", color=color, acento=acento)
     programar_correo(correo, subject, body)

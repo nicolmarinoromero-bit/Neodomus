@@ -1,5 +1,4 @@
-import { NavLink, useNavigate } from "react-router-dom";
-import { useAuth } from "@contexts/AuthContext";
+import { NavLink } from "react-router-dom";
 import { useIdioma } from "@i18n/IdiomaContext";
 import {
   FaHouse,
@@ -8,7 +7,6 @@ import {
   FaUsers,
   FaMessage,
   FaUserGear,
-  FaRightFromBracket,
 } from "react-icons/fa6";
 import "@styles/admin-sidebar.css";
 
@@ -23,14 +21,7 @@ interface Seccion {
 }
 
 const TechnicianSidebar = ({ open, onNavigate }: TechnicianSidebarProps) => {
-  const { logout } = useAuth();
   const { t } = useIdioma();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
 
   const secciones: Seccion[] = [
     {
@@ -81,13 +72,6 @@ const TechnicianSidebar = ({ open, onNavigate }: TechnicianSidebarProps) => {
           </div>
         ))}
       </nav>
-
-      <div className="sidebar-divider" />
-
-      <button className="sidebar-logout" onClick={handleLogout}>
-        <FaRightFromBracket />
-        <span>{t('tec.cerrarSesion')}</span>
-      </button>
     </aside>
   );
 };

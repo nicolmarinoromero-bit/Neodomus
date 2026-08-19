@@ -392,6 +392,17 @@
   flex-shrink: 0;
 }
 
+.anr-avatar-iniciales {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #d4a54b;
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1;
+  user-select: none;
+}
+
 .anr-user-info {
   display: flex;
   flex-direction: column;

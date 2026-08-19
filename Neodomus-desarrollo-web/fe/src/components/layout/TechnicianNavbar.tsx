@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaBars, FaChevronDown, FaRightFromBracket, FaUserPen } from 'react-icons/fa6';
+import { FaBars, FaChevronDown, FaRightFromBracket } from 'react-icons/fa6';
 import { useAuth } from '@contexts/AuthContext';
 import { useIdioma } from '@i18n/IdiomaContext';
 import { useTecnicoNotificaciones } from '../../hooks/useTecnicoNotificaciones';
 import NotificacionesBell from './NotificacionesBell';
 import logo from '@assets/images/Logo.jpg';
-import defaultPerfil from '@assets/images/perfil.png';
+import { getIniciales, getTechnicalAvatar } from '@utils/profileStorage';
 import '@styles/admin-navbar.css';
 
 interface TechnicianNavbarProps {
@@ -38,7 +38,7 @@ const TechnicianNavbar = ({ onMenuToggle }: TechnicianNavbarProps) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const avatar = localStorage.getItem('technicalAvatar') || defaultPerfil;
+  const avatar = getTechnicalAvatar();
   const userData = (() => {
     try {
       const stored = localStorage.getItem('user');
@@ -101,7 +101,13 @@ const TechnicianNavbar = ({ onMenuToggle }: TechnicianNavbarProps) => {
               aria-expanded={open}
               aria-label={t('tec.menuPerfil')}
             >
-              <img src={avatar} alt={`${t('tec.perfilTitulo')} ${userData.nombre}`} className="anr-avatar" />
+              {avatar ? (
+                <img src={avatar} alt={`${t('tec.perfilTitulo')} ${userData.nombre}`} className="anr-avatar" />
+              ) : (
+                <span className="anr-avatar anr-avatar-iniciales" aria-hidden="true">
+                  {getIniciales(userData.nombre)}
+                </span>
+              )}
               <span className="anr-user-info">
                 <span className="anr-user-name">{userData.nombre}</span>
                 <span className="anr-user-role">{t('tec.tecnico')}</span>
@@ -114,9 +120,6 @@ const TechnicianNavbar = ({ onMenuToggle }: TechnicianNavbarProps) => {
                 <div className="anr-dd-name">{userData.nombre}</div>
                 <div className="anr-dd-mail">{userData.correo}</div>
               </div>
-              <Link to="/perfil/tecnico" className="anr-dd-item" onClick={() => setOpen(false)}>
-                <FaUserPen /> {t('tec.editarPerfil')}
-              </Link>
               <div className="anr-dd-sep" />
               <button type="button" className="anr-dd-item danger" onClick={handleLogout}>
                 <FaRightFromBracket /> {t('tec.cerrarSesion')}

@@ -22,6 +22,7 @@ import {
 import '@styles/admin-panel.css';
 import '@styles/dashboard-admin.css';
 import api from '@services/api';
+import { useIdioma } from '@i18n/IdiomaContext';
 import type { ReporteResumen } from '../../types';
 
 
@@ -29,63 +30,63 @@ const AccesosRapidos = [
   {
     to: '/admin/productos',
     icon: <FaBoxesStacked />,
-    label: 'Catálogo',
-    desc: 'Catálogo de productos',
+    labelKey: 'adm.dashboard.accesoCatalogo',
+    descKey: 'adm.dashboard.accesoCatalogoDesc',
   },
   {
     to: '/admin/proveedores',
     icon: <FaTruckField />,
-    label: 'Proveedores',
-    desc: 'Proveedores y reabastecimiento',
+    labelKey: 'adm.dashboard.accesoProveedores',
+    descKey: 'adm.dashboard.accesoProveedoresDesc',
   },
   {
     to: '/admin/tecnicos',
     icon: <FaUserGear />,
-    label: 'Técnicos',
-    desc: 'Equipo de instalación',
+    labelKey: 'adm.dashboard.accesoTecnicos',
+    descKey: 'adm.dashboard.accesoTecnicosDesc',
   },
   {
     to: '/admin/instalaciones',
     icon: <FaCalendarCheck />,
-    label: 'Citas',
-    desc: 'Citas y agenda',
+    labelKey: 'adm.dashboard.accesoCitas',
+    descKey: 'adm.dashboard.accesoCitasDesc',
   },
   {
     to: '/admin/clientes',
     icon: <FaUsers />,
-    label: 'Clientes',
-    desc: 'Cuentas registradas',
+    labelKey: 'adm.dashboard.accesoClientes',
+    descKey: 'adm.dashboard.accesoClientesDesc',
   },
   {
     to: '/admin/consultas',
     icon: <FaEnvelopeOpenText />,
-    label: 'Solicitudes',
-    desc: 'Consultas de soporte',
+    labelKey: 'adm.dashboard.accesoSolicitudes',
+    descKey: 'adm.dashboard.accesoSolicitudesDesc',
   },
   {
     to: '/admin/reportes',
     icon: <FaChartLine />,
-    label: 'Reportes',
-    desc: 'Estadísticas del negocio',
+    labelKey: 'adm.dashboard.accesoReportes',
+    descKey: 'adm.dashboard.accesoReportesDesc',
   },
   {
     to: '/admin/notificaciones',
     icon: <FaBell />,
-    label: 'Notificaciones',
-    desc: 'Avisos y aprobaciones',
+    labelKey: 'adm.dashboard.accesoNotificaciones',
+    descKey: 'adm.dashboard.accesoNotificacionesDesc',
   },
   {
     to: '/perfil/admin',
     icon: <FaUserShield />,
-    label: 'Mi perfil',
-    desc: 'Datos de tu cuenta',
+    labelKey: 'adm.dashboard.accesoMiPerfil',
+    descKey: 'adm.dashboard.accesoMiPerfilDesc',
   },
 ];
 
 const formatoPesos = (v: number) => `$${Math.round(v).toLocaleString('es-CO')}`;
-const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
 const AdminDashboard = () => {
+  const { t, idioma } = useIdioma();
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(false);
   const [datos, setDatos] = useState<ReporteResumen | null>(null);
@@ -107,7 +108,7 @@ const AdminDashboard = () => {
     cargar();
   }, []);
 
-  const hoy = new Date().toLocaleDateString('es-CO', {
+  const hoy = new Date().toLocaleDateString(idioma === 'en' ? 'en-US' : 'es-CO', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -125,12 +126,12 @@ const AdminDashboard = () => {
     >
       <div className="ap-header">
         <div>
-          <h1 className="ap-title">Panel de control</h1>
-          <p className="ap-subtitle">Resumen del negocio · {hoy}</p>
+          <h1 className="ap-title">{t('adm.dashboard.titulo')}</h1>
+          <p className="ap-subtitle">{t('adm.dashboard.subtitulo', { hoy })}</p>
         </div>
         <div className="ap-header-right">
           <button type="button" className="ap-btn ap-btn-ghost" onClick={cargar} disabled={cargando}>
-            <FaRotate className={cargando ? 'spin' : ''} /> Actualizar
+            <FaRotate className={cargando ? 'spin' : ''} /> {t('adm.dashboard.actualizar')}
           </button>
         </div>
       </div>
@@ -141,9 +142,9 @@ const AdminDashboard = () => {
             <div className="ap-states-icon">
               <FaCircleInfo />
             </div>
-            <h3>No se pudo cargar el panel</h3>
+            <h3>{t('adm.dashboard.errorCargar')}</h3>
             <button type="button" className="ap-btn ap-btn-ghost" onClick={cargar}>
-              Reintentar
+              {t('adm.dashboard.reintentar')}
             </button>
           </div>
         </div>
@@ -151,7 +152,7 @@ const AdminDashboard = () => {
         <div className="ap-card">
           <div className="ap-states">
             <span className="ap-loader" />
-            <h3>Cargando panel</h3>
+            <h3>{t('adm.dashboard.cargando')}</h3>
           </div>
         </div>
       ) : (
@@ -159,51 +160,51 @@ const AdminDashboard = () => {
           <div className="ap-kpis">
             <div className="ap-card ap-kpi">
               <div className="ap-kpi-label">
-                <FaWallet /> Ventas totales
+                <FaWallet /> {t('adm.dashboard.kpiVentas')}
               </div>
               <div className="ap-kpi-value">{formatoPesos(datos.ventas_total)}</div>
-              <div className="ap-mini-sub">{datos.pedidos_total} pedidos registrados</div>
+              <div className="ap-mini-sub">{t('adm.dashboard.pedidosRegistrados', { n: datos.pedidos_total })}</div>
             </div>
             <div className="ap-card ap-kpi">
               <div className="ap-kpi-label">
-                <FaBagShopping /> Pedidos
+                <FaBagShopping /> {t('adm.dashboard.kpiPedidos')}
               </div>
               <div className="ap-kpi-value">{datos.pedidos_total}</div>
               <div className="ap-mini-sub">
-                {datos.pedidos_por_mes.length > 0 ? 'Con histórico mensual' : 'Sin pedidos aún'}
+                {datos.pedidos_por_mes.length > 0 ? t('adm.dashboard.conHistorico') : t('adm.dashboard.sinPedidos')}
               </div>
             </div>
             <div className="ap-card ap-kpi">
               <div className="ap-kpi-label">
-                <FaUsers /> Clientes registrados
+                <FaUsers /> {t('adm.dashboard.kpiClientes')}
               </div>
               <div className="ap-kpi-value">{datos.clientes_total}</div>
             </div>
             <div className="ap-card ap-kpi">
               <div className="ap-kpi-label">
-                <FaCalendarCheck /> Citas
+                <FaCalendarCheck /> {t('adm.dashboard.kpiCitas')}
               </div>
               <div className="ap-kpi-value">{datos.citas_total}</div>
-              <div className="ap-mini-sub">{datos.citas_por_estado.Pendiente} pendientes en el módulo</div>
+              <div className="ap-mini-sub">{t('adm.dashboard.citasPendientes', { n: datos.citas_por_estado.Pendiente })}</div>
             </div>
             <div className="ap-card ap-kpi">
               <div className="ap-kpi-label">
-                <FaUserGear /> Técnicos
+                <FaUserGear /> {t('adm.dashboard.kpiTecnicos')}
               </div>
               <div className="ap-kpi-value">
                 {datos.tecnicos_activos}
                 <span style={{ fontSize: '0.9rem', color: '#9f9f9f', fontWeight: 600 }}>
                   {' '}
-                  / {datos.tecnicos_total} activos
+                  {t('adm.dashboard.tecnicosActivos', { n: datos.tecnicos_total })}
                 </span>
               </div>
             </div>
             <div className="ap-card ap-kpi">
               <div className="ap-kpi-label">
-                <FaBoxesStacked /> Productos
+                <FaBoxesStacked /> {t('adm.dashboard.kpiProductos')}
               </div>
               <div className="ap-kpi-value">{datos.productos_total}</div>
-              <div className="ap-mini-sub">{datos.productos_activos} activos en tienda</div>
+              <div className="ap-mini-sub">{t('adm.dashboard.productosActivos', { n: datos.productos_activos })}</div>
             </div>
           </div>
 
@@ -212,14 +213,14 @@ const AdminDashboard = () => {
               <div className="ap-card">
                 <div className="ap-card-head">
                   <h2>
-                    <FaChartLine /> Ventas por mes
+                    <FaChartLine /> {t('adm.dashboard.ventasPorMes')}
                   </h2>
                   <Link to="/admin/reportes" className="ap-btn ap-btn-ghost">
-                    Ver reportes <FaArrowRight />
+                    {t('adm.dashboard.verReportes')} <FaArrowRight />
                   </Link>
                 </div>
                 {datos.pedidos_por_mes.length === 0 ? (
-                  <p className="solicitudes-vacio">Aún no hay ventas registradas para graficar.</p>
+                  <p className="solicitudes-vacio">{t('adm.dashboard.sinVentasGrafico')}</p>
                 ) : (
                   <div className="ap-chart-wrap">
                     {datos.pedidos_por_mes.map((p) => {
@@ -227,7 +228,11 @@ const AdminDashboard = () => {
                       const [y, m] = p.mes.split('-');
                       return (
                         <div className="ap-chart-bar-row" key={p.mes}>
-                          <span className="ap-chart-row-mes">{`${MESES[(parseInt(m, 10) || 1) - 1]} ${y}`}</span>
+                          <span className="ap-chart-row-mes">{`${new Date(
+                            Number(y),
+                            (parseInt(m, 10) || 1) - 1,
+                            1
+                          ).toLocaleDateString(idioma === 'en' ? 'en-US' : 'es-CO', { month: 'short' })} ${y}`}</span>
                           <div
                             className="ap-chart-bar"
                             style={{ width: `${Math.max((p.ventas / maxVentas) * 100, 3)}%` }}
@@ -243,11 +248,11 @@ const AdminDashboard = () => {
               <div className="ap-card">
                 <div className="ap-card-head">
                   <h2>
-                    <FaArrowTrendUp /> Productos más vendidos
+                    <FaArrowTrendUp /> {t('adm.dashboard.productosMasVendidos')}
                   </h2>
                 </div>
                 {datos.productos_mas_vendidos.length === 0 ? (
-                  <p className="solicitudes-vacio">Aún no hay ventas de productos registradas.</p>
+                  <p className="solicitudes-vacio">{t('adm.dashboard.sinVentasProductos')}</p>
                 ) : (
                   <div className="ap-mini">
                     {datos.productos_mas_vendidos.slice(0, 5).map((p, i) => (
@@ -255,7 +260,7 @@ const AdminDashboard = () => {
                         <span className="ap-mini-icon">{i + 1}</span>
                         <div className="ap-mini-info">
                           <div className="ap-mini-title">{p.nombre_producto}</div>
-                          <div className="ap-mini-sub">{p.cantidad} unidad(es)</div>
+                          <div className="ap-mini-sub">{t('adm.dashboard.unidades', { n: p.cantidad })}</div>
                         </div>
                         <span className="ap-mini-val">{formatoPesos(p.total)}</span>
                       </div>
@@ -269,7 +274,7 @@ const AdminDashboard = () => {
               <div className="ap-card">
                 <div className="ap-card-head">
                   <h2>
-                    <FaBolt /> Accesos rápidos
+                    <FaBolt /> {t('adm.dashboard.accesosRapidos')}
                   </h2>
                 </div>
                 <div className="ap-acciones">
@@ -277,8 +282,8 @@ const AdminDashboard = () => {
                     <Link to={a.to} className="ap-accion" key={a.to}>
                       <span className="ap-accion-icon">{a.icon}</span>
                       <span>
-                        <strong>{a.label}</strong>
-                        <em>{a.desc}</em>
+                        <strong>{t(a.labelKey)}</strong>
+                        <em>{t(a.descKey)}</em>
                       </span>
                     </Link>
                   ))}
