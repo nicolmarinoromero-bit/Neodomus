@@ -1,5 +1,3 @@
-import Navbar from '@components/layout/Navbar';
-import Footer from '@components/layout/Footer';
 import fondo2 from '@assets/images/Fondo2.png';
 import blog1 from '@assets/images/blog1.jpeg';
 import blog2 from '@assets/images/blog2.jpeg';
@@ -9,8 +7,10 @@ import '@styles/info_pages.css';
 const Blog = () => {
   return (
     <>
-      <Navbar />
-      <main className="info-page" style={{ backgroundImage: `url(${fondo2})` }}>
+                  <div 
+          className="login-background-layer" 
+          style={{ backgroundImage: `url(${fondo2})` }} 
+        />
         <div className="blog-title-container">
           <h1>Blog</h1>
         </div>
@@ -40,8 +40,6 @@ const Blog = () => {
             </div>
           </div>
         </div>
-      </main>
-      <Footer />
     </>
   );
 };

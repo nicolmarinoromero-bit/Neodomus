@@ -1,5 +1,3 @@
-import Navbar from '@components/layout/Navbar';
-import Footer from '@components/layout/Footer';
 import fondo2 from '@assets/images/Fondo2.png';
 import sobreImg from '@assets/images/sobre.jpeg';
 import blog1 from '@assets/images/blog1.jpeg';
@@ -10,10 +8,12 @@ import '@styles/info_pages.css';
 const InfoSectionsContainer = () => {
   return (
     <>
-      <Navbar />
-      <div className="landing-sections-wrapper">
+      <div className="landing-sections-wrapper app-glass">
         {/* SECCIÓN SOBRE NOSOTROS */}
-        <section className="info-section" style={{ backgroundImage: `url(${fondo2})` }}>
+            <div 
+          className="login-background-layer" 
+          style={{ backgroundImage: `url(${fondo2})` }} 
+        />
           <div className="about-layout">
             <div className="about-image-container">
               <img src={sobreImg} alt="Sobre Neodomus" />
@@ -24,10 +24,10 @@ const InfoSectionsContainer = () => {
               <p>Nuestra misión es transformar ideas en resultados y nuestra visión, consolidarnos como un aliado estratégico que impulse el crecimiento y la evolución de quienes confían en nosotros.</p>
             </div>
           </div>
-        </section>
+
 
         {/* SECCIÓN POR QUÉ CONTRATAR */}
-        <section className="info-section" style={{ backgroundImage: `url(${fondo2})` }}>
+        <section className="info-section">
           <div className="why-title-container">
             <h1>Porque contratar NEODOMUS</h1>
           </div>
@@ -39,7 +39,7 @@ const InfoSectionsContainer = () => {
         </section>
 
         {/* SECCIÓN BLOG */}
-        <section className="info-section" style={{ backgroundImage: `url(${fondo2})` }}>
+        <section className="info-section">
           <div className="blog-title-container">
             <h1>Blog</h1>
           </div>
@@ -59,7 +59,6 @@ const InfoSectionsContainer = () => {
           </div>
         </section>
       </div>
-      <Footer />
     </>
   );
 };

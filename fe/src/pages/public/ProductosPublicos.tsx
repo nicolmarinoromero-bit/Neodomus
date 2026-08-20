@@ -1,12 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@contexts/AuthContext';
+import { Link } from 'react-router-dom';
 import api from '@services/api';
-import Navbar from '@components/layout/Navbar';
-import Footer from '@components/layout/Footer';
-import '@styles/client-dashboard.css';
-import fondoImg from '@assets/images/Fondo2.png';
-import carritoIcon from '@assets/images/Carrito.png';
+import { useCart } from '@contexts/CartContext';
+import { useIdioma } from '@i18n/IdiomaContext';
+import '@styles/productos-publicos.css';
 import buscadorIcon from '@assets/images/buscador.png';
 
 interface Producto {
@@ -24,9 +21,11 @@ interface Categoria {
   descripcion: string;
 }
 
+const FAVORITOS_KEY = 'neodomus_favoritos';
+
 const ProductosPublicos = () => {
-  const { isAuthenticated } = useAuth();
-  const navigate = useNavigate();
+  const { addItem } = useCart();
+  const { t } = useIdioma();
   const [productos, setProductos] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -36,6 +35,15 @@ const ProductosPublicos = () => {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<number | null>(null);
   const [cartMessage, setCartMessage] = useState('');
+  const [cantidades, setCantidades] = useState<Record<number, number>>({});
+  const [favoritos, setFavoritos] = useState<Set<number>>(() => {
+    try {
+      const raw = localStorage.getItem(FAVORITOS_KEY);
+      return new Set<number>(raw ? JSON.parse(raw) : []);
+    } catch {
+      return new Set<number>();
+    }
+  });
 
   // Cargar categorías
   useEffect(() => {
@@ -99,15 +107,51 @@ const ProductosPublicos = () => {
     setCurrentPage(1);
   };
 
-  const handleAddToCart = (id_producto: number) => {
-    if (!isAuthenticated) {
-      setCartMessage('Debes iniciar sesión para comprar');
-      setTimeout(() => setCartMessage(''), 3000);
-      setTimeout(() => navigate('/login'), 1500);
-      return;
-    }
-    setCartMessage('Producto agregado (demo)');
+  const toggleFavorito = (id: number) => {
+    setFavoritos(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      try {
+        localStorage.setItem(FAVORITOS_KEY, JSON.stringify([...next]));
+      } catch {
+        // El almacenamiento no está disponible; la interacción sigue siendo visual
+      }
+      return next;
+    });
+  };
+
+  const handleAddToCart = (id: number) => {
+    const producto = productos.find(p => p.id_producto === id);
+    if (!producto) return;
+    addItem(
+      {
+        id_producto: producto.id_producto,
+        nombre_producto: producto.nombre_producto,
+        precio_venta_producto: producto.precio_venta_producto,
+        imagen: getImagen(producto),
+      },
+      cantidades[id] || 1
+    );
+    setCartMessage(t('productos.agregadoMsg', { nombre: producto.nombre_producto }));
     setTimeout(() => setCartMessage(''), 3000);
+  };
+
+  const disminuirCantidad = (id: number) => {
+    setCantidades(prev => ({
+      ...prev,
+      [id]: Math.max(1, (prev[id] || 1) - 1),
+    }));
+  };
+
+  const aumentarCantidad = (id: number) => {
+    setCantidades(prev => ({
+      ...prev,
+      [id]: (prev[id] || 1) + 1,
+    }));
   };
 
   // Imagen basada en ID
@@ -135,19 +179,18 @@ const ProductosPublicos = () => {
     return rangeWithDots;
   };
 
-  if (loading) return <div className="loading">Cargando productos...</div>;
+  if (loading) return <div className="loading">{t('common.cargando')}</div>;
   if (error) return <div className="error">{error}</div>;
 
   return (
     <>
-      <Navbar />
       {cartMessage && <div className="cart-toast">{cartMessage}</div>}
-      <main className="productos-page" style={{ backgroundImage: `url(${fondoImg})`, backgroundSize: 'cover' }}>
+      <main className="productos-page app-glass">
         <section className="productos">
           <div className="barra-superior">
             <div className="buscador">
-              <img src={buscadorIcon} alt="buscar" className="icono-buscar" />
-              <input type="text" placeholder="Buscar producto" value={searchTerm} onChange={handleSearchChange} />
+              <img src={buscadorIcon} alt="" className="icono-buscar" />
+              <input type="text" placeholder={t('productos.buscarProducto')} value={searchTerm} onChange={handleSearchChange} />
             </div>
             <div className="controls-right">
               <select className="select-paginas" value={itemsPerPage} onChange={handleItemsPerPageChange}>
@@ -169,73 +212,100 @@ const ProductosPublicos = () => {
           </div>
 
           {currentProductos.length === 0 ? (
-            <div className="loading">No hay productos que coincidan.</div>
+            <div className="loading">{t('productos.sinResultados')}</div>
           ) : (
             <>
-              <div className="productos-grid">
-                {currentProductos.map(producto => (
-                  <div key={producto.id_producto} className="card-producto">
-                    <div className="img-contenedor">
-                      <img
-                        src={getImagen(producto)}
-                        alt={producto.nombre_producto}
-                        className="img-producto"
-                        onError={(e) => (e.currentTarget.src = '/productos/default.png')}
-                      />
-                    </div>
-                    <div className="info-producto">
-                      {/* 🔥 Nombre con estilos inline visibles */}
-                      <h3 style={{ color: '#fff', fontSize: '14px', marginBottom: '5px', fontWeight: 'bold' }}>
-                        {producto.nombre_producto}
-                      </h3>
-                      {producto.nombre_categoria && (
-                        <span style={{ color: '#ccc', fontSize: '12px', display: 'block', marginBottom: '5px' }}>
-                          {producto.nombre_categoria}
-                        </span>
-                      )}
-                      {/* 🔥 Precio con estilo inline visible */}
-                      <div style={{ color: '#d3ac4d', fontWeight: 'bold', fontSize: '16px', margin: '8px 0' }}>
-                        ${producto.precio_venta_producto.toLocaleString()}
-                      </div>
-                      <div className="acciones-producto">
-                        <button className="btn-comprar" onClick={() => handleAddToCart(producto.id_producto)}>
-                          COMPRAR
-                        </button>
-                        <img
-                          src={carritoIcon}
-                          alt="Carrito"
-                          className="icono-carrito"
-                          onClick={() => handleAddToCart(producto.id_producto)}
-                          style={{ cursor: 'pointer', width: '24px' }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              <div className="productos-header">
+                <div>
+                  <h1>{t('nav.productos')}</h1>
+                  <p>{t('productos.subtitulo')}</p>
+                </div>
               </div>
+
+              <div className="productos-grid">
+                {currentProductos.map(producto => {
+                  const esFavorito = favoritos.has(producto.id_producto);
+                  return (
+                    <div key={producto.id_producto} className="card-producto">
+                      <div className="img-contenedor">
+                        <button
+                          type="button"
+                          className={`btn-favorito ${esFavorito ? 'activo' : ''}`}
+                          onClick={() => toggleFavorito(producto.id_producto)}
+                          aria-label={esFavorito ? t('productos.quitarFavoritos') : t('productos.agregarFavoritos')}
+                          title={esFavorito ? t('productos.quitarFavoritos') : t('productos.agregarFavoritos')}
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                          </svg>
+                        </button>
+                        <div className="img-producto-wrap">
+                          <Link to={`/producto/${producto.id_producto}`} aria-label={`Ver detalle de ${producto.nombre_producto}`}>
+                            <img
+                              src={getImagen(producto)}
+                              alt={producto.nombre_producto}
+                              className="img-producto"
+                              loading="lazy"
+                              onError={(e) => (e.currentTarget.src = '/productos/default.png')}
+                            />
+                          </Link>
+                        </div>
+                      </div>
+                      <div className="info-producto">
+                        <Link to={`/producto/${producto.id_producto}`} className="nombre-producto-link">
+                          <h3 className="nombre-producto">{producto.nombre_producto}</h3>
+                        </Link>
+                        {producto.nombre_categoria && (
+                          <span className="categoria-producto">{producto.nombre_categoria}</span>
+                        )}
+                        <div className="precio-producto">
+                          <span className="precio-monto">${producto.precio_venta_producto.toLocaleString()}</span>
+                          <span className="precio-sufijo">COP</span>
+                        </div>
+                        <div className="acciones-producto">
+                          <div className="cantidad-control">
+                            <button type="button" onClick={() => disminuirCantidad(producto.id_producto)} aria-label="Reducir cantidad">−</button>
+                            <span>{cantidades[producto.id_producto] || 1}</span>
+                            <button type="button" onClick={() => aumentarCantidad(producto.id_producto)} aria-label="Aumentar cantidad">+</button>
+                          </div>
+                          <button
+                            className="btn-agregar"
+                            onClick={() => handleAddToCart(producto.id_producto)}
+                          >
+                            <span>{t('productos.agregarCarrito')}</span>
+                            <svg className="icono-carrito" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <circle cx="9" cy="21" r="1" />
+                              <circle cx="20" cy="21" r="1" />
+                              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
               {totalPages > 1 && (
                 <div className="paginacion">
-                  <button onClick={() => handlePageChange(1)} disabled={currentPage === 1}>◀◀</button>
-                  <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>◀</button>
+                  <button className="page-nav" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} aria-label="Página anterior">‹</button>
                   {getPageNumbers().map((item, idx) => (
                     <button
                       key={idx}
-                      className={item === currentPage ? 'active' : ''}
+                      className={`page-number ${item === currentPage ? 'active' : ''}`}
                       onClick={() => typeof item === 'number' && handlePageChange(item)}
                       disabled={item === '...'}
                     >
                       {item}
                     </button>
                   ))}
-                  <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>▶</button>
-                  <button onClick={() => handlePageChange(totalPages)} disabled={currentPage === totalPages}>▶▶</button>
+                  <button className="page-nav" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} aria-label="Página siguiente">›</button>
                 </div>
               )}
             </>
           )}
         </section>
       </main>
-      <Footer />
     </>
   );
 };

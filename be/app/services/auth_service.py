@@ -16,6 +16,7 @@ from app.models.email_verification_token import EmailVerificationToken
 from app.models.password_reset_token import PasswordResetToken
 from app.models.pending_registration import PendingRegistration
 from app.models.roles_usuario import RolesUsuario
+from app.models.solicitud_cuenta import SolicitudCuenta
 from app.models.user import User
 from app.schemas.auth import (
     ChangePasswordRequest,
@@ -50,10 +51,14 @@ def _get_user_by_email(db: Session, email: str) -> User | None:
 def _get_client_by_email(db: Session, email: str) -> Cliente | None:
     return db.execute(select(Cliente).where(Cliente.email == email)).scalar_one_or_none()
 
-# 🔥 _create_tokens ahora recibe "rol" (no "role")
-def _create_tokens(email: str, user_type: str, rol: str = None) -> TokenResponse:
-    access = create_access_token({"sub": email}, user_type=user_type, rol=rol)
-    refresh = create_refresh_token({"sub": email}, user_type=user_type, rol=rol)
+# 🔐 _create_tokens: sub=email (compat) + uid=id_usuario/id_cliente (identidad estable)
+def _create_tokens(user_id: int, email: str, user_type: str, rol: str = None) -> TokenResponse:
+    access = create_access_token(
+        {"sub": email}, user_type=user_type, rol=rol, user_id=user_id
+    )
+    refresh = create_refresh_token(
+        {"sub": email}, user_type=user_type, rol=rol, user_id=user_id
+    )
     return TokenResponse(
         access_token=access,
         refresh_token=refresh,
@@ -125,6 +130,34 @@ async def resend_verification_code(db: Session, email: str) -> dict:
     return {"msg": "Nuevo código enviado"}
 
 # ──────────────────────────────────────────────────────────────────
+# 📨 Solicitud de habilitación de cuenta (cuenta inhabilitada)
+# ──────────────────────────────────────────────────────────────────
+
+def solicitar_habilitacion(db: Session, email: str, password: str) -> dict:
+    """Verifica las credenciales del cliente y crea una solicitud de
+    habilitación para que el administrador la apruebe. La cuenta NO
+    se habilita automáticamente."""
+    client = _get_client_by_email(db, email)
+    if not client or not verify_password(password, client.password_hash):
+        raise HTTPException(401, "Credenciales inválidas")
+    if client.is_active:
+        raise HTTPException(400, "Tu cuenta ya está activa")
+    pendiente = (
+        db.query(SolicitudCuenta)
+        .filter(
+            SolicitudCuenta.id_cliente == client.id_cliente,
+            SolicitudCuenta.estado == "pendiente",
+        )
+        .first()
+    )
+    if pendiente:
+        raise HTTPException(400, "Ya tienes una solicitud pendiente de revisión")
+    solicitud = SolicitudCuenta(id_cliente=client.id_cliente, tipo="habilitar", estado="pendiente")
+    db.add(solicitud)
+    db.commit()
+    return {"msg": "Solicitud de habilitación enviada al administrador"}
+
+# ──────────────────────────────────────────────────────────────────
 # 🔐 Login unificado (con rol)
 # ──────────────────────────────────────────────────────────────────
 
@@ -157,18 +190,18 @@ def login(db: Session, login_data: UserLogin) -> TokenResponse:
             raise HTTPException(401, "Credenciales inválidas")
         if not client.is_active:
             log_login_failed(email, "account_inactive", "client")
-            raise HTTPException(403, "Cuenta no verificada o desactivada")
+            raise HTTPException(403, "Tu cuenta está inhabilitada")
         log_login_success(email, "client")
-        return _create_tokens(email, "client", rol="cliente")
+        return _create_tokens(client.id_cliente, email, "client", rol="cliente")
 
     # Login sin especificar user_type (prueba primero cliente, luego empleado)
     client = _get_client_by_email(db, email)
     if client and verify_password(password, client.password_hash):
         if not client.is_active:
             log_login_failed(email, "account_inactive", "client")
-            raise HTTPException(403, "Cuenta no verificada o desactivada")
+            raise HTTPException(403, "Tu cuenta está inhabilitada")
         log_login_success(email, "client")
-        return _create_tokens(email, "client", rol="cliente")
+        return _create_tokens(client.id_cliente, email, "client", rol="cliente")
 
     user = _get_user_by_email(db, email)
     if user and verify_password(password, user.password_hash):
@@ -182,7 +215,7 @@ def login(db: Session, login_data: UserLogin) -> TokenResponse:
         if not role_name:
             role_name = "empleado"
         log_login_success(email, "employee")
-        return _create_tokens(email, "employee", rol=role_name)
+        return _create_tokens(user.id_usuario, email, "employee", rol=role_name)
 
     log_login_failed(email, "invalid_credentials")
     raise HTTPException(401, "Credenciales inválidas")
@@ -199,17 +232,32 @@ def refresh_access_token(db: Session, refresh_token: str) -> TokenResponse:
     user_type = payload.get("user_type")
     if not email or user_type not in ("employee", "client"):
         raise HTTPException(401, "Token malformado")
+    uid = payload.get("uid")
     if user_type == "employee":
-        user = _get_user_by_email(db, email)
+        user = None
+        if uid:
+            try:
+                user = db.query(User).filter(User.id_usuario == int(uid)).first()
+            except (TypeError, ValueError):
+                user = None
+        if user is None:
+            user = _get_user_by_email(db, email)
         if not user or not user.is_active:
             raise HTTPException(401, "Usuario no válido")
         rol = payload.get("rol")
-        return _create_tokens(email, "employee", rol=rol)
+        return _create_tokens(user.id_usuario, email, "employee", rol=rol)
     else:
-        client = _get_client_by_email(db, email)
+        client = None
+        if uid:
+            try:
+                client = db.query(Cliente).filter(Cliente.id_cliente == int(uid)).first()
+            except (TypeError, ValueError):
+                client = None
+        if client is None:
+            client = _get_client_by_email(db, email)
         if not client or not client.is_active:
             raise HTTPException(401, "Cliente no válido")
-        return _create_tokens(email, "client", rol="cliente")
+        return _create_tokens(client.id_cliente, email, "client", rol="cliente")
 
 # ──────────────────────────────────────────────────────────────────
 # 🔒 Cambio de contraseña

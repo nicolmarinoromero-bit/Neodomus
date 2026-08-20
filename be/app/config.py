@@ -16,8 +16,8 @@ class Settings(BaseSettings):
     # --- JWT y seguridad ---
     SECRET_KEY: str = "clave_super_segura_para_desarrollo_cambiar_en_produccion"
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
-    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 30
     
     # --- Verificación de email y recuperación de contraseña ---
     VERIFICATION_TOKEN_EXPIRE_HOURS: int = 24

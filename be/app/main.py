@@ -12,6 +12,10 @@ from app.routers import (
     clients_router,
     tecnicos_router,
     productos_router,
+    citas_router,
+    solicitudes_router,
+    reports_router,
+    consultas_router,
 )
 
 # Crear la aplicación FastAPI
@@ -31,6 +35,10 @@ app.include_router(users_router, prefix="/api/v1")
 app.include_router(clients_router, prefix="/api/v1")
 app.include_router(tecnicos_router, prefix="/api/v1")
 app.include_router(productos_router, prefix="/api/v1")
+app.include_router(citas_router, prefix="/api/v1")
+app.include_router(solicitudes_router, prefix="/api/v1")
+app.include_router(reports_router, prefix="/api/v1")
+app.include_router(consultas_router, prefix="/api/v1")
 
 # Endpoint de prueba
 @app.get("/")

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional
@@ -14,6 +14,7 @@ from app.services.auth_service import (
     request_password_reset,
     verify_password_reset_code,
     reset_password,
+    solicitar_habilitacion,
 )
 from app.schemas.auth import (
     ClientCreate,
@@ -56,6 +57,12 @@ async def resend_verification_endpoint(req: ResendVerificationRequest, db: Sessi
 def login_endpoint(login_data: UserLogin, db: Session = Depends(get_db)):
     return login(db, login_data)
 
+@router.post("/solicitar-habilitacion")
+def solicitar_habilitacion_endpoint(req: UserLogin, db: Session = Depends(get_db)):
+    """Crea una solicitud de habilitación para un cliente con la cuenta inhabilitada.
+    Requiere email y contraseña para comprobar la identidad. No habilita la cuenta."""
+    return solicitar_habilitacion(db, req.email, req.password)
+
 @router.post("/refresh", response_model=TokenResponse)
 def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
     return refresh_access_token(db, refresh_token)
@@ -76,9 +83,10 @@ def change_password_endpoint(
 async def forgot_password(
     req: ForgotPasswordRequest,
     request: Request,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
-    await request_password_reset(db, req.email, request.client.host)
+    background_tasks.add_task(request_password_reset, db, req.email, request.client.host)
     return {"msg": "Si el email está registrado, recibirás un código de recuperación"}
 
 @router.post("/verify-code")

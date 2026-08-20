@@ -1,90 +1,181 @@
-// src/components/layout/Navbar.tsx
-import { Link } from 'react-router-dom';
-import { useAuth } from '@contexts/AuthContext';
-import logo from '@assets/images/Logo.jpg';
-import helpIcon from '@assets/images/Icono.png';
-import perfilIcon from '@assets/images/perfil.png';
-import '@styles/navbar.css';
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@contexts/AuthContext";
+import { useAuthModal } from "@contexts/AuthModalContext";
+import { useCart } from "@contexts/CartContext";
+import { useState, useRef, useEffect } from "react";
+import { FaRightFromBracket, FaCartShopping, FaBell } from "react-icons/fa6";
+import { getAvatar } from "@utils/profileStorage";
+import { useIdioma } from "@i18n/IdiomaContext";
+
+import logo from "@assets/images/Logo.jpg";
+import helpIcon from "@assets/images/Icono.png";
+import perfilIcon from "@assets/images/perfil.png";
+
+import "../../styles/navbar.css";
 
 const Navbar = () => {
-  const { rol } = useAuth();
+  const { user, rol, logout } = useAuth();
+  const { openAuth } = useAuthModal();
+  const { totalItems } = useCart();
+  const { t } = useIdioma();
+  const navigate = useNavigate();
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [avatar, setAvatar] = useState<string>(perfilIcon);
 
-  // Ruta de perfil según rol
   const getPerfilPath = () => {
-    if (rol === 'cliente') return '/perfil/cliente';
-    if (rol === 'administrador') return '/perfil/admin';
-    return '/perfil/tecnico';
+    if (rol === "cliente") return "/perfil";
+    if (rol === "administrador") return "/perfil/admin";
+    return "/perfil/tecnico";
   };
 
-  // Navbar público (no autenticado)
-  if (!rol) {
-    return (
+  useEffect(() => {
+    const savedAvatar = getAvatar();
+    if (savedAvatar) setAvatar(savedAvatar);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+    setShowDropdown(false);
+  };
+
+  const nombreCompleto = user?.nombre || 'Usuario';
+  const esFemenino = nombreCompleto.toLowerCase().endsWith('a') || false;
+
+  const toggleDropdown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowDropdown(!showDropdown);
+  };
+
+  return (
+    <div className="neodomus-header">
       <header>
         <div className="navbar">
+
+          {/* Logo - Solo el logo principal */}
           <div className="logo">
-            <Link to="/"><img src={logo} alt="Logo Neodomus" /></Link>
-          </div>
-          <nav className="menu">
-            <Link to="/productos">Productos</Link>
-            <Link to="/info">Sobre nosotros</Link>
-            <Link to="/ayuda" className="icon-link">
-              Ayuda <img src={helpIcon} alt="ayuda" />
+            <Link to="/home">
+              <img src={logo} alt="Logo Neodomus" />
             </Link>
-          </nav>
-          <div className="nav-right">
-            <Link to="/register">Registrarse</Link>
-            <Link to="/login">Iniciar sesión</Link>
           </div>
+
+          {/* Menú */}
+          <nav className="menu">
+            {!rol ? (
+              <>
+                <Link to="/productos">{t('nav.productos')}</Link>
+                <Link to="/info">{t('nav.sobreNosotros')}</Link>
+
+                <Link to="/ayuda" className="icon-link">
+                  {t('nav.ayuda')}
+                  <img src={helpIcon} alt="Ayuda" />
+                </Link>
+              </>
+            ) : (
+              <>
+                {rol === "cliente" && (
+                  <>
+                    <Link to="/productos">{t('nav.productos')}</Link>
+                    <Link to="/cliente/tecnicos">{t('nav.tecnicos')}</Link>
+                    <Link to="/cliente/citas">{t('nav.citas')}</Link>
+                    <Link to="/cliente/ayuda">{t('nav.ayuda')}</Link>
+                  </>
+                )}
+
+                {rol === "administrador" && (
+                  <>
+                    <Link to="/dashboard/admin">{t('nav.inicio')}</Link>
+                    <Link to="/admin/productos">{t('nav.productos')}</Link>
+                    <Link to="/admin/clientes">{t('nav.usuarios')}</Link>
+                  </>
+                )}
+
+                {rol === "tecnico" && (
+                  <>
+                    <Link to="/dashboard/tecnico">{t('nav.inicio')}</Link>
+                    <Link to="/tecnico/citas">{t('nav.citas')}</Link>
+                    <Link to="/tecnico/servicios">{t('nav.servicios')}</Link>
+                  </>
+                )}
+              </>
+            )}
+          </nav>
+
+          {/* Parte derecha */}
+          <div className="nav-right">
+            <button
+              type="button"
+              className="notif-button"
+              onClick={() => navigate(rol === 'administrador' ? '/admin/notificaciones' : '/notificaciones')}
+              aria-label={t('nav.verNotificaciones')}
+              title={t('nav.verNotificaciones')}
+            >
+              <FaBell className="notif-icon" />
+            </button>
+
+                <button
+                  type="button"
+                  className="cart-button"
+                  onClick={() => navigate('/carrito')}
+                  aria-label={t('nav.verCarrito')}
+                  title={t('nav.verCarrito')}
+                >
+                  <FaCartShopping className="cart-icon" />
+              {totalItems > 0 && <span className="cart-badge">{totalItems}</span>}
+            </button>
+
+            {!rol ? (
+              <>
+                <button type="button" className="btn-register" onClick={() => openAuth('registro')}>
+                  {t('nav.registrarse')}
+                </button>
+
+                <button type="button" className="btn-login" onClick={() => openAuth('ingresar')}>
+                  {t('nav.iniciarSesion')}
+                </button>
+              </>
+            ) : (
+              <div className="user-menu" ref={dropdownRef}>
+                <div className="user-welcome" onClick={toggleDropdown}>
+                  <div className="welcome-text">
+                    <span className="welcome-greeting">{esFemenino ? t('nav.bienvenida') : t('nav.bienvenido')}</span>
+                    <span className="welcome-name">{nombreCompleto}</span>
+                  </div>
+                  <img
+                    src={avatar}
+                    alt={`Perfil de ${nombreCompleto}`}
+                    className="user-avatar"
+                  />
+                </div>
+
+                {showDropdown && (
+                  <div className="user-dropdown">
+                    <Link to={getPerfilPath()} className="dropdown-item" onClick={() => setShowDropdown(false)}>
+                      {t('nav.miPerfil')}
+                    </Link>
+                    <button type="button" className="dropdown-item dropdown-logout" onClick={handleLogout}>
+                      <FaRightFromBracket /> {t('nav.cerrarSesion')}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
         </div>
       </header>
-    );
-  }
-
-  // Navbar autenticado (sin enlace a cambiar contraseña)
-  return (
-    <header>
-      <div className="navbar">
-        <div className="logo">
-          <Link to="/"><img src={logo} alt="Logo Neodomus" /></Link>
-        </div>
-        <nav className="menu">
-          {rol === 'cliente' && (
-            <>
-              <Link to="/dashboard/cliente">Productos</Link>
-              <Link to="/cliente/Tecnicos">Técnicos</Link>
-              <Link to="/cliente/citas">Citas</Link>
-              <Link to="/cliente/agendar-cita">Agendar cita</Link>
-              <Link to="/cliente/mis-compras">Mis compras</Link>
-              <Link to="/cliente/Ayuda">Ayuda</Link>
-            </>
-          )}
-          {rol === 'administrador' && (
-            <>
-              <Link to="/dashboard/admin">Inicio</Link>
-              <Link to="/admin/Ventas">Ventas</Link>
-              <Link to="/admin/inventarios">Inventario</Link>
-              <Link to="/admin/registrar-tecnico">Técnicos</Link>
-            </>
-          )}
-          {rol === 'tecnico' && (
-            <>
-              <Link to="/dashboard/tecnico">Inicio</Link>
-              <Link to="/tecnico/disponibilidad">Citas realizadas</Link>
-              <Link to="/tecnico/evidencias">Evidencias</Link>
-              <Link to="/tecnico/ruta">Rutas</Link>
-              <Link to="/tecnico/pagos">Pagos</Link>
-            </>
-          )}
-          {/* El enlace a "Cambiar contraseña" se ha eliminado porque estará en la página de perfil */}
-        </nav>
-        <div className="nav-right">
-          <Link to={getPerfilPath()} className="perfil-link">
-            <span>Mi perfil</span>
-            <img src={perfilIcon} alt="perfil" />
-          </Link>
-        </div>
-      </div>
-    </header>
+    </div>
   );
 };
 

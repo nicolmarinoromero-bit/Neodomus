@@ -6,32 +6,80 @@ API para gestión de ventas, servicios técnicos, inventario y facturación.
 
 ```bash
 docker-compose up --build
+```
 
 La API estará en http://localhost:8000 , documentación en /docs.
 
 Base de datos (MySQL Workbench)
-Host: localhost
 
-Puerto: 3306
+- Host: localhost
+- Puerto: 3307
+- Usuario: neodomus
+- Contraseña: neodomus123
+- Base de datos: neodomus
 
-Usuario: neodomus
+## Base de datos y migraciones (Alembic)
 
-Contraseña: neodomus123
+La estructura de la base de datos se gestiona con **Alembic** y se versiona en
+el repositorio (`be/alembic/versions/`). No se usa `scripts/init_db.sql`: el
+esquema completo y los datos iniciales están en la migración inicial
+`0001_baseline_esquema_inicial.py`.
 
+### Persona que acaba de clonar el repositorio
 
-### `scripts/init_db.sql`
+```bash
+docker-compose up --build
+```
 
-```sql
-USE neodomus;
+Al arrancar, el contenedor `api` ejecuta automáticamente `alembic upgrade head`
+antes de iniciar FastAPI. La base de datos queda creada con el esquema completo
+(incluida `producto_variantes`) y los datos iniciales.
 
-INSERT IGNORE INTO tipos_documento (nombre_tipo) VALUES ('cc'), ('ce');
-INSERT IGNORE INTO roles_usuario (nombre_rol) VALUES ('administrador'), ('tecnico');
-INSERT IGNORE INTO tipos_servicios (descripcion_tipo) VALUES 
-('instalación'), ('mantenimiento'), ('configuración'), ('soporte'), ('programación'), ('asesoría');
-INSERT IGNORE INTO estados_cita (nombre_estado) VALUES ('pendiente'), ('confirmada'), ('completada'), ('cancelada');
-INSERT IGNORE INTO condiciones_pago (descripcion, dias_credito) VALUES ('contado',0), ('15 días',15), ('30 días',30);
-INSERT IGNORE INTO tipos_comprobante (nombre, prefijo) VALUES ('factura','FAC'), ('nota crédito','NC');
+### Persona que ya tiene una base de datos existente
 
--- Insertar un administrador por defecto (contraseña: admin123)
-INSERT IGNORE INTO usuarios (nombre_usuario, apellido_usuario, id_tipo_documento_u, documento_usuario, telefono_usuario, correo_usuario, contraseña_usuario, id_rol_u, activo)
-VALUES ('Admin', 'Sistema', 1, 111111111, 300000000, 'admin@neodomus.com', '$2b$12$KIXpzCv6VxPqCQzO4QH3eO8yYjZqXVNZYbGcYX7tZQ0cZ6sJZy3MG', 1, 1);
+```bash
+docker-compose up --build
+```
+
+La migración inicial es idempotente: usa `CREATE TABLE IF NOT EXISTS` y solo
+inserta datos iniciales si la tabla está vacía. Por lo tanto, al ejecutarse
+sobre una base existente no modifica ni elimina nada: solo crea las tablas que
+faltan (por ejemplo `producto_variantes`) y registra la versión en
+`alembic_version`.
+
+### Crear una nueva migración
+
+Cuando se agregue una tabla, columna o relación nueva en los modelos:
+
+```bash
+# Dentro del contenedor api
+docker exec -it neodomus_api uv run alembic revision --autogenerate -m "descripcion del cambio"
+
+# Revisar el archivo generado y luego aplicarlo
+docker exec -it neodomus_api uv run alembic upgrade head
+```
+
+Subir tanto el archivo de migración como los cambios de modelos al repositorio.
+Las demás personas del equipo solo ejecutan `docker-compose up --build` (o
+`alembic upgrade head`) para actualizar su base de datos.
+
+### Otros comandos útiles
+
+```bash
+# Ver en qué revisión está la base de datos
+docker exec -it neodomus_api uv run alembic current
+
+# Ver el historial de migraciones
+docker exec -it neodomus_api uv run alembic history
+
+# Aplicar migraciones manualmente
+docker exec -it neodomus_api uv run alembic upgrade head
+```
+
+### Verificar que la tabla producto_variantes existe
+
+```bash
+docker exec neodomus_mysql mysql -uneodomus -pneodomus123 -e "SHOW TABLES FROM neodomus LIKE 'producto_variantes';"
+```
+
+Debe devolver `producto_variantes` y además la tabla `alembic_version`.

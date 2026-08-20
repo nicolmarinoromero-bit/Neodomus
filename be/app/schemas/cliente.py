@@ -13,3 +13,11 @@ class ClientResponse(BaseModel):
     is_active: bool
 
     model_config = ConfigDict(from_attributes=True)
+
+class ClientUpdate(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    documento_cliente: Optional[int] = None
+    telefono_cliente: Optional[int] = None
+    email: Optional[EmailStr] = None
+    address: Optional[str] = None
