@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 class EmployeeResponse(BaseModel):
     id_usuario: int
@@ -44,6 +44,6 @@ class UserUpdate(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None
-    telefono_usuario: Optional[int] = None
+    telefono_usuario: Optional[int] = Field(None, ge=1000000000, le=9999999999)
     certificacion_t: Optional[str] = None
     cargo_t: Optional[str] = None

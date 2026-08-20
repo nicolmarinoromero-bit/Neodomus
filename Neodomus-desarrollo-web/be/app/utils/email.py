@@ -215,6 +215,43 @@ async def send_verification_email(to_email: str, code: str) -> bool:
 
 
 # ============================================================
+# 3. Cambio de correo electrónico (código de verificación)
+# ============================================================
+async def send_email_change_code(to_email: str, code: str) -> bool:
+    """
+    Envía el código de 6 dígitos para verificar el cambio de correo.
+    Se envía al correo actual de la cuenta para confirmar la identidad.
+    """
+    subject = "Neodomus - Código para cambiar tu correo electrónico"
+
+    body = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Cambio de correo electrónico</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; padding: 30px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            <h1 style="color: #2c3e50; text-align: center;">Cambio de correo electrónico</h1>
+            <p style="font-size: 16px; line-height: 1.5; color: #333;">Hemos recibido una solicitud para cambiar el correo electrónico de tu cuenta en <strong>Neodomus</strong>.</p>
+            <p style="font-size: 16px; line-height: 1.5; color: #333;">Utiliza el siguiente código de 6 dígitos para confirmar el cambio:</p>
+            <div style="background-color: #ecf0f1; padding: 15px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 5px; border-radius: 5px; margin: 20px 0;">
+                {code}
+            </div>
+            <p style="font-size: 14px; color: #7f8c8d;">Este código expira en {settings.PASSWORD_RESET_TOKEN_EXPIRE_MINUTES} minutos.</p>
+            <p style="font-size: 14px; color: #7f8c8d;">Si no solicitaste este cambio, ignora este mensaje. Tu correo actual seguirá activo.</p>
+            <hr style="margin: 30px 0;">
+            <p style="font-size: 12px; color: #95a5a6; text-align: center;">Neodomus - Seguridad y confianza</p>
+        </div>
+    </body>
+    </html>
+    """
+
+    return await send_email(to_email, subject, body)
+
+
+# ============================================================
 # 2. Recuperación de contraseña (código de restablecimiento)
 # ============================================================
 async def send_password_reset_code(to_email: str, code: str, user_type: str) -> bool:

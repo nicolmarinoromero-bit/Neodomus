@@ -157,11 +157,11 @@ def update_my_profile(
     update_data = data.model_dump(exclude_unset=True)
     if "email" in update_data:
         email = update_data["email"].lower().strip()
-        existing = db.query(Cliente).filter(
-            Cliente.email == email, Cliente.id_cliente != current_client.id_cliente
-        ).first()
-        if existing:
-            raise HTTPException(status_code=400, detail="El email ya está en uso")
+        if email != current_client.email:
+            raise HTTPException(
+                status_code=400,
+                detail="Para cambiar tu correo debes verificar el código enviado a tu correo actual",
+            )
         update_data["email"] = email
     for field, value in update_data.items():
         setattr(current_client, field, value)

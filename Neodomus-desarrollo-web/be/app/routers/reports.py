@@ -94,23 +94,56 @@ def _tecnico_ids(db: Session, id_tecnico: int) -> list[int]:
 
 @router.get("/resumen")
 def resumen_admin(
+    fecha_inicio: Optional[date] = None,
+    fecha_fin: Optional[date] = None,
     _admin_user: User = Depends(_admin),
     db: Session = Depends(get_db),
 ):
-    """Resumen de métricas reales del sistema (solo admin)"""
+    """Resumen de métricas reales del sistema (solo admin).
+    Si se indican fecha_inicio y fecha_fin, las métricas dependientes de la
+    fecha se calculan únicamente dentro de ese rango."""
+    if (fecha_inicio is None) != (fecha_fin is None):
+        raise HTTPException(status_code=400, detail="Debes indicar la fecha de inicio y la fecha de fin")
+    if fecha_inicio and fecha_fin and fecha_fin < fecha_inicio:
+        raise HTTPException(status_code=400, detail="La fecha final no puede ser anterior a la fecha inicial")
+
+    filtro_pedidos = ()
+    filtro_citas = ()
+    filtro_clientes = ()
+    if fecha_inicio and fecha_fin:
+        filtro_pedidos = (
+            func.date(Pedido.fecha_peedido) >= fecha_inicio,
+            func.date(Pedido.fecha_peedido) <= fecha_fin,
+        )
+        filtro_citas = (
+            Cita.fecha >= fecha_inicio,
+            Cita.fecha <= fecha_fin,
+        )
+        filtro_clientes = (
+            func.date(Cliente.created_at) >= fecha_inicio,
+            func.date(Cliente.created_at) <= fecha_fin,
+        )
 
     # ── Ventas y pedidos ────────────────────────────────
-    pedidos_data = db.query(
+    q_pedidos_data = db.query(
         func.date_format(Pedido.fecha_peedido, "%Y-%m").label("mes"),
         func.count(Pedido.id_pedido).label("cantidad"),
         func.coalesce(func.sum(Pedido.total_pedido), 0).label("ventas"),
-    ).filter(Pedido.fecha_peedido.isnot(None)).group_by("mes").order_by("mes").all()
+    ).filter(Pedido.fecha_peedido.isnot(None))
+    if filtro_pedidos:
+        q_pedidos_data = q_pedidos_data.filter(*filtro_pedidos)
+    pedidos_data = q_pedidos_data.group_by("mes").order_by("mes").all()
 
-    ventas_total = db.query(func.coalesce(func.sum(Pedido.total_pedido), 0)).scalar() or 0
-    pedidos_total = db.query(func.count(Pedido.id_pedido)).scalar() or 0
+    q_ventas_total = db.query(func.coalesce(func.sum(Pedido.total_pedido), 0))
+    q_pedidos_total = db.query(func.count(Pedido.id_pedido))
+    if filtro_pedidos:
+        q_ventas_total = q_ventas_total.filter(*filtro_pedidos)
+        q_pedidos_total = q_pedidos_total.filter(*filtro_pedidos)
+    ventas_total = q_ventas_total.scalar() or 0
+    pedidos_total = q_pedidos_total.scalar() or 0
 
     # ── Productos más vendidos ──────────────────────────
-    top = (
+    q_top = (
         db.query(
             Producto.nombre_producto,
             func.coalesce(func.sum(DetallePedido.cantidad_detalle), 0).label("cantidad"),
@@ -118,25 +151,44 @@ def resumen_admin(
         )
         .join(Pedido, Pedido.id_pedido == DetallePedido.id_pedido_d)
         .join(Producto, Producto.id_producto == DetallePedido.id_producto_d)
-        .group_by(Producto.id_producto)
+    )
+    if filtro_pedidos:
+        q_top = q_top.filter(*filtro_pedidos)
+    top = (
+        q_top.group_by(Producto.id_producto)
         .order_by(func.sum(DetallePedido.cantidad_detalle).desc())
         .limit(6)
         .all()
     )
 
     # ── Clientes ────────────────────────────────────────
-    clientes_total = db.query(func.count(Cliente.id_cliente)).scalar() or 0
+    q_clientes_total = db.query(func.count(Cliente.id_cliente))
+    if filtro_clientes:
+        q_clientes_total = q_clientes_total.filter(*filtro_clientes)
+    clientes_total = q_clientes_total.scalar() or 0
 
     # ── Citas ───────────────────────────────────────────
-    citas_total = db.query(func.count(Cita.id_cita)).scalar() or 0
-    citas_por_estado = {
-        e: (db.query(func.count(Cita.id_cita)).filter(Cita.estado == e).scalar() or 0)
+    q_citas_total = db.query(func.count(Cita.id_cita))
+    q_citas_por_estado = {
+        e: db.query(func.count(Cita.id_cita)).filter(Cita.estado == e)
         for e in ("Pendiente", "Confirmada", "Finalizada", "Cancelada")
     }
-    citas_por_mes = db.query(
+    q_citas_por_mes = db.query(
         func.date_format(Cita.fecha, "%Y-%m").label("mes"),
         func.count(Cita.id_cita).label("cantidad"),
-    ).group_by(func.date_format(Cita.fecha, "%Y-%m")).order_by("mes").all()
+    )
+    if filtro_citas:
+        q_citas_total = q_citas_total.filter(*filtro_citas)
+        for e in q_citas_por_estado:
+            q_citas_por_estado[e] = q_citas_por_estado[e].filter(*filtro_citas)
+        q_citas_por_mes = q_citas_por_mes.filter(*filtro_citas)
+    citas_total = q_citas_total.scalar() or 0
+    citas_por_estado = {
+        e: (q_citas_por_estado[e].scalar() or 0) for e in ("Pendiente", "Confirmada", "Finalizada", "Cancelada")
+    }
+    citas_por_mes = (
+        q_citas_por_mes.group_by(func.date_format(Cita.fecha, "%Y-%m")).order_by("mes").all()
+    )
 
     # ── Técnicos ────────────────────────────────────────
     tecnicos_total = db.query(func.count(Tecnico.id_tecnico)).scalar() or 0
@@ -729,8 +781,10 @@ _MESES_NOMBRE = [
 ]
 
 
-def _nombre_archivo_reporte(periodo: str, inicio: date) -> str:
+def _nombre_archivo_reporte(periodo: str, inicio: date, fin: date | None = None) -> str:
     """Nombre del archivo PDF según el período del reporte."""
+    if periodo == "personalizado":
+        return f"Reporte_Personalizado_{inicio.isoformat()}_al_{fin.isoformat()}.pdf"
     if periodo == "semana":
         return f"Reporte_Semanal_{inicio.isoformat()}.pdf"
     if periodo == "mes":
@@ -946,18 +1000,35 @@ def _datos_reporte_completo(db: Session, inicio: date, fin: date, periodo: str) 
 @router.get("/pdf")
 def reporte_pdf(
     periodo: str = Query("mes", regex="^(semana|mes|anio)$"),
+    fecha_inicio: Optional[date] = None,
+    fecha_fin: Optional[date] = None,
     _admin_user: User = Depends(_admin),
     db: Session = Depends(get_db),
 ):
     """Descarga el reporte general del panel en PDF profesional: portada
     con logo, resumen ejecutivo, análisis con gráficas, detalle con tablas
-    y resumen final, para el período indicado."""
-    inicio, fin = _resolver_rango(periodo, None, None)
-    datos = _datos_reporte_completo(db, inicio, fin, periodo)
-    buf = generar_reporte_completo_pdf(datos, periodo, inicio, fin)
+    y resumen final. Si se indican fecha_inicio y fecha_fin, el reporte se
+    calcula sobre ese rango personalizado; si no, se usa el periodo."""
+    if (fecha_inicio is None) != (fecha_fin is None):
+        raise HTTPException(status_code=400, detail="Debes indicar la fecha de inicio y la fecha de fin")
+    if fecha_inicio and fecha_fin and fecha_fin < fecha_inicio:
+        raise HTTPException(status_code=400, detail="La fecha final no puede ser anterior a la fecha inicial")
+    inicio, fin = _resolver_rango(periodo, fecha_inicio, fecha_fin)
+    es_personalizado = bool(fecha_inicio and fecha_fin)
+    grupo = "mes" if es_personalizado else periodo
+    datos = _datos_reporte_completo(db, inicio, fin, grupo)
+    label_periodo = "personalizado" if es_personalizado else periodo
+    nombre_admin = f"{_admin_user.first_name} {_admin_user.last_name}".strip()
+    buf = generar_reporte_completo_pdf(
+        datos,
+        label_periodo,
+        inicio,
+        fin,
+        preparado_por=nombre_admin or "Equipo Administrativo NEODOMUS",
+    )
     return StreamingResponse(
         buf,
         media_type="application/pdf",
-        headers={"Content-Disposition": f'attachment; filename="{_nombre_archivo_reporte(periodo, inicio)}"'},
+        headers={"Content-Disposition": f'attachment; filename="{_nombre_archivo_reporte(label_periodo, inicio, fin)}"'},
     )
 

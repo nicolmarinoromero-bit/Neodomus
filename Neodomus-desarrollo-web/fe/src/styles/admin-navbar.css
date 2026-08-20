@@ -1,5 +1,11 @@
 /* ═══ Navbar Administrador · Neodomus ═════════════════════════ */
 
+/* Altura del navbar expuesta a los modales: los modales se posicionan
+   debajo del navbar y se adaptan al espacio disponible restante. */
+.admin-layout {
+  --ap-navbar-h: 72px;
+}
+
 .admin-navbar {
   position: sticky;
   top: 0;

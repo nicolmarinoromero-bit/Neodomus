@@ -20,7 +20,7 @@ class ClientCreate(BaseModel):
     password: str
     id_tipo_documento_c: Optional[int] = None
     documento_cliente: Optional[int] = None
-    telefono_cliente: Optional[int] = None
+    telefono_cliente: Optional[int] = Field(None, ge=1000000000, le=9999999999)
     address: Optional[str] = None
 
     @field_validator("password")
@@ -67,6 +67,13 @@ class VerifyEmailRequest(BaseModel):
 class VerifyCodeRequest(BaseModel):
     email: EmailStr
     code: str = Field(min_length=6, max_length=6)
+
+class RequestEmailChangeRequest(BaseModel):
+    nuevo_email: EmailStr
+
+class VerifyEmailChangeRequest(BaseModel):
+    code: str = Field(min_length=6, max_length=6)
+    nuevo_email: EmailStr
 
 # 🔥 TokenResponse ahora tiene "rol" en lugar de "role"
 class TokenResponse(BaseModel):

@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime, date
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from app.database import get_db
 from app.models.user import User
@@ -24,7 +24,7 @@ class EmployeeCreate(BaseModel):
     last_name: str
     email: EmailStr
     password: str
-    telefono_usuario: Optional[int] = None
+    telefono_usuario: Optional[int] = Field(None, ge=1000000000, le=9999999999)
     documento_usuario: Optional[int] = None
     id_rol: int = 2
     certificacion: Optional[str] = None
@@ -36,7 +36,7 @@ class EmployeeUpdate(BaseModel):
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None
     password: Optional[str] = None
-    telefono_usuario: Optional[int] = None
+    telefono_usuario: Optional[int] = Field(None, ge=1000000000, le=9999999999)
     documento_usuario: Optional[int] = None
     is_active: Optional[bool] = None
     desactivado_hasta: Optional[datetime] = None
@@ -200,11 +200,10 @@ def update_me(
     if "email" in update_data:
         email = update_data["email"].lower().strip()
         if email != current_user.email:
-            existe = db.query(User).filter(
-                User.email == email, User.id_usuario != current_user.id_usuario
-            ).first()
-            if existe:
-                raise HTTPException(status_code=400, detail="El correo ya está registrado")
+            raise HTTPException(
+                status_code=400,
+                detail="Para cambiar tu correo debes verificar el código enviado a tu correo actual",
+            )
         update_data["email"] = email
     for campo in ("first_name", "last_name"):
         if campo in update_data and not (update_data[campo] or "").strip():

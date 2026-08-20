@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import TYPE_CHECKING, List
-from sqlalchemy import Boolean, DateTime, Integer, String, func
+from sqlalchemy import BigInteger, Boolean, DateTime, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 
@@ -18,7 +18,7 @@ class Cliente(Base):
 
     id_tipo_documento_c: Mapped[int] = mapped_column(Integer, nullable=True)
     documento_cliente: Mapped[int] = mapped_column(Integer, unique=True, nullable=True)
-    telefono_cliente: Mapped[int] = mapped_column(Integer, nullable=True)
+    telefono_cliente: Mapped[int] = mapped_column(BigInteger, nullable=True)
     address: Mapped[str] = mapped_column(String(150), nullable=True)
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

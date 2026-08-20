@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { FaUserPen, FaCamera, FaPaperPlane, FaTrashCan } from 'react-icons/fa6';
+import { FaUserPen, FaCamera, FaTrashCan } from 'react-icons/fa6';
 import api from '@services/api';
 import { useAuth } from '@contexts/AuthContext';
+import { useIdioma } from '@i18n/IdiomaContext';
 import { getAvatar, getIniciales, PF_AVATAR_KEY, removeAvatar } from '@utils/profileStorage';
 import SectionHeader from './SectionHeader';
+import PerfilCuenta from './PerfilCuenta';
 
 export type NotifyFn = (message: string, type?: 'success' | 'error' | 'info') => void;
 
@@ -22,21 +24,23 @@ interface ClientProfile {
 
 const PersonalTab = ({ notify, onProfileChanged }: PersonalTabProps) => {
   const { user, refreshUserProfile } = useAuth();
+  const { t } = useIdioma();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [avatar, setAvatar] = useState<string | null>(getAvatar());
   const [nombre, setNombre] = useState('');
   const [apellido, setApellido] = useState('');
   const [email, setEmail] = useState('');
+  const [emailOriginal, setEmailOriginal] = useState('');
   const [telefono, setTelefono] = useState('');
   const [direccion, setDireccion] = useState('');
-  const [guardando, setGuardando] = useState(false);
 
   useEffect(() => {
     const syncFromContext = () => {
       setNombre(user?.nombre?.split(' ')[0] || '');
       setApellido(user?.nombre?.split(' ').slice(1).join(' ') || '');
       setEmail(user?.correo || '');
+      setEmailOriginal(user?.correo || '');
     };
     syncFromContext();
 
@@ -46,6 +50,7 @@ const PersonalTab = ({ notify, onProfileChanged }: PersonalTabProps) => {
         setNombre(res.data.first_name || '');
         setApellido(res.data.last_name || '');
         setEmail(res.data.email || '');
+        setEmailOriginal(res.data.email || '');
         setTelefono(res.data.telefono_cliente ? String(res.data.telefono_cliente) : '');
         setDireccion(res.data.address || '');
       })
@@ -64,7 +69,7 @@ const PersonalTab = ({ notify, onProfileChanged }: PersonalTabProps) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 4 * 1024 * 1024) {
-      notify('La imagen debe pesar menos de 4 MB', 'error');
+      notify(t('perfil.fotoPesada'), 'error');
       return;
     }
     const reader = new FileReader();
@@ -73,7 +78,7 @@ const PersonalTab = ({ notify, onProfileChanged }: PersonalTabProps) => {
       setAvatar(dataUrl);
       localStorage.setItem(PF_AVATAR_KEY, dataUrl);
       window.dispatchEvent(new CustomEvent('client-profile-updated'));
-      notify('Foto de perfil actualizada', 'success');
+      notify(t('perfil.fotoActualizada'), 'success');
     };
     reader.readAsDataURL(file);
   };
@@ -81,36 +86,31 @@ const PersonalTab = ({ notify, onProfileChanged }: PersonalTabProps) => {
   const handleEliminarFoto = () => {
     setAvatar(null);
     removeAvatar();
-    notify('Foto de perfil eliminada', 'success');
+    notify(t('perfil.fotoEliminada'), 'success');
   };
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-      notify('Ingresa un correo electrónico válido', 'error');
-      return;
-    }
-    setGuardando(true);
+  const guardarCampo = async (payload: Record<string, unknown>) => {
     try {
-      const payload: Record<string, unknown> = {
-        first_name: nombre.trim(),
-        last_name: apellido.trim(),
-        email: email.trim(),
-      };
-      const telNum = parseInt(telefono.replace(/\D/g, ''), 10);
-      if (telefono.trim()) payload.telefono_cliente = telNum;
-      if (direccion.trim()) payload.address = direccion.trim();
-      await api.put('/clients/me', payload);
-
+      const body: Record<string, unknown> = { ...payload };
+      const tel = String(body.telefono_cliente ?? '').replace(/\D/g, '');
+      body.telefono_cliente = tel ? parseInt(tel, 10) : null;
+      await api.put('/clients/me', body);
+      if (typeof body.first_name === 'string' && typeof body.last_name === 'string') {
+        setNombre(body.first_name.trim());
+        setApellido(body.last_name.trim());
+      }
+      setTelefono(tel);
+      setDireccion(String(body.address ?? '').trim());
       await refreshUserProfile();
       window.dispatchEvent(new CustomEvent('client-profile-updated'));
       onProfileChanged();
-      notify('Cambios guardados correctamente', 'success');
-    } catch (err) {
+      notify(t('perfil.cambiosGuardados'), 'success');
+      return true;
+    } catch (err: any) {
       console.error(err);
-      notify('Error al guardar los cambios', 'error');
-    } finally {
-      setGuardando(false);
+      const msg = err.response?.data?.detail;
+      notify(typeof msg === 'string' ? msg : t('perfil.errorGuardar'), 'error');
+      return false;
     }
   };
 
@@ -118,39 +118,39 @@ const PersonalTab = ({ notify, onProfileChanged }: PersonalTabProps) => {
     <div className="pf-tab">
       <SectionHeader
         icon={<FaUserPen />}
-        title="Editar perfil"
-        subtitle="Actualiza tu información personal y foto de perfil."
+        title={t('perfil.miPerfil')}
+        subtitle={t('perfil.perfilTabSub')}
       />
 
       <div className="pf-avatar-zone">
         <div className="pf-avatar-big">
           {avatar ? (
-            <img src={avatar} alt="Foto de perfil" />
+            <img src={avatar} alt={t('perfil.fotoPerfil')} />
           ) : (
             <span className="pf-avatar-iniciales" aria-hidden="true">{getIniciales(user?.nombre || '')}</span>
           )}
           <button
             type="button"
             className="pf-avatar-camera"
-            aria-label="Cambiar foto de perfil"
+            aria-label={t('perfil.cambiarFotoAria')}
             onClick={() => fileInputRef.current?.click()}
           >
             <FaCamera />
           </button>
         </div>
         <div className="pf-avatar-text">
-          <strong>Foto de perfil</strong>
-          <span>PNG o JPG, máximo 4 MB.</span>
+          <strong>{t('perfil.fotoPerfil')}</strong>
+          <span>{t('perfil.fotoPerfilHint')}</span>
           <button
             type="button"
             className="pf-btn pf-btn-ghost"
             onClick={() => fileInputRef.current?.click()}
           >
-            <FaCamera /> Cambiar foto
+            <FaCamera /> {t('perfil.cambiarFoto')}
           </button>
           {avatar && (
             <button type="button" className="pf-btn pf-btn-danger" onClick={handleEliminarFoto}>
-              <FaTrashCan /> Eliminar foto de perfil
+              <FaTrashCan /> {t('perfil.eliminarFoto')}
             </button>
           )}
           <input
@@ -163,72 +163,60 @@ const PersonalTab = ({ notify, onProfileChanged }: PersonalTabProps) => {
         </div>
       </div>
 
-      <form onSubmit={handleSave} className="pf-form">
-        <div className="pf-form-grid">
-          <div className="pf-form-group">
-            <label className="pf-form-label" htmlFor="pf-nombre">Nombre</label>
-            <input
-              id="pf-nombre"
-              className="pf-form-input"
-              type="text"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              placeholder="Tu nombre"
-              required
-            />
-          </div>
-          <div className="pf-form-group">
-            <label className="pf-form-label" htmlFor="pf-apellido">Apellidos</label>
-            <input
-              id="pf-apellido"
-              className="pf-form-input"
-              type="text"
-              value={apellido}
-              onChange={(e) => setApellido(e.target.value)}
-              placeholder="Tus apellidos"
-              required
-            />
-          </div>
-          <div className="pf-form-group">
-            <label className="pf-form-label" htmlFor="pf-email">Correo electrónico</label>
-            <input
-              id="pf-email"
-              className="pf-form-input"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div className="pf-form-group">
-            <label className="pf-form-label" htmlFor="pf-telefono">Teléfono</label>
-            <input
-              id="pf-telefono"
-              className="pf-form-input"
-              type="tel"
-              value={telefono}
-              onChange={(e) => setTelefono(e.target.value)}
-              placeholder="Ej: 3001234567"
-            />
-          </div>
-          <div className="pf-form-group pf-form-span">
-            <label className="pf-form-label" htmlFor="pf-direccion">Dirección de residencia</label>
-            <input
-              id="pf-direccion"
-              className="pf-form-input"
-              type="text"
-              value={direccion}
-              onChange={(e) => setDireccion(e.target.value)}
-              placeholder="Calle, carrera, número y complemento"
-            />
-          </div>
-        </div>
-        <div className="pf-form-actions">
-          <button type="submit" className="pf-btn pf-btn-primary" disabled={guardando}>
-            <FaPaperPlane /> {guardando ? 'Guardando…' : 'Guardar cambios'}
-          </button>
-        </div>
-      </form>
+      <PerfilCuenta
+        campos={[
+          {
+            clave: 'first_name',
+            label: t('perfil.nombre'),
+            valor: nombre,
+            placeholder: t('perfil.placeholderNombre'),
+            requerido: true,
+            bloquearPortapapeles: true,
+          },
+          {
+            clave: 'last_name',
+            label: t('perfil.apellidos'),
+            valor: apellido,
+            placeholder: t('perfil.placeholderApellidos'),
+            requerido: true,
+            bloquearPortapapeles: true,
+          },
+          {
+            clave: 'telefono_cliente',
+            label: t('perfil.telefono'),
+            valor: telefono,
+            tipo: 'tel',
+            maxLength: 10,
+            placeholder: t('perfil.placeholderTelefono'),
+            hint: t('perfil.maximo10'),
+            bloquearPortapapeles: true,
+          },
+          {
+            clave: 'address',
+            label: t('perfil.direccionResidencia'),
+            valor: direccion,
+            placeholder: t('perfil.placeholderDireccion'),
+          },
+        ]}
+        email={email}
+        emailOriginal={emailOriginal}
+        rol={t('perfil.cuentaCliente')}
+        notificar={notify}
+        onEmailVerificado={(nuevo) => {
+          setEmail(nuevo);
+          setEmailOriginal(nuevo);
+          refreshUserProfile();
+          window.dispatchEvent(new CustomEvent('client-profile-updated'));
+        }}
+        onGuardar={async (payload) => {
+          const tel = String(payload.telefono_cliente ?? '').replace(/\D/g, '');
+          if (tel && tel.length !== 10) {
+            notify(t('perfil.telefono10'), 'error');
+            return false;
+          }
+          return guardarCampo(payload);
+        }}
+      />
     </div>
   );
 };

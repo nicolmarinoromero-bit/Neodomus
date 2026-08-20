@@ -3,6 +3,7 @@ Módulo: services/auth_service.py
 Lógica de negocio para autenticación en Neodomus.
 """
 
+import json
 import random
 from datetime import datetime, timedelta
 
@@ -33,7 +34,11 @@ from app.utils.audit_log import (
     log_password_changed,
     log_password_reset_requested,
 )
-from app.utils.email import send_password_reset_code, send_verification_email
+from app.utils.email import (
+    send_email_change_code,
+    send_password_reset_code,
+    send_verification_email,
+)
 from app.utils.respaldo_usuarios import respaldar_usuarios
 from app.utils.security import (
     create_access_token,
@@ -426,6 +431,122 @@ def reset_password(db: Session, req: ResetPasswordRequest) -> None:
         entity.password_hash = hash_password(req.new_password)
     token_rec.used = True
     db.commit()
+
+# ──────────────────────────────────────────────────────────────────
+# ✉️ Cambio de correo electrónico (verificación con código)
+# ──────────────────────────────────────────────────────────────────
+
+def _es_correo_en_uso(db: Session, email: str) -> bool:
+    """Devuelve True si el correo ya pertenece a un cliente o empleado."""
+    return bool(_get_client_by_email(db, email) or _get_user_by_email(db, email))
+
+
+async def request_email_change(
+    db: Session,
+    current_user: User | Cliente,
+    nuevo_email: str,
+    ip: str = None,
+) -> dict:
+    """Genera y envía un código de verificación al correo actual para
+    autorizar el cambio de correo. El código vence en N minutos y solo
+    puede usarse una vez."""
+    nuevo = nuevo_email.lower().strip()
+    email_actual = (current_user.email or "").lower().strip()
+    if not email_actual or nuevo == email_actual:
+        raise HTTPException(400, "El nuevo correo debe ser diferente al correo actual")
+    if _es_correo_en_uso(db, nuevo):
+        raise HTTPException(400, "El correo ya está registrado")
+    user_type = "employee" if isinstance(current_user, User) else "client"
+
+    # Invalida solicitudes de cambio previas pendientes para este correo
+    previas = (
+        db.query(PasswordResetToken)
+        .filter(
+            PasswordResetToken.email == email_actual,
+            PasswordResetToken.token.isnot(None),
+            PasswordResetToken.used == False,  # noqa: E712
+            PasswordResetToken.expires_at > datetime.utcnow(),
+        )
+        .all()
+    )
+    for p in previas:
+        p.used = True
+
+    code = str(random.randint(100000, 999999))
+    expires = datetime.utcnow() + timedelta(minutes=settings.PASSWORD_RESET_TOKEN_EXPIRE_MINUTES)
+    token_record = PasswordResetToken(
+        email=email_actual,
+        user_type=user_type,
+        code=code,
+        token=json.dumps({"nuevo_email": nuevo, "intentos": 0}),
+        expires_at=expires,
+        ip_used=ip,
+    )
+    db.add(token_record)
+    db.commit()
+    try:
+        await send_email_change_code(email_actual, code)
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error enviando código de cambio de correo a {email_actual}: {e}")
+    return {"msg": "Código de verificación enviado a tu correo actual"}
+
+
+def verify_email_change(
+    db: Session,
+    current_user: User | Cliente,
+    code: str,
+    nuevo_email: str,
+) -> dict:
+    """Valida el código enviado al correo actual y aplica el cambio de correo.
+    Máximo 5 intentos fallidos; al superarlos, la solicitud queda invalidada."""
+    nuevo = nuevo_email.lower().strip()
+    email_actual = (current_user.email or "").lower().strip()
+    user_type = "employee" if isinstance(current_user, User) else "client"
+
+    rec = (
+        db.query(PasswordResetToken)
+        .filter(
+            PasswordResetToken.email == email_actual,
+            PasswordResetToken.user_type == user_type,
+            PasswordResetToken.used == False,  # noqa: E712
+            PasswordResetToken.expires_at > datetime.utcnow(),
+        )
+        .order_by(PasswordResetToken.id.desc())
+        .first()
+    )
+    if not rec:
+        raise HTTPException(400, "El código ha expirado o la solicitud ya no es válida. Solicita un nuevo código")
+
+    datos: dict = {}
+    if rec.token:
+        try:
+            datos = json.loads(rec.token)
+        except (TypeError, ValueError):
+            datos = {}
+    if datos.get("nuevo_email") != nuevo:
+        raise HTTPException(400, "El correo no coincide con la solicitud de cambio")
+
+    intentos = int(datos.get("intentos", 0))
+    if intentos >= 5:
+        rec.used = True
+        db.commit()
+        raise HTTPException(429, "Demasiados intentos. Solicita un nuevo código")
+
+    if rec.code != code:
+        datos["intentos"] = intentos + 1
+        rec.token = json.dumps(datos)
+        db.commit()
+        raise HTTPException(400, "El código de verificación es incorrecto")
+
+    if _es_correo_en_uso(db, nuevo):
+        raise HTTPException(400, "El correo ya está registrado")
+
+    current_user.email = nuevo
+    rec.used = True
+    db.commit()
+    return {"msg": "Correo actualizado correctamente"}
 
 # ──────────────────────────────────────────────────────────────────
 # 🌐 Login con Google (OAuth 2.0)

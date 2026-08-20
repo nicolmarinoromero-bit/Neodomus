@@ -19,6 +19,7 @@ export const ADMIN_TRADUCCIONES_TECNICOS: Record<string, { es: string; en: strin
   'adm.tecnicos.especialidad': { es: 'Especialidad', en: 'Specialty' },
   'adm.tecnicos.nivel': { es: 'Nivel', en: 'Level' },
   'adm.tecnicos.telefono': { es: 'Teléfono', en: 'Phone' },
+  'adm.tecnicos.telefonoInvalido': { es: 'El teléfono debe tener exactamente 10 dígitos', en: 'Phone must have exactly 10 digits' },
   'adm.tecnicos.serviciosRealiza': { es: 'Servicios que realiza', en: 'Services performed' },
   'adm.tecnicos.servInstalacion': { es: 'Instalación', en: 'Installation' },
   'adm.tecnicos.servMantenimiento': { es: 'Mantenimiento', en: 'Maintenance' },

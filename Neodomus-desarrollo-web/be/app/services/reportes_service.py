@@ -14,14 +14,13 @@ from reportlab.graphics.charts.legends import Legend
 from reportlab.graphics.charts.piecharts import Pie
 from reportlab.graphics.shapes import Drawing
 from reportlab.lib import colors
-from reportlab.lib.enums import TA_CENTER, TA_RIGHT
+from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.platypus import (
     Image,
     KeepTogether,
-    PageBreak,
     Paragraph,
     SimpleDocTemplate,
     Spacer,
@@ -39,7 +38,7 @@ FONDO_TOTAL = colors.HexColor("#f0e8d2")
 GRIS = colors.HexColor("#6b6b6b")
 BLANCO = colors.white
 
-_LABEL_PERIODO = {"semana": "Semanal", "mes": "Mensual", "anio": "Anual"}
+_LABEL_PERIODO = {"semana": "Semanal", "mes": "Mensual", "anio": "Anual", "personalizado": "Personalizado"}
 
 # ── Estilos PDF ───────────────────────────────────────────────────
 
@@ -111,9 +110,39 @@ def _styles():
             "portada_titulo", fontName="Helvetica-Bold", fontSize=17, leading=21,
             textColor=NEGRO, alignment=TA_CENTER, spaceAfter=3,
         ),
+        "portada_nombre": ParagraphStyle(
+            "portada_nombre", fontName="Helvetica-Bold", fontSize=16, leading=19,
+            textColor=ORO,
+        ),
+        "portada_rango": ParagraphStyle(
+            "portada_rango", fontName="Helvetica-Bold", fontSize=16, leading=20,
+            textColor=NEGRO, alignment=TA_CENTER,
+        ),
         "portada_sub": ParagraphStyle(
             "portada_sub", fontName="Helvetica", fontSize=10.5, leading=13,
             textColor=GRIS, alignment=TA_CENTER,
+        ),
+        "portada_etiqueta": ParagraphStyle(
+            "portada_etiqueta", fontName="Helvetica-Bold", fontSize=9,
+            leading=12, textColor=GRIS, alignment=TA_CENTER,
+            spaceBefore=6, spaceAfter=2,
+        ),
+        "portada_valor": ParagraphStyle(
+            "portada_valor", fontName="Helvetica-Bold", fontSize=13,
+            leading=17, textColor=NEGRO, alignment=TA_CENTER,
+            spaceAfter=6,
+        ),
+        "portada_cab_nombre": ParagraphStyle(
+            "portada_cab_nombre", fontName="Helvetica-Bold", fontSize=11,
+            leading=13, textColor=ORO,
+        ),
+        "portada_caja_label": ParagraphStyle(
+            "portada_caja_label", fontName="Helvetica-Bold", fontSize=7.5,
+            leading=10, textColor=GRIS, alignment=TA_LEFT, spaceAfter=4,
+        ),
+        "portada_caja_valor": ParagraphStyle(
+            "portada_caja_valor", fontName="Helvetica-Bold", fontSize=11,
+            leading=15, textColor=NEGRO, alignment=TA_LEFT,
         ),
         "meta_label": ParagraphStyle(
             "meta_label", fontName="Helvetica-Bold", fontSize=8.5,
@@ -158,8 +187,8 @@ def _cop(valor) -> str:
     return f"${v:,.0f} COP".replace(",", ".")
 
 
-def _logo_pdf() -> Image | None:
-    """Imagen del logo NEODOMUS para la portada (si está disponible)."""
+def _logo_pdf(ancho: float = 24) -> Image | None:
+    """Imagen del logo NEODOMUS para el encabezado del documento."""
     ruta = Path(__file__).resolve().parent.parent / "assets" / "logo_neodomus.jpg"
     if not ruta.exists():
         return None
@@ -170,7 +199,6 @@ def _logo_pdf() -> Image | None:
             w, h = im.size
     except Exception:
         w, h = 342, 332
-    ancho = 150
     alto = ancho * h / w
     return Image(str(ruta), width=ancho, height=alto)
 
@@ -552,10 +580,12 @@ def generar_reporte_completo_pdf(
     periodo: str,
     inicio: date,
     fin: date,
+    preparado_por: str = "Equipo Administrativo NEODOMUS",
 ) -> io.BytesIO:
-    """Reporte general del panel en PDF profesional: portada con logo,
-    resumen ejecutivo, análisis con gráficas reales, detalle con tablas
-    (encabezados repetidos y totales) y resumen final."""
+    """Reporte general del panel en PDF profesional: encabezado compacto
+    con la identidad corporativa (logo + marca), resumen ejecutivo,
+    análisis con gráficas reales, detalle con tablas (encabezados
+    repetidos y totales) y resumen final."""
     s = _styles()
     resumen = datos["resumen"]
     ventas = datos["ventas_por_periodo"]
@@ -571,99 +601,83 @@ def generar_reporte_completo_pdf(
 
     historia: list = []
 
-    # ── Portada ──────────────────────────────────────────
-    historia.append(Spacer(1, 14 * mm))
-    logo = _logo_pdf()
+    # ── Encabezado corporativo compacto: logo pequeño + marca.
+    #    Ocupa muy poco espacio; el título y la información del
+    #    reporte conservan el protagonismo. ─────────────────────────
+    historia.append(Spacer(1, 1 * mm))
+    logo = _logo_pdf(ancho=24)
     if logo:
-        t_logo = Table([[logo]], colWidths=[170 * mm])
-        t_logo.setStyle(TableStyle([
-            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        celda_logo = Table([[logo]], colWidths=[14 * mm])
+        celda_logo.setStyle(TableStyle([
+            ("ALIGN", (0, 0), (-1, -1), "LEFT"),
             ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
         ]))
-        historia.append(t_logo)
-        historia.append(Spacer(1, 6 * mm))
-    historia.append(Paragraph("NEODOMUS", s["marca"]))
-    historia.append(Paragraph("Soluciones Domóticas Inteligentes", s["portada_sub"]))
-    historia.append(Spacer(1, 7 * mm))
-
-    banda = Table([[""]], colWidths=[150 * mm], rowHeights=[2])
-    banda.setStyle(TableStyle([
-        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-        ("BACKGROUND", (0, 0), (-1, -1), ORO),
-    ]))
-    historia.append(banda)
-    historia.append(Spacer(1, 11 * mm))
-
-    historia.append(Paragraph("REPORTE GENERAL DE GESTIÓN", s["portada_titulo"]))
-    historia.append(Spacer(1, 3 * mm))
-    historia.append(
-        Paragraph(
-            f"Informe ejecutivo {label.lower()} de las operaciones del sistema",
-            s["portada_sub"],
-        )
+        contenido_cab = celda_logo
+    else:
+        contenido_cab = ""
+    header = Table(
+        [[
+            contenido_cab,
+            Paragraph(
+                "NEODOMUS<br/><font size=6.5 color='#6b6b6b'>Soluciones Domóticas Inteligentes</font>",
+                s["portada_cab_nombre"],
+            ),
+        ]],
+        colWidths=[18 * mm, 128 * mm],
     )
-    historia.append(Spacer(1, 13 * mm))
-
-    meta = [
-        ("Período del reporte", label),
-        ("Rango de fechas", f"Del {inicio.strftime('%d/%m/%Y')} al {fin.strftime('%d/%m/%Y')}"),
-        ("Fecha de generación", ahora.strftime("%d/%m/%Y %H:%M")),
-        ("Preparado por", "Equipo Administrativo NEODOMUS"),
-    ]
-    t_meta = Table(
-        [[_celda(k, s["meta_label"]), _celda(v, s["meta_valor"])] for k, v in meta],
-        colWidths=[55 * mm, 65 * mm],
-        hAlign="CENTER",
-    )
-    t_meta.setStyle(TableStyle([
+    header.setStyle(TableStyle([
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("TOPPADDING", (0, 0), (-1, -1), 3),
+        ("LEFTPADDING", (0, 0), (-1, -1), 2),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+        ("TOPPADDING", (0, 0), (-1, -1), 2),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-        ("LINEBELOW", (0, 0), (-1, -2), 0.25, GRIS),
+        ("LINEBELOW", (0, 0), (-1, -1), 0.6, GRIS),
     ]))
-    historia.append(t_meta)
-    historia.append(Spacer(1, 11 * mm))
+    historia.append(header)
 
-    def _kpi_caja(label_t: str, valor_t: str) -> Table:
-        return Table(
-            [
-                [Paragraph(valor_t, s["kpi_valor"])],
-                [Paragraph(label_t, s["kpi_label"])],
-            ],
-            colWidths=[70 * mm],
-        )
+    historia.append(Spacer(1, 5 * mm))
 
-    kpis = [
-        ("Ventas del período", _cop(resumen.get("ventas_total", 0))),
-        ("Ingresos por citas", _cop(resumen.get("ingresos_citas", 0))),
-        ("Citas del período", str(resumen.get("citas_total", 0))),
-        ("Clientes registrados", str(resumen.get("clientes_registrados", 0))),
-    ]
-    t_kpis = Table(
+    # Título del documento: protagonista, tamaño moderado.
+    historia.append(Paragraph("REPORTE GENERAL DE GESTIÓN", s["portada_titulo"]))
+    historia.append(Spacer(1, 5 * mm))
+
+    # Cuadros de información (2 × 2): períodos, fecha, responsable y tipo
+    def _caja(label: str, valor: str) -> list:
+        return [
+            Paragraph(label, s["portada_caja_label"]),
+            Paragraph(valor, s["portada_caja_valor"]),
+        ]
+
+    grid_portada = Table(
         [
-            [_kpi_caja(k[0], k[1]) for k in kpis[:2]],
-            [_kpi_caja(k[0], k[1]) for k in kpis[2:]],
+            [
+                _caja(
+                    "PERÍODO DEL REPORTE",
+                    f"{inicio.strftime('%d/%m/%Y')} — {fin.strftime('%d/%m/%Y')}",
+                ),
+                _caja("FECHA DE GENERACIÓN", ahora.strftime("%d/%m/%Y")),
+            ],
+            [
+                _caja("PREPARADO POR", preparado_por or "Equipo Administrativo NEODOMUS"),
+                _caja("TIPO DE INFORME", "General de Gestión"),
+            ],
         ],
-        colWidths=[82 * mm, 82 * mm],
+        colWidths=[73 * mm, 73 * mm],
         hAlign="CENTER",
     )
-    t_kpis.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, -1), FONDO_TABLA),
-        ("BOX", (0, 0), (-1, -1), 0.5, GRIS),
+    grid_portada.setStyle(TableStyle([
+        ("BOX", (0, 0), (-1, -1), 0.9, ORO),
         ("INNERGRID", (0, 0), (-1, -1), 0.5, GRIS),
+        ("BACKGROUND", (0, 0), (-1, -1), colors.white),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("TOPPADDING", (0, 0), (-1, -1), 10),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+        ("LEFTPADDING", (0, 0), (-1, -1), 10),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+        ("TOPPADDING", (0, 0), (-1, -1), 7),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
     ]))
-    historia.append(t_kpis)
-    historia.append(Spacer(1, 16 * mm))
-    historia.append(
-        Paragraph(
-            "© 2026 NEODOMUS · Documento generado automáticamente por el sistema de gestión.",
-            s["nota"],
-        )
-    )
-    historia.append(PageBreak())
+    historia.append(grid_portada)
+
+    historia.append(Spacer(1, 6 * mm))
 
     # ── 1. Resumen ejecutivo ─────────────────────────────
     historia.append(Paragraph("<b>1 · RESUMEN EJECUTIVO</b>", s["seccion"]))
@@ -974,11 +988,16 @@ def generar_reporte_completo_pdf(
     buf = io.BytesIO()
 
     def _deco_pagina(canvas, doc):
+        """Pie de página mínimo: línea divisoria y número de página.
+        La identidad corporativa (logo + marca) va en el encabezado."""
         canvas.saveState()
-        canvas.setFont("Helvetica", 7.5)
+        ancho = letter[0]
+        canvas.setStrokeColor(GRIS)
+        canvas.setLineWidth(0.4)
+        canvas.line(18 * mm, 12 * mm, ancho - 18 * mm, 12 * mm)
+        canvas.setFont("Helvetica", 6.5)
         canvas.setFillColor(GRIS)
-        canvas.drawString(18 * mm, 10 * mm, f"NEODOMUS · Reporte {label} de gestión")
-        canvas.drawRightString(letter[0] - 18 * mm, 10 * mm, f"Página {doc.page}")
+        canvas.drawRightString(ancho - 18 * mm, 8 * mm, f"Página {doc.page}")
         canvas.restoreState()
 
     doc = SimpleDocTemplate(
@@ -991,6 +1010,6 @@ def generar_reporte_completo_pdf(
         title=f"Reporte {label} - NEODOMUS",
         author="NEODOMUS",
     )
-    doc.build(historia, onLaterPages=_deco_pagina)
+    doc.build(historia, onFirstPage=_deco_pagina, onLaterPages=_deco_pagina)
     buf.seek(0)
     return buf

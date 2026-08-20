@@ -1,12 +1,12 @@
 // src/App.tsx
-import { useEffect, useRef } from 'react';
-import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import RoleRoute from '@components/layout/RoleRoute';
 import ScrollToTop from '@components/layout/ScrollToTop';
 import AuthModalHost from '@components/auth/AuthModalHost';
 import AuthRouteBridge from '@components/auth/AuthRouteBridge';
 import ChatBotWidget from '@components/chat/ChatBotWidget';
 import { useAuth } from '@contexts/AuthContext';
+import { ProtectedRoute } from '@components/common/ProtectedRoute';
 import HomePage from '@pages/Home/Home';
 import InfoSectionsContainer from '@pages/Home/InfoSectionsContainer';
 import ChangePassword from '@pages/auth/ChangePassword';
@@ -54,31 +54,10 @@ const ChatBotGate = () => {
   return <ChatBotWidget />;
 };
 
-const SessionGate = () => {
-  const { isAuthenticated, loading } = useAuth();
-  const navigate = useNavigate();
-  const pathname = useLocation().pathname;
-  const evaluado = useRef(false);
-
-  useEffect(() => {
-    if (loading || evaluado.current) return;
-    evaluado.current = true;
-    // Solo se protege el área de cliente: las rutas públicas (productos,
-    // carrito, etc.) están abiertas para visitantes y el resto de áreas
-    // están protegidas por RoleRoute.
-    if (!isAuthenticated && pathname.startsWith('/dashboard/cliente')) {
-      navigate('/home', { replace: true });
-    }
-  }, [loading, isAuthenticated, navigate, pathname]);
-
-  return null;
-};
-
 function App() {
   return (
     <>
       <ScrollToTop />
-      <SessionGate />
       <Routes>
         {/* ── Público / visitante ─────────────────────────── */}
         <Route element={<MainLayout />}>
@@ -86,8 +65,8 @@ function App() {
           <Route path="/productos" element={<ProductosPublicos />} />
           <Route path="/producto/:id" element={<ProductoDetalle />} />
           <Route path="/carrito" element={<CarritoPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/dashboard/cliente" element={<ClientDashboard />} />
+          <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
+          <Route path="/dashboard/cliente" element={<ProtectedRoute allowedRoles={['cliente']}><ClientDashboard /></ProtectedRoute>} />
           <Route path="/home" element={<HomePage />} />
           <Route path="/info" element={<InfoSectionsContainer />} />
           <Route path="/ayuda" element={<AyudaPage />} />

@@ -623,6 +623,18 @@
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
+.an-icon.stock {
+  color: #ffffff;
+  background: rgba(255, 145, 64, 0.14);
+  border: 1px solid rgba(255, 145, 64, 0.35);
+}
+
+.an-icon.entrega {
+  color: #ffffff;
+  background: rgba(126, 162, 255, 0.14);
+  border: 1px solid rgba(126, 162, 255, 0.35);
+}
+
 .an-body {
   flex: 1;
   min-width: 0;
@@ -675,6 +687,18 @@
   color: #b7b7b7;
   background: rgba(255, 255, 255, 0.07);
   border-color: rgba(255, 255, 255, 0.15);
+}
+
+.an-item.stock .an-type {
+  color: #ffb347;
+  background: rgba(255, 145, 64, 0.12);
+  border-color: rgba(255, 145, 64, 0.32);
+}
+
+.an-item.entrega .an-type {
+  color: #8ab4f8;
+  background: rgba(126, 162, 255, 0.12);
+  border-color: rgba(126, 162, 255, 0.32);
 }
 
 .an-fecha {
@@ -997,6 +1021,12 @@
 .ap-form-select {
   padding-right: 42px;
   cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23d4a54b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 12px 12px;
 }
 
 .ap-form-input:focus,
@@ -1426,6 +1456,79 @@
   color: #ffd98a;
 }
 
+/* ── Selector de rango de fechas (reportes) ───────────────── */
+.ap-rango {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.ap-rango-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ap-rango-label span {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9f9f9f;
+}
+
+.ap-rango .ap-form-input {
+  width: auto;
+  min-width: 150px;
+  padding: 10px 12px;
+}
+
+/* Icono de calendario SIEMPRE visible (dorado) en inputs de fecha:
+   se reemplaza el indicador nativo por un SVG explícito, de modo que
+   no se camufle con el fondo oscuro. */
+.ap-form-input[type='date'] {
+  color-scheme: dark;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23d4a54b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 17px 17px;
+  padding-right: 40px;
+}
+
+.ap-form-input[type='date']::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  width: 17px;
+  height: 17px;
+  cursor: pointer;
+}
+
+.ap-form-input[type='date']::-webkit-calendar-picker-indicator:hover {
+  opacity: 0.35;
+}
+
+.ap-form-input[type='date']:hover {
+  border-color: rgba(212, 165, 75, 0.5);
+}
+
+.ap-rango-resumen {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #ffd98a;
+  font-size: 0.9rem;
+  margin-bottom: 18px;
+  padding: 12px 16px;
+}
+
+.ap-rango-resumen svg {
+  color: #d4a54b;
+}
+
 /* ── Modal de confirmación ─────────────────────────────────── */
 .ap-modal-overlay {
   position: fixed;
@@ -1436,7 +1539,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  /* El modal se centra en el área disponible DEBAJO del navbar
+     (--ap-navbar-h se define en .admin-layout; 0 fuera de él). */
   padding: 20px;
+  padding-top: calc(var(--ap-navbar-h, 0px) + 20px);
+  overscroll-behavior: contain;
 }
 
 .ap-modal {
@@ -1446,10 +1553,62 @@
   padding: 26px 28px;
   max-width: 420px;
   width: 100%;
+  margin: auto;
   display: flex;
   flex-direction: column;
   gap: 14px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  /* El scroll ocurre DENTRO del modal; nunca bajo el navbar ni en
+     doble barra con el overlay. */
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ap-modal-panel {
+  /* Modal con formulario largo: el header y el footer permanecen fijos
+     y SOLO el cuerpo (ap-modal-body) hace scroll. La altura máxima se
+     calcula contra el viewport real (navbar + márgenes del overlay),
+     por lo que el modal nunca sobresale de la pantalla. */
+  overflow: hidden;
+  max-height: calc(100vh - var(--ap-navbar-h, 0px) - 40px);
+}
+
+.ap-modal-panel .ap-modal-head {
+  flex-shrink: 0;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ap-modal-panel .ap-modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(212, 165, 75, 0.45) transparent;
+}
+
+.ap-modal-panel .ap-modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ap-modal-panel .ap-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(212, 165, 75, 0.45);
+  border-radius: 999px;
+}
+
+.ap-modal-panel .ap-modal-footer {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 12px;
+  margin-top: 2px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .ap-modal-head {

@@ -114,4 +114,23 @@ export const ADMIN_TRADUCCIONES_REPORTES: Record<string, { es: string; en: strin
     es: 'No se pudo descargar el reporte.',
     en: 'Could not download the report.',
   },
+  'adm.reportes.desde': { es: 'Desde', en: 'From' },
+  'adm.reportes.hasta': { es: 'Hasta', en: 'To' },
+  'adm.reportes.aplicarRango': { es: 'Aplicar rango', en: 'Apply range' },
+  'adm.reportes.rangoFechasRequeridas': {
+    es: 'Debes seleccionar ambas fechas del rango',
+    en: 'You must select both range dates',
+  },
+  'adm.reportes.rangoInvalido': {
+    es: 'La fecha final no puede ser anterior a la inicial',
+    en: 'The end date cannot be before the start date',
+  },
+  'adm.reportes.rangoErrorDesc': {
+    es: 'No se pudo cargar el resumen del rango seleccionado.',
+    en: 'Could not load the summary for the selected range.',
+  },
+  'adm.reportes.rangoSeleccionado': {
+    es: 'Rango seleccionado: {inicio} — {fin}',
+    en: 'Selected range: {inicio} — {fin}',
+  },
 };

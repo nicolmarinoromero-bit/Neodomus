@@ -6,13 +6,14 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   FaUserPen, FaLock, FaBox, FaTruck, FaStar, FaScrewdriverWrench,
   FaFileInvoice, FaGlobe, FaBell, FaXmark, FaCheck,
-  FaCamera, FaUser, FaFloppyDisk, FaHeart, FaUserSlash, FaHourglassHalf,
+  FaCamera, FaUser, FaHeart, FaUserSlash, FaHourglassHalf,
   FaTrashCan,
 } from 'react-icons/fa6';
 import type { ReactNode } from 'react';
 import '@styles/perfil-cliente.css';
 
 import SectionHeader from '@components/profile/SectionHeader';
+import PerfilCuenta from '@components/profile/PerfilCuenta';
 
 import OrdersTab from '@components/profile/OrdersTab';
 import MessagesTab from '@components/profile/MessagesTab';
@@ -85,9 +86,9 @@ const Perfil = () => {
   const [nombre, setNombre] = useState('');
   const [apellido, setApellido] = useState('');
   const [email, setEmail] = useState('');
+  const [emailOriginal, setEmailOriginal] = useState('');
   const [telefono, setTelefono] = useState('');
   const [direccion, setDireccion] = useState('');
-  const [guardando, setGuardando] = useState(false);
 
   useEffect(() => {
     const sync = () => setTick((t) => t + 1);
@@ -131,6 +132,7 @@ const Perfil = () => {
       setNombre(partes[0] || '');
       setApellido(partes.slice(1).join(' ') || '');
       setEmail(user?.correo || '');
+      setEmailOriginal(user?.correo || '');
     };
     syncFromContext();
 
@@ -140,6 +142,7 @@ const Perfil = () => {
         setNombre(res.data.first_name || '');
         setApellido(res.data.last_name || '');
         setEmail(res.data.email || '');
+        setEmailOriginal(res.data.email || '');
         setTelefono(res.data.telefono_cliente ? String(res.data.telefono_cliente) : '');
         setDireccion(res.data.address || '');
       })
@@ -253,39 +256,39 @@ const Perfil = () => {
     notify(t('perfil.fotoEliminada'), 'success');
   };
 
-  const handleSaveProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-      notify('Ingresa un correo electrónico válido', 'error');
-      return;
-    }
-    setGuardando(true);
+  const guardarCampo = async (payload: Record<string, unknown>) => {
     try {
-      const payload: Record<string, unknown> = {
-        first_name: nombre.trim(),
-        last_name: apellido.trim(),
-        email: email.trim(),
-      };
-      const telNum = parseInt(telefono.replace(/\D/g, ''), 10);
-      if (telefono.trim()) payload.telefono_cliente = telNum;
-      if (direccion.trim()) payload.address = direccion.trim();
-      await api.put('/clients/me', payload);
-
+      const body: Record<string, unknown> = { ...payload };
+      const tel = String(body.telefono_cliente ?? '').replace(/\D/g, '');
+      body.telefono_cliente = tel ? parseInt(tel, 10) : null;
+      await api.put('/clients/me', body);
       const storedUser = localStorage.getItem('user');
       if (storedUser) {
-        const parsed = JSON.parse(storedUser);
-        parsed.nombre = `${nombre.trim()} ${apellido.trim()}`.trim();
-        parsed.correo = email.trim();
-        localStorage.setItem('user', JSON.stringify(parsed));
+        try {
+          const parsed = JSON.parse(storedUser);
+          if (typeof body.first_name === 'string' && typeof body.last_name === 'string') {
+            parsed.nombre = `${body.first_name.trim()} ${body.last_name.trim()}`.trim();
+          }
+          localStorage.setItem('user', JSON.stringify(parsed));
+        } catch {
+          /* noop */
+        }
       }
+      if (typeof body.first_name === 'string' && typeof body.last_name === 'string') {
+        setNombre(body.first_name.trim());
+        setApellido(body.last_name.trim());
+      }
+      setTelefono(tel);
+      setDireccion(String(body.address ?? '').trim());
       window.dispatchEvent(new CustomEvent('client-profile-updated'));
       await refreshUserProfile();
-      notify('Cambios guardados correctamente', 'success');
-    } catch (err) {
+      notify(t('perfil.cambiosGuardados'), 'success');
+      return true;
+    } catch (err: any) {
       console.error(err);
-      notify('Error al guardar los cambios', 'error');
-    } finally {
-      setGuardando(false);
+      const msg = err.response?.data?.detail;
+      notify(typeof msg === 'string' ? msg : t('perfil.errorGuardar'), 'error');
+      return false;
     }
   };
 
@@ -338,72 +341,60 @@ const Perfil = () => {
         </div>
       </div>
 
-      <form onSubmit={handleSaveProfile} className="pf-form">
-        <div className="pf-form-grid">
-          <div className="pf-form-group">
-            <label className="pf-form-label" htmlFor="pf-nombre">{t('perfil.nombre')}</label>
-            <input
-              id="pf-nombre"
-              className="pf-form-input"
-              type="text"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              placeholder={t('perfil.placeholderNombre')}
-              required
-            />
-          </div>
-          <div className="pf-form-group">
-            <label className="pf-form-label" htmlFor="pf-apellido">{t('perfil.apellidos')}</label>
-            <input
-              id="pf-apellido"
-              className="pf-form-input"
-              type="text"
-              value={apellido}
-              onChange={(e) => setApellido(e.target.value)}
-              placeholder={t('perfil.placeholderApellidos')}
-              required
-            />
-          </div>
-          <div className="pf-form-group">
-            <label className="pf-form-label" htmlFor="pf-email">{t('perfil.correoElectronico')}</label>
-            <input
-              id="pf-email"
-              className="pf-form-input"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div className="pf-form-group">
-            <label className="pf-form-label" htmlFor="pf-telefono">{t('perfil.telefono')}</label>
-            <input
-              id="pf-telefono"
-              className="pf-form-input"
-              type="tel"
-              value={telefono}
-              onChange={(e) => setTelefono(e.target.value.replace(/\D/g, ''))}
-              placeholder={t('perfil.placeholderTelefono')}
-            />
-          </div>
-          <div className="pf-form-group pf-form-span">
-            <label className="pf-form-label" htmlFor="pf-direccion">{t('perfil.direccionResidencia')}</label>
-            <input
-              id="pf-direccion"
-              className="pf-form-input"
-              type="text"
-              value={direccion}
-              onChange={(e) => setDireccion(e.target.value)}
-              placeholder={t('perfil.placeholderDireccion')}
-            />
-          </div>
-        </div>
-        <div className="pf-form-actions">
-          <button type="submit" className="pf-btn pf-btn-primary" disabled={guardando}>
-            <FaFloppyDisk /> {guardando ? t('perfil.guardando') : t('perfil.guardarCambios')}
-          </button>
-        </div>
-      </form>
+      <PerfilCuenta
+        campos={[
+          {
+            clave: 'first_name',
+            label: t('perfil.nombre'),
+            valor: nombre,
+            placeholder: t('perfil.placeholderNombre'),
+            requerido: true,
+            bloquearPortapapeles: true,
+          },
+          {
+            clave: 'last_name',
+            label: t('perfil.apellidos'),
+            valor: apellido,
+            placeholder: t('perfil.placeholderApellidos'),
+            requerido: true,
+            bloquearPortapapeles: true,
+          },
+          {
+            clave: 'telefono_cliente',
+            label: t('perfil.telefono'),
+            valor: telefono,
+            tipo: 'tel',
+            maxLength: 10,
+            placeholder: t('perfil.placeholderTelefono'),
+            hint: t('perfil.maximo10'),
+            bloquearPortapapeles: true,
+          },
+          {
+            clave: 'address',
+            label: t('perfil.direccionResidencia'),
+            valor: direccion,
+            placeholder: t('perfil.placeholderDireccion'),
+          },
+        ]}
+        email={email}
+        emailOriginal={emailOriginal}
+        rol={t('perfil.cuentaCliente')}
+        notificar={notify}
+        onEmailVerificado={(nuevo) => {
+          setEmail(nuevo);
+          setEmailOriginal(nuevo);
+          refreshUserProfile();
+          window.dispatchEvent(new CustomEvent('client-profile-updated'));
+        }}
+        onGuardar={async (payload) => {
+          const tel = String(payload.telefono_cliente ?? '').replace(/\D/g, '');
+          if (tel && tel.length !== 10) {
+            notify(t('perfil.telefono10'), 'error');
+            return false;
+          }
+          return guardarCampo(payload);
+        }}
+      />
 
       <div className="pf-danger-zone">
         <span className="pf-danger-icon"><FaUserSlash /></span>

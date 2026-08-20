@@ -21,10 +21,14 @@ const refreshAccessToken = async (): Promise<string | null> => {
   const refreshToken = localStorage.getItem('refresh_token');
   if (!refreshToken) return null;
   try {
-    const res = await axios.post(`${BASE_URL}/auth/refresh`, null, {
-      params: { refresh_token: refreshToken },
-      timeout: 10000,
-    });
+    const res = await axios.post(
+      `${BASE_URL}/auth/refresh`,
+      { refresh_token: refreshToken },
+      {
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 10000,
+      },
+    );
     const data = res.data;
     if (data?.access_token) {
       localStorage.setItem('access_token', data.access_token);
@@ -131,12 +135,15 @@ export const descargarFactura = async (pdfUrl: string) => {
 // ────────────────────────────────────────────────────────────────
 
 export const descargarReportePdf = async (
-  periodo: 'semana' | 'mes' | 'anio',
+  rango?: { fechaInicio?: string; fechaFin?: string },
   mensajeError = 'No se pudo descargar el reporte.',
 ) => {
   try {
+    const params: Record<string, string> = {};
+    if (rango?.fechaInicio) params.fecha_inicio = rango.fechaInicio;
+    if (rango?.fechaFin) params.fecha_fin = rango.fechaFin;
     const res = await api.get('/reports/pdf', {
-      params: { periodo },
+      params,
       responseType: 'blob',
     });
     const blob = new Blob([res.data], {
@@ -147,7 +154,7 @@ export const descargarReportePdf = async (
     a.href = url;
     const cd = res.headers?.['content-disposition'] as string | undefined;
     const match = cd ? /filename="?([^"]+)"?/.exec(cd) : null;
-    a.download = match?.[1] || `Reporte_${periodo}.pdf`;
+    a.download = match?.[1] || 'Reporte_NEODOMUS.pdf';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

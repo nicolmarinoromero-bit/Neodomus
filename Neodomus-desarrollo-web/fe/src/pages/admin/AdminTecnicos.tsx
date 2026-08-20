@@ -94,6 +94,16 @@ const AdminTecnicos = () => {
     cargar();
   }, []);
 
+  useEffect(() => {
+    const abierto = modal !== null || desactivando !== null;
+    if (!abierto) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [modal, desactivando]);
+
   const notify = (msg: string, tipo: 'ok' | 'err' = 'ok') => {
     setToast({ msg, tipo });
     window.setTimeout(() => setToast(null), 3200);
@@ -135,6 +145,10 @@ const AdminTecnicos = () => {
 
   const guardar = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (form.telefono.trim() && !/^\d{10}$/.test(form.telefono.trim())) {
+      notify(t('adm.tecnicos.telefonoInvalido'), 'err');
+      return;
+    }
     setGuardando(true);
     try {
       if (modal === 'crear') {
@@ -419,9 +433,11 @@ const AdminTecnicos = () => {
 
       {modal && (
         <div className="ap-modal-overlay">
-          <div
-            className="ap-modal"
+          <form
+            onSubmit={guardar}
+            className="ap-modal ap-modal-panel"
             style={{ maxWidth: 560 }}
+            autoComplete="off"
           >
             <div className="ap-modal-head">
               <h3>
@@ -439,166 +455,171 @@ const AdminTecnicos = () => {
                 <FaXmark />
               </button>
             </div>
-            <p>
-              {modal === 'crear'
-                ? t('adm.tecnicos.crearDescripcion')
-                : t('adm.tecnicos.editarDescripcion')}
-            </p>
 
-            <form onSubmit={guardar} className="ap-form-grid" style={{ marginTop: 4 }} autoComplete="off">
-              <div className="ap-form-group">
-                <label className="ap-form-label" htmlFor="tf-nombre">{t('adm.tecnicos.nombre')} *</label>
-                <input
-                  id="tf-nombre"
-                  className="ap-form-input"
-                  type="text"
-                  value={form.first_name}
-                  onChange={(e) => setForm({ ...form, first_name: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="ap-form-group">
-                <label className="ap-form-label" htmlFor="tf-apellido">{t('adm.tecnicos.apellidos')} *</label>
-                <input
-                  id="tf-apellido"
-                  className="ap-form-input"
-                  type="text"
-                  value={form.last_name}
-                  onChange={(e) => setForm({ ...form, last_name: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="ap-form-group">
-                <label className="ap-form-label" htmlFor="tf-email">{t('adm.tecnicos.correo')} *</label>
-                <input
-                  id="tf-email"
-                  className="ap-form-input"
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  required
-                  disabled={modal === 'editar'}
-                  autoComplete="off"
-                />
-              </div>
-              <div className="ap-form-group">
-                <label className="ap-form-label" htmlFor="tf-pass">
-                  {modal === 'crear' ? t('adm.tecnicos.contrasenaAcceso') : t('adm.tecnicos.nuevaContrasena')}
-                </label>
-                <div className="ap-pass-field">
+            <div className="ap-modal-body">
+              <p>
+                {modal === 'crear'
+                  ? t('adm.tecnicos.crearDescripcion')
+                  : t('adm.tecnicos.editarDescripcion')}
+              </p>
+
+              <div className="ap-form-grid" style={{ marginTop: 4 }}>
+                <div className="ap-form-group">
+                  <label className="ap-form-label" htmlFor="tf-nombre">{t('adm.tecnicos.nombre')} *</label>
                   <input
-                    id="tf-pass"
+                    id="tf-nombre"
                     className="ap-form-input"
-                    type={showPassword ? 'text' : 'password'}
-                    value={form.password}
-                    onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    placeholder={modal === 'editar' ? t('adm.tecnicos.passwordPlaceholder') : ''}
-                    minLength={modal === 'crear' ? 6 : undefined}
-                    required={modal === 'crear'}
-                    autoComplete="new-password"
+                    type="text"
+                    value={form.first_name}
+                    onChange={(e) => setForm({ ...form, first_name: e.target.value })}
+                    required
                   />
-                  <button type="button" className="ap-pass-toggle" onClick={() => setShowPassword(!showPassword)}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      {showPassword ? (
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
-                      ) : (
-                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                      )}
-                    </svg>
-                  </button>
                 </div>
-                {modal === 'crear' && (
-                  <span className="ap-form-hint" style={{ color: '#d4a54b', marginTop: 6, display: 'block' }}>
-                    {t('adm.tecnicos.passHintPrimer')}
-                  </span>
-                )}
-                {modal === 'editar' && (
-                  <label className="ap-form-hint" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <input type="checkbox" checked={cambiarPass} onChange={(e) => setCambiarPass(e.target.checked)} />
-                    {t('adm.tecnicos.cambiarPassCheck')}
+                <div className="ap-form-group">
+                  <label className="ap-form-label" htmlFor="tf-apellido">{t('adm.tecnicos.apellidos')} *</label>
+                  <input
+                    id="tf-apellido"
+                    className="ap-form-input"
+                    type="text"
+                    value={form.last_name}
+                    onChange={(e) => setForm({ ...form, last_name: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="ap-form-group">
+                  <label className="ap-form-label" htmlFor="tf-email">{t('adm.tecnicos.correo')} *</label>
+                  <input
+                    id="tf-email"
+                    className="ap-form-input"
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    required
+                    disabled={modal === 'editar'}
+                    autoComplete="off"
+                  />
+                </div>
+                <div className="ap-form-group">
+                  <label className="ap-form-label" htmlFor="tf-pass">
+                    {modal === 'crear' ? t('adm.tecnicos.contrasenaAcceso') : t('adm.tecnicos.nuevaContrasena')}
                   </label>
-                )}
-                {cambiarPass && (
-                  <span className="ap-form-hint" style={{ color: '#d4a54b', marginTop: 6, display: 'block' }}>
-                    {t('adm.tecnicos.passHintProximo')}
+                  <div className="ap-pass-field">
+                    <input
+                      id="tf-pass"
+                      className="ap-form-input"
+                      type={showPassword ? 'text' : 'password'}
+                      value={form.password}
+                      onChange={(e) => setForm({ ...form, password: e.target.value })}
+                      placeholder={modal === 'editar' ? t('adm.tecnicos.passwordPlaceholder') : ''}
+                      minLength={modal === 'crear' ? 6 : undefined}
+                      required={modal === 'crear'}
+                      autoComplete="new-password"
+                    />
+                    <button type="button" className="ap-pass-toggle" onClick={() => setShowPassword(!showPassword)}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        {showPassword ? (
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+                        ) : (
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                        )}
+                      </svg>
+                    </button>
+                  </div>
+                  {modal === 'crear' && (
+                    <span className="ap-form-hint" style={{ color: '#d4a54b', marginTop: 6, display: 'block' }}>
+                      {t('adm.tecnicos.passHintPrimer')}
+                    </span>
+                  )}
+                  {modal === 'editar' && (
+                    <label className="ap-form-hint" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <input type="checkbox" checked={cambiarPass} onChange={(e) => setCambiarPass(e.target.checked)} />
+                      {t('adm.tecnicos.cambiarPassCheck')}
+                    </label>
+                  )}
+                  {cambiarPass && (
+                    <span className="ap-form-hint" style={{ color: '#d4a54b', marginTop: 6, display: 'block' }}>
+                      {t('adm.tecnicos.passHintProximo')}
+                    </span>
+                  )}
+                </div>
+                <div className="ap-form-group">
+                  <label className="ap-form-label" htmlFor="tf-tel">{t('adm.tecnicos.telefono')}</label>
+                  <input
+                    id="tf-tel"
+                    className="ap-form-input"
+                    type="tel"
+                    maxLength={10}
+                    value={form.telefono}
+                    onChange={(e) => setForm({ ...form, telefono: e.target.value.replace(/\D/g, '') })}
+                    placeholder="3001234567"
+                  />
+                </div>
+                <div className="ap-form-group">
+                  <label className="ap-form-label" htmlFor="tf-doc">{t('adm.tecnicos.documento')}</label>
+                  <input
+                    id="tf-doc"
+                    className="ap-form-input"
+                    type="text"
+                    value={form.documento}
+                    onChange={(e) => setForm({ ...form, documento: e.target.value.replace(/\D/g, '') })}
+                  />
+                </div>
+                <div className="ap-form-group full">
+                  <label className="ap-form-label" htmlFor="tf-cer">{t('adm.tecnicos.especialidadCertificacion')}</label>
+                  <input
+                    id="tf-cer"
+                    className="ap-form-input"
+                    type="text"
+                    value={form.certificacion}
+                    onChange={(e) => setForm({ ...form, certificacion: e.target.value })}
+                    placeholder={t('adm.tecnicos.certificacionPlaceholder')}
+                  />
+                </div>
+                <div className="ap-form-group">
+                  <label className="ap-form-label" htmlFor="tf-cargo">{t('adm.tecnicos.nivelCargo')}</label>
+                  <select
+                    id="tf-cargo"
+                    className="ap-form-select"
+                    value={form.cargo}
+                    onChange={(e) => setForm({ ...form, cargo: e.target.value })}
+                  >
+                    {CARGOS.map((c) => (
+                      <option key={c} value={c}>
+                        {t(CARGOS_LABEL[c])}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {modal === 'editar' && (
+                <div className="ap-mini-item" style={{ marginTop: 8 }}>
+                  <span className="ap-mini-icon">
+                    <FaKey />
                   </span>
-                )}
-              </div>
-              <div className="ap-form-group">
-                <label className="ap-form-label" htmlFor="tf-tel">{t('adm.tecnicos.telefono')}</label>
-                <input
-                  id="tf-tel"
-                  className="ap-form-input"
-                  type="tel"
-                  value={form.telefono}
-                  onChange={(e) => setForm({ ...form, telefono: e.target.value.replace(/\D/g, '') })}
-                />
-              </div>
-              <div className="ap-form-group">
-                <label className="ap-form-label" htmlFor="tf-doc">{t('adm.tecnicos.documento')}</label>
-                <input
-                  id="tf-doc"
-                  className="ap-form-input"
-                  type="text"
-                  value={form.documento}
-                  onChange={(e) => setForm({ ...form, documento: e.target.value.replace(/\D/g, '') })}
-                />
-              </div>
-              <div className="ap-form-group full">
-                <label className="ap-form-label" htmlFor="tf-cer">{t('adm.tecnicos.especialidadCertificacion')}</label>
-                <input
-                  id="tf-cer"
-                  className="ap-form-input"
-                  type="text"
-                  value={form.certificacion}
-                  onChange={(e) => setForm({ ...form, certificacion: e.target.value })}
-                  placeholder={t('adm.tecnicos.certificacionPlaceholder')}
-                />
-              </div>
-              <div className="ap-form-group">
-                <label className="ap-form-label" htmlFor="tf-cargo">{t('adm.tecnicos.nivelCargo')}</label>
-                <select
-                  id="tf-cargo"
-                  className="ap-form-select"
-                  value={form.cargo}
-                  onChange={(e) => setForm({ ...form, cargo: e.target.value })}
-                >
-                  {CARGOS.map((c) => (
-                    <option key={c} value={c}>
-                      {t(CARGOS_LABEL[c])}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="ap-form-row" style={{ gridColumn: '1 / -1', justifyContent: 'flex-end' }}>
-                <button type="button" className="ap-btn ap-btn-ghost" onClick={cerrarModal} disabled={guardando}>
-                  {t('adm.tecnicos.cancelar')}
-                </button>
-                <button type="submit" className="ap-btn ap-btn-primary" disabled={guardando}>
-                  <FaCircleCheck /> {guardando ? t('adm.tecnicos.guardando') : modal === 'crear' ? t('adm.tecnicos.crearTecnico') : t('adm.tecnicos.guardarCambios')}
-                </button>
-              </div>
-            </form>
-
-            {modal === 'editar' && (
-              <div className="ap-mini-item" style={{ marginTop: 8 }}>
-                <span className="ap-mini-icon">
-                  <FaKey />
-                </span>
-                <div className="ap-mini-info">
-                  <div className="ap-mini-title">{t('adm.tecnicos.estadoCuenta')}</div>
-                  <div className="ap-mini-sub">
-                    {form.is_active
-                      ? t('adm.tecnicos.cuentaActiva')
-                      : editando?.desactivado_hasta
-                        ? t('adm.tecnicos.cuentaDesactivadaHasta', { fecha: formatearHasta(editando) ?? '' })
-                        : t('adm.tecnicos.cuentaDesactivada')}
+                  <div className="ap-mini-info">
+                    <div className="ap-mini-title">{t('adm.tecnicos.estadoCuenta')}</div>
+                    <div className="ap-mini-sub">
+                      {form.is_active
+                        ? t('adm.tecnicos.cuentaActiva')
+                        : editando?.desactivado_hasta
+                          ? t('adm.tecnicos.cuentaDesactivadaHasta', { fecha: formatearHasta(editando) ?? '' })
+                          : t('adm.tecnicos.cuentaDesactivada')}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+
+            <div className="ap-modal-footer">
+              <button type="button" className="ap-btn ap-btn-ghost" onClick={cerrarModal} disabled={guardando}>
+                {t('adm.tecnicos.cancelar')}
+              </button>
+              <button type="submit" className="ap-btn ap-btn-primary" disabled={guardando}>
+                <FaCircleCheck /> {guardando ? t('adm.tecnicos.guardando') : modal === 'crear' ? t('adm.tecnicos.crearTecnico') : t('adm.tecnicos.guardarCambios')}
+              </button>
+            </div>
+          </form>
         </div>
       )}
 

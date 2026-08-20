@@ -6,7 +6,6 @@ import api from '@services/api';
 import {
   FaUserShield,
   FaUserPen,
-  FaFloppyDisk,
   FaCamera,
   FaLock,
   FaGlobe,
@@ -21,6 +20,7 @@ import { getIniciales, getTechnicalAvatar, removeTechnicalAvatar, setTechnicalAv
 import SectionHeader from '@components/profile/SectionHeader';
 import PasswordTab from '@components/profile/PasswordTab';
 import LanguageTab from '@components/profile/LanguageTab';
+import PerfilCuenta from '@components/profile/PerfilCuenta';
 
 type TabTecnico = 'cuenta' | 'contrasena' | 'idioma';
 
@@ -45,12 +45,12 @@ const TechnicalPerfil = () => {
   const [nombre, setNombre] = useState('');
   const [apellido, setApellido] = useState('');
   const [email, setEmail] = useState('');
+  const [emailOriginal, setEmailOriginal] = useState('');
   const [telefono, setTelefono] = useState('');
   const [documento, setDocumento] = useState('');
   const [certificacion, setCertificacion] = useState('');
   const [cargo, setCargo] = useState('');
   const [cargando, setCargando] = useState(true);
-  const [guardando, setGuardando] = useState(false);
   const [toast, setToast] = useState<{ msg: string; tipo: 'success' | 'error' | 'info' } | null>(null);
 
   useEffect(() => {
@@ -61,6 +61,7 @@ const TechnicalPerfil = () => {
         setNombre(res.data.first_name || '');
         setApellido(res.data.last_name || '');
         setEmail(res.data.email || '');
+        setEmailOriginal(res.data.email || '');
         setTelefono(res.data.telefono_usuario ? String(res.data.telefono_usuario) : '');
         setDocumento(res.data.documento_usuario ? String(res.data.documento_usuario) : '');
         setCertificacion(res.data.certificacion_t || '');
@@ -71,6 +72,7 @@ const TechnicalPerfil = () => {
         setNombre(partes[0] || '');
         setApellido(partes.slice(1).join(' ') || '');
         setEmail(user?.correo || '');
+        setEmailOriginal(user?.correo || '');
       } finally {
         setCargando(false);
       }
@@ -114,44 +116,30 @@ const TechnicalPerfil = () => {
     notify(t('tec.fotoEliminada'));
   };
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!nombre.trim() || !apellido.trim()) {
-      notify(t('tec.nombreObligatorio'), 'error');
-      return;
-    }
-    if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-      notify(t('tec.correoInvalido'), 'error');
-      return;
-    }
-    if (telefono.trim() && !/^[+\d][\d\s()-]{6,}$/.test(telefono.trim())) {
-      notify(t('tec.telefonoInvalido'), 'error');
-      return;
-    }
-    setGuardando(true);
+  const guardarCampo = async (payload: Record<string, unknown>) => {
     try {
-      const payload: Record<string, unknown> = {
-        first_name: nombre.trim(),
-        last_name: apellido.trim(),
-        email: email.trim(),
-      };
-      const telNum = parseInt(telefono.replace(/\D/g, ''), 10);
-      if (telefono.trim()) payload.telefono_usuario = telNum;
-      const docNum = parseInt(documento.replace(/\D/g, ''), 10);
-      if (documento.trim()) payload.documento_usuario = docNum;
-      payload.certificacion_t = certificacion.trim();
-      payload.cargo_t = cargo.trim();
-
-      await api.put('/users/me', payload);
-
+      const body: Record<string, unknown> = { ...payload };
+      const tel = String(body.telefono_usuario ?? '').replace(/\D/g, '');
+      const doc = String(body.documento_usuario ?? '').replace(/\D/g, '');
+      body.telefono_usuario = tel ? parseInt(tel, 10) : null;
+      body.documento_usuario = doc ? parseInt(doc, 10) : null;
+      await api.put('/users/me', body);
+      if (typeof body.first_name === 'string' && typeof body.last_name === 'string') {
+        setNombre(body.first_name.trim());
+        setApellido(body.last_name.trim());
+      }
+      setTelefono(tel);
+      setDocumento(doc);
+      setCertificacion(String(body.certificacion_t ?? '').trim());
+      setCargo(String(body.cargo_t ?? '').trim());
       await refreshUserProfile();
       window.dispatchEvent(new CustomEvent('technical-profile-updated'));
-      notify(t('tec.cambiosGuardados'));
+      notify(t('tec.cambiosGuardados'), 'success');
+      return true;
     } catch (err: any) {
       const msg = err.response?.data?.detail;
       notify(typeof msg === 'string' ? msg : t('tec.errorGuardar'), 'error');
-    } finally {
-      setGuardando(false);
+      return false;
     }
   };
 
@@ -213,104 +201,74 @@ const TechnicalPerfil = () => {
           <p className="ap-state-text">{t('tec.cargandoDatos')}</p>
         </div>
       ) : (
-        <form onSubmit={handleSave} className="pf-form">
-          <div className="pf-form-grid">
-            <div className="pf-form-group">
-              <label className="pf-form-label" htmlFor="t-nombre">{t('tec.nombre')}</label>
-              <input
-                id="t-nombre"
-                className="pf-form-input"
-                type="text"
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-                placeholder={t('tec.placeholderNombre')}
-                required
-              />
-            </div>
-            <div className="pf-form-group">
-              <label className="pf-form-label" htmlFor="t-apellido">{t('tec.apellidos')}</label>
-              <input
-                id="t-apellido"
-                className="pf-form-input"
-                type="text"
-                value={apellido}
-                onChange={(e) => setApellido(e.target.value)}
-                placeholder={t('tec.placeholderApellidos')}
-                required
-              />
-            </div>
-          </div>
-          <div className="pf-form-grid">
-            <div className="pf-form-group">
-              <label className="pf-form-label" htmlFor="t-email">{t('tec.correo')}</label>
-              <input
-                id="t-email"
-                className="pf-form-input"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="pf-form-group">
-              <label className="pf-form-label" htmlFor="t-telefono">{t('tec.telefono')}</label>
-              <input
-                id="t-telefono"
-                className="pf-form-input"
-                type="tel"
-                value={telefono}
-                onChange={(e) => setTelefono(e.target.value.replace(/\D/g, ''))}
-                placeholder={t('tec.placeholderTelefono')}
-              />
-            </div>
-          </div>
-          <div className="pf-form-grid">
-            <div className="pf-form-group">
-              <label className="pf-form-label" htmlFor="t-documento">{t('tec.documento')}</label>
-              <input
-                id="t-documento"
-                className="pf-form-input"
-                type="text"
-                value={documento}
-                onChange={(e) => setDocumento(e.target.value.replace(/\D/g, ''))}
-                placeholder={t('tec.placeholderDocumento')}
-              />
-            </div>
-            <div className="pf-form-group">
-              <label className="pf-form-label" htmlFor="t-especialidad">{t('tec.especialidad')}</label>
-              <input
-                id="t-especialidad"
-                className="pf-form-input"
-                type="text"
-                value={certificacion}
-                onChange={(e) => setCertificacion(e.target.value)}
-                placeholder={t('tec.placeholderEspecialidad')}
-              />
-            </div>
-          </div>
-          <div className="pf-form-grid">
-            <div className="pf-form-group">
-              <label className="pf-form-label" htmlFor="t-cargo">{t('tec.cargo')}</label>
-              <input
-                id="t-cargo"
-                className="pf-form-input"
-                type="text"
-                value={cargo}
-                onChange={(e) => setCargo(e.target.value)}
-                placeholder={t('tec.placeholderCargo')}
-              />
-            </div>
-            <div className="pf-form-group">
-              <label className="pf-form-label" htmlFor="t-rol">{t('tec.rol')}</label>
-              <input id="t-rol" className="pf-form-input" type="text" value={t('tec.tecnico')} disabled />
-            </div>
-          </div>
-          <div className="pf-form-actions">
-            <button type="submit" className="pf-btn pf-btn-primary" disabled={guardando}>
-              <FaFloppyDisk /> {guardando ? t('tec.guardando') : t('tec.guardarCambios')}
-            </button>
-          </div>
-        </form>
+        <PerfilCuenta
+          campos={[
+            {
+              clave: 'first_name',
+              label: t('tec.nombre'),
+              valor: nombre,
+              placeholder: t('tec.placeholderNombre'),
+              requerido: true,
+              bloquearPortapapeles: true,
+            },
+            {
+              clave: 'last_name',
+              label: t('tec.apellidos'),
+              valor: apellido,
+              placeholder: t('tec.placeholderApellidos'),
+              requerido: true,
+              bloquearPortapapeles: true,
+            },
+            {
+              clave: 'telefono_usuario',
+              label: t('tec.telefono'),
+              valor: telefono,
+              tipo: 'tel',
+              maxLength: 10,
+              placeholder: t('tec.placeholderTelefono'),
+              hint: t('perfil.maximo10'),
+              bloquearPortapapeles: true,
+            },
+            {
+              clave: 'documento_usuario',
+              label: t('tec.documento'),
+              valor: documento,
+              tipo: 'tel',
+              maxLength: 15,
+              placeholder: t('tec.placeholderDocumento'),
+            },
+            {
+              clave: 'certificacion_t',
+              label: t('tec.especialidad'),
+              valor: certificacion,
+              placeholder: t('tec.placeholderEspecialidad'),
+            },
+            {
+              clave: 'cargo_t',
+              label: t('tec.cargo'),
+              valor: cargo,
+              placeholder: t('tec.placeholderCargo'),
+            },
+          ]}
+          email={email}
+          emailOriginal={emailOriginal}
+          rol={t('tec.tecnico')}
+          notificar={notify}
+          onEmailVerificado={(nuevo) => {
+            setEmail(nuevo);
+            setEmailOriginal(nuevo);
+            refreshUserProfile();
+            window.dispatchEvent(new CustomEvent('technical-profile-updated'));
+          }}
+          onGuardar={async (payload) => {
+            const tel = String(payload.telefono_usuario ?? '').replace(/\D/g, '');
+            if (tel && tel.length !== 10) {
+              notify(t('perfil.telefono10'), 'error');
+              return false;
+            }
+            return guardarCampo(payload);
+          }}
+        />
       )}
     </div>
   );

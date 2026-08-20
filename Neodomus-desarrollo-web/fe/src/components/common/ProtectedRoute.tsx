@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@contexts/AuthContext';
 
 interface ProtectedRouteProps {
@@ -7,13 +7,18 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
-  const { isAuthenticated, rol } = useAuth();
+  const { isAuthenticated, loading, rol } = useAuth();
+  const location = useLocation();
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+  if (loading) {
+    return <div className="ap-loader-page">Cargando...</div>;
   }
 
-  if (allowedRoles && rol && !allowedRoles.includes(rol)) {
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  }
+
+  if (allowedRoles && (!rol || !allowedRoles.includes(rol))) {
     return <Navigate to="/" replace />;
   }
 

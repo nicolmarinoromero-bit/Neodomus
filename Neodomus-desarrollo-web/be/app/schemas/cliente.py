@@ -1,5 +1,5 @@
 from typing import Optional
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 class ClientResponse(BaseModel):
     id_cliente: int
@@ -18,6 +18,6 @@ class ClientUpdate(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     documento_cliente: Optional[int] = None
-    telefono_cliente: Optional[int] = None
+    telefono_cliente: Optional[int] = Field(None, ge=1000000000, le=9999999999)
     email: Optional[EmailStr] = None
     address: Optional[str] = None

@@ -28,7 +28,15 @@ const AdminReportes = () => {
   const [datos, setDatos] = useState<ReporteResumen | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(false);
-  const [periodo, setPeriodo] = useState<'semana' | 'mes' | 'anio'>('mes');
+  const [fechaInicio, setFechaInicio] = useState(() => {
+    const hoy = new Date();
+    return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-01`;
+  });
+  const [fechaFin, setFechaFin] = useState(() => {
+    const hoy = new Date();
+    return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+  });
+  const [rangoError, setRangoError] = useState<string | null>(null);
   const [descargando, setDescargando] = useState(false);
 
   const MESES = [
@@ -46,11 +54,32 @@ const AdminReportes = () => {
     t('adm.reportes.mesDic'),
   ];
 
-  const cargar = async () => {
+  const rangoValido = (inicio: string, fin: string): boolean => {
+    if (!inicio || !fin) {
+      setRangoError(t('adm.reportes.rangoFechasRequeridas'));
+      return false;
+    }
+    if (fin < inicio) {
+      setRangoError(t('adm.reportes.rangoInvalido'));
+      return false;
+    }
+    setRangoError(null);
+    return true;
+  };
+
+  const cargar = async (inicio?: string, fin?: string) => {
+    const ini = inicio ?? fechaInicio;
+    const ffin = fin ?? fechaFin;
+    if (!rangoValido(ini, ffin)) {
+      setCargando(false);
+      return;
+    }
     setCargando(true);
     setError(false);
     try {
-      const res = await api.get<ReporteResumen>('/reports/resumen');
+      const res = await api.get<ReporteResumen>('/reports/resumen', {
+        params: { fecha_inicio: ini, fecha_fin: ffin },
+      });
       setDatos(res.data);
     } catch {
       setError(true);
@@ -61,24 +90,29 @@ const AdminReportes = () => {
 
   useEffect(() => {
     cargar();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const PERIODOS: { id: 'semana' | 'mes' | 'anio'; label: string }[] = [
-    { id: 'semana', label: t('adm.reportes.periodoSemanal') },
-    { id: 'mes', label: t('adm.reportes.periodoMensual') },
-    { id: 'anio', label: t('adm.reportes.periodoAnual') },
-  ];
-
   const descargar = async () => {
+    if (!rangoValido(fechaInicio, fechaFin)) return;
     setDescargando(true);
     try {
-      await descargarReportePdf(periodo, t('adm.reportes.errorDescarga'));
+      await descargarReportePdf(
+        { fechaInicio, fechaFin },
+        t('adm.reportes.errorDescarga'),
+      );
     } finally {
       setDescargando(false);
     }
   };
 
   const formatoPesos = (v: number) => `$${Math.round(v).toLocaleString('es-CO')}`;
+
+  const formatoFecha = (v: string) => {
+    if (!v) return '';
+    const [y, m, d] = v.split('-');
+    return `${d}/${m}/${y}`;
+  };
 
   const mesLabel = (mes: string | null | undefined) => {
     if (!mes) return t('adm.reportes.sinFecha');
@@ -101,33 +135,59 @@ const AdminReportes = () => {
           <p className="ap-subtitle">{t('adm.reportes.subtitulo')}</p>
         </div>
         <div className="ap-header-right">
-          <div className="ap-tabs" role="group" aria-label={t('adm.reportes.periodoAria')}>
-            {PERIODOS.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                className={`ap-tab ${periodo === p.id ? 'active' : ''}`}
-                onClick={() => setPeriodo(p.id)}
-              >
-                {p.label}
-              </button>
-            ))}
+          <div className="ap-rango">
+            <label className="ap-rango-label">
+              <span>{t('adm.reportes.desde')}</span>
+              <input
+                type="date"
+                className="ap-form-input"
+                value={fechaInicio}
+                max={fechaFin || undefined}
+                onChange={(e) => setFechaInicio(e.target.value)}
+              />
+            </label>
+            <label className="ap-rango-label">
+              <span>{t('adm.reportes.hasta')}</span>
+              <input
+                type="date"
+                className="ap-form-input"
+                value={fechaFin}
+                min={fechaInicio || undefined}
+                onChange={(e) => setFechaFin(e.target.value)}
+              />
+            </label>
+            <button
+              type="button"
+              className="ap-btn ap-btn-ghost"
+              onClick={() => cargar()}
+              disabled={cargando}
+              title={t('adm.reportes.aplicarRango')}
+            >
+              <FaRotate className={cargando ? 'spin' : ''} /> {t('adm.reportes.aplicarRango')}
+            </button>
+            <button
+              type="button"
+              className="ap-btn ap-btn-primary"
+              onClick={descargar}
+              disabled={descargando || cargando}
+            >
+              <FaFilePdf /> {descargando ? t('adm.reportes.descargando') : t('adm.reportes.descargarPdf')}
+            </button>
           </div>
-          <button
-            type="button"
-            className="ap-btn ap-btn-primary"
-            onClick={descargar}
-            disabled={descargando || cargando}
-          >
-            <FaFilePdf /> {descargando ? t('adm.reportes.descargando') : t('adm.reportes.descargarPdf')}
-          </button>
-          <button type="button" className="ap-btn ap-btn-ghost" onClick={cargar} disabled={cargando}>
-            <FaRotate className={cargando ? 'spin' : ''} /> {t('adm.reportes.actualizar')}
-          </button>
         </div>
       </div>
 
-      {cargando ? (
+      {rangoError ? (
+        <div className="ap-card">
+          <div className="ap-states error">
+            <div className="ap-states-icon">
+              <FaTriangleExclamation />
+            </div>
+            <h3>{rangoError}</h3>
+            <p>{t('adm.reportes.rangoErrorDesc')}</p>
+          </div>
+        </div>
+      ) : cargando ? (
         <div className="ap-card">
           <div className="ap-states">
             <span className="ap-loader" />
@@ -143,13 +203,22 @@ const AdminReportes = () => {
             </div>
             <h3>{t('adm.reportes.errorTitulo')}</h3>
             <p>{t('adm.reportes.errorSub')}</p>
-            <button type="button" className="ap-btn ap-btn-ghost" onClick={cargar}>
+            <button type="button" className="ap-btn ap-btn-ghost" onClick={() => cargar()}>
               {t('adm.reportes.reintentar')}
             </button>
           </div>
         </div>
       ) : datos ? (
         <>
+          <div className="ap-card ap-rango-resumen">
+            <FaCalendarCheck />{' '}
+            <strong>
+              {t('adm.reportes.rangoSeleccionado', {
+                inicio: formatoFecha(fechaInicio),
+                fin: formatoFecha(fechaFin),
+              })}
+            </strong>
+          </div>
           <div className="ap-kpis">
             <div className="ap-card ap-kpi">
               <div className="ap-kpi-label">

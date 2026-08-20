@@ -16,6 +16,8 @@ from app.services.auth_service import (
     reset_password,
     solicitar_habilitacion,
     google_login,
+    request_email_change,
+    verify_email_change,
 )
 from app.schemas.auth import (
     ClientCreate,
@@ -25,6 +27,8 @@ from app.schemas.auth import (
     ResetPasswordRequest,
     VerifyCodeRequest,
     GoogleLoginRequest,
+    RequestEmailChangeRequest,
+    VerifyEmailChangeRequest,
 )
 from app.utils.security import get_current_user
 
@@ -39,6 +43,9 @@ class ResetPasswordCodeRequest(BaseModel):
 
 class ResendVerificationRequest(BaseModel):
     email: str
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
 
 # Registro y verificación
 @router.post("/register/client", response_model=dict)
@@ -70,8 +77,17 @@ async def solicitar_habilitacion_endpoint(req: UserLogin, db: Session = Depends(
     return solicitar_habilitacion(db, req.email, req.password)
 
 @router.post("/refresh", response_model=TokenResponse)
-def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
-    return refresh_access_token(db, refresh_token)
+def refresh_token(
+    req: Optional[RefreshTokenRequest] = None,
+    refresh_token: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+    """Renueva el access token. El refresh token viaja en el cuerpo de la
+    petición (nunca en la URL). Se conserva el parámetro por compatibilidad."""
+    token = (req.refresh_token if req else None) or refresh_token
+    if not token:
+        raise HTTPException(status_code=400, detail="refresh_token es requerido")
+    return refresh_access_token(db, token)
 
 @router.post("/change-password")
 def change_password_endpoint(
@@ -108,3 +124,24 @@ def reset_password_endpoint(
     reset_req = ResetPasswordRequest(token=req.token, new_password=req.new_password)
     reset_password(db, reset_req)
     return {"msg": "Contraseña actualizada correctamente"}
+
+# Cambio de correo electrónico (verificación con código)
+@router.post("/request-email-change")
+async def request_email_change_endpoint(
+    req: RequestEmailChangeRequest,
+    request: Request,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Solicita el cambio de correo: envía un código de 6 dígitos al correo actual."""
+    ip = request.client.host if request else None
+    return await request_email_change(db, current_user, req.nuevo_email, ip)
+
+@router.post("/verify-email-change")
+def verify_email_change_endpoint(
+    req: VerifyEmailChangeRequest,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Valida el código recibido por correo y aplica el cambio de correo."""
+    return verify_email_change(db, current_user, req.code, req.nuevo_email)

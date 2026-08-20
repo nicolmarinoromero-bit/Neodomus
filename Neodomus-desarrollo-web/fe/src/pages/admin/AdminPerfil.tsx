@@ -5,7 +5,6 @@ import api from '@services/api';
 import {
   FaUserShield,
   FaUserPen,
-  FaFloppyDisk,
   FaCamera,
   FaLock,
   FaGlobe,
@@ -21,6 +20,7 @@ import { getAdminAvatar, setAdminAvatar, removeAdminAvatar, getIniciales } from 
 import SectionHeader from '@components/profile/SectionHeader';
 import PasswordTab from '@components/profile/PasswordTab';
 import LanguageTab from '@components/profile/LanguageTab';
+import PerfilCuenta from '@components/profile/PerfilCuenta';
 
 type TabAdmin = 'cuenta' | 'contrasena' | 'idioma';
 
@@ -34,8 +34,8 @@ const AdminPerfil = () => {
   const [nombre, setNombre] = useState('');
   const [apellido, setApellido] = useState('');
   const [email, setEmail] = useState('');
+  const [emailOriginal, setEmailOriginal] = useState('');
   const [telefono, setTelefono] = useState('');
-  const [guardando, setGuardando] = useState(false);
   const [cargando, setCargando] = useState(true);
   const [toast, setToast] = useState<{ msg: string; tipo: 'success' | 'error' | 'info' } | null>(null);
 
@@ -52,6 +52,7 @@ const AdminPerfil = () => {
         setNombre(res.data.first_name || '');
         setApellido(res.data.last_name || '');
         setEmail(res.data.email || '');
+        setEmailOriginal(res.data.email || '');
         setTelefono(res.data.telefono_usuario ? String(res.data.telefono_usuario) : '');
       } catch (err) {
         console.error('Error cargando el perfil del administrador:', err);
@@ -59,6 +60,7 @@ const AdminPerfil = () => {
         setNombre(partes[0] || '');
         setApellido(partes.slice(1).join(' ') || '');
         setEmail(user?.correo || '');
+        setEmailOriginal(user?.correo || '');
       } finally {
         setCargando(false);
       }
@@ -103,46 +105,31 @@ const AdminPerfil = () => {
     notify(t('adm.perfil.fotoEliminada'));
   };
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-      notify(t('adm.perfil.correoInvalido'), 'error');
-      return;
-    }
-    setGuardando(true);
-    try {
-      const payload: Record<string, unknown> = {
-        first_name: nombre.trim() || 'Administrador',
-        last_name: apellido.trim(),
-        email: email.trim(),
-      };
-      const telNum = parseInt(telefono.replace(/\D/g, ''), 10);
-      if (telefono.trim()) payload.telefono_usuario = telNum;
-
-      await api.put('/users/me', payload);
-
-      await refreshUserProfile();
-      window.dispatchEvent(new CustomEvent('admin-profile-updated'));
-      notify(t('adm.perfil.cambiosGuardados'));
-    } catch (err: any) {
-      const msg = err.response?.data?.detail;
-      if (Array.isArray(msg)) {
-        notify(
-          msg.map((m: any) => (typeof m === 'string' ? m : m.msg || '')).filter(Boolean).join(' · '),
-          'error',
-        );
-      } else if (typeof msg === 'string') {
-        notify(msg, 'error');
-      } else {
-        notify(t('adm.perfil.errorGuardar'), 'error');
-      }
-    } finally {
-      setGuardando(false);
-    }
-  };
-
   const nombreCompleto = (nombre || apellido) ? `${nombre} ${apellido}`.trim() : user?.nombre || t('adm.perfil.administrador');
   const correoUsuario = user?.correo || email || 'admin@neodomus.com';
+
+  const guardarCampo = async (payload: Record<string, unknown>) => {
+    try {
+      const body: Record<string, unknown> = { ...payload };
+      const tel = String(body.telefono_usuario ?? '').replace(/\D/g, '');
+      body.telefono_usuario = tel ? parseInt(tel, 10) : null;
+      await api.put('/users/me', body);
+      if (typeof body.first_name === 'string' && typeof body.last_name === 'string') {
+        setNombre(body.first_name.trim());
+        setApellido(body.last_name.trim());
+      }
+      setTelefono(tel);
+      await refreshUserProfile();
+      window.dispatchEvent(new CustomEvent('admin-profile-updated'));
+      notify(t('adm.perfil.cambiosGuardados'), 'success');
+      return true;
+    } catch (err: any) {
+      const msg = err.response?.data?.detail;
+      if (typeof msg === 'string') notify(msg, 'error');
+      else notify(t('adm.perfil.errorGuardar'), 'error');
+      return false;
+    }
+  };
 
   const renderCuenta = () => (
     <div className="pf-tab">
@@ -199,65 +186,54 @@ const AdminPerfil = () => {
           <p className="ap-state-text">{t('adm.perfil.cargandoDatos')}</p>
         </div>
       ) : (
-        <form onSubmit={handleSave} className="pf-form">
-        <div className="pf-form-grid">
-          <div className="pf-form-group">
-            <label className="pf-form-label" htmlFor="a-nombre">{t('adm.perfil.nombre')}</label>
-            <input
-              id="a-nombre"
-              className="pf-form-input"
-              type="text"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              placeholder={t('adm.perfil.nombrePlaceholder')}
-              required
-            />
-          </div>
-          <div className="pf-form-group">
-            <label className="pf-form-label" htmlFor="a-apellido">{t('adm.perfil.apellido')}</label>
-            <input
-              id="a-apellido"
-              className="pf-form-input"
-              type="text"
-              value={apellido}
-              onChange={(e) => setApellido(e.target.value)}
-              placeholder={t('adm.perfil.apellidoPlaceholder')}
-              required
-            />
-          </div>
-          <div className="pf-form-group">
-            <label className="pf-form-label" htmlFor="a-email">{t('adm.perfil.correo')}</label>
-            <input
-              id="a-email"
-              className="pf-form-input"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div className="pf-form-group">
-            <label className="pf-form-label" htmlFor="a-telefono">{t('adm.perfil.telefono')}</label>
-            <input
-              id="a-telefono"
-              className="pf-form-input"
-              type="tel"
-              value={telefono}
-              onChange={(e) => setTelefono(e.target.value.replace(/\D/g, ''))}
-              placeholder="+57 300 000 0000"
-            />
-          </div>
-          <div className="pf-form-group">
-            <label className="pf-form-label" htmlFor="a-rol">{t('adm.perfil.rol')}</label>
-            <input id="a-rol" className="pf-form-input" type="text" value={t('adm.perfil.administrador')} disabled />
-          </div>
-        </div>
-        <div className="pf-form-actions">
-          <button type="submit" className="pf-btn pf-btn-primary" disabled={guardando}>
-            <FaFloppyDisk /> {guardando ? t('adm.perfil.guardando') : t('adm.perfil.guardarCambios')}
-          </button>
-        </div>
-      </form>
+        <PerfilCuenta
+          campos={[
+            {
+              clave: 'first_name',
+              label: t('adm.perfil.nombre'),
+              valor: nombre,
+              placeholder: t('adm.perfil.nombrePlaceholder'),
+              requerido: true,
+              bloquearPortapapeles: true,
+            },
+            {
+              clave: 'last_name',
+              label: t('adm.perfil.apellido'),
+              valor: apellido,
+              placeholder: t('adm.perfil.apellidoPlaceholder'),
+              requerido: true,
+              bloquearPortapapeles: true,
+            },
+            {
+              clave: 'telefono_usuario',
+              label: t('adm.perfil.telefono'),
+              valor: telefono,
+              tipo: 'tel',
+              maxLength: 10,
+              placeholder: '3001234567',
+              hint: t('perfil.maximo10'),
+              bloquearPortapapeles: true,
+            },
+          ]}
+          email={email}
+          emailOriginal={emailOriginal}
+          rol={t('adm.perfil.administrador')}
+          notificar={notify}
+          onEmailVerificado={(nuevo) => {
+            setEmail(nuevo);
+            setEmailOriginal(nuevo);
+            refreshUserProfile();
+            window.dispatchEvent(new CustomEvent('admin-profile-updated'));
+          }}
+          onGuardar={async (payload) => {
+            const tel = String(payload.telefono_usuario ?? '').replace(/\D/g, '');
+            if (tel && tel.length !== 10) {
+              notify(t('perfil.telefono10'), 'error');
+              return false;
+            }
+            return guardarCampo(payload);
+          }}
+        />
       )}
     </div>
   );
