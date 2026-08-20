@@ -1,50 +1,60 @@
-import { Tabs } from "expo-router";
-import React from "react";
+import { Stack, usePathname, useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
 
-import { HapticTab } from "@/components/haptic-tab";
-import { IconSymbol } from "@/components/ui/icon-symbol";
-import { Colors } from "@/constants/theme";
-import { useColorScheme } from "@/hooks/use-color-scheme";
+import { CommerceProvider } from "@/contexts/CommerceContext";
+import { SessionProvider, useSession } from "@/contexts/SessionContext";
+import { Neo } from "@/constants/theme";
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+const RUTAS_PROTEGIDAS = ["/tecnico", "/admin-blocked"];
 
+/** Redirige a /login si se intenta abrir una ruta protegida sin sesión. */
+function GuardRutas() {
+  const { isLogged, loading } = useSession();
+  const pathname = usePathname();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (loading) return;
+    const protegida = RUTAS_PROTEGIDAS.some((ruta) => pathname.startsWith(ruta));
+    if (protegida && !isLogged) {
+      router.replace("/login");
+    }
+  }, [pathname, isLogged, loading, router]);
+
+  return null;
+}
+
+export default function RootLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarActiveTintColor:
-          Colors[colorScheme ?? "light"].tint,
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Inicio",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol
-              size={28}
-              name="house.fill"
-              color={color}
-            />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: "Productos",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol
-              size={28}
-              name="shippingbox.fill"
-              color={color}
-            />
-          ),
-        }}
-      />
-    </Tabs>
+    <SessionProvider>
+      <CommerceProvider>
+        <GuardRutas />
+        <StatusBar style="light" backgroundColor={Neo.fondo} />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: Neo.fondo },
+            animation: "fade",
+          }}
+        >
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="login" />
+          <Stack.Screen name="register" />
+          <Stack.Screen name="verify-email" />
+          <Stack.Screen name="forgot-password" />
+          <Stack.Screen name="verify-code" />
+          <Stack.Screen name="reset-password" />
+          <Stack.Screen name="tecnico" />
+          <Stack.Screen name="admin-blocked" />
+          <Stack.Screen name="carrito" />
+          <Stack.Screen name="checkout" />
+          <Stack.Screen name="favoritos" />
+          <Stack.Screen name="mis-pedidos" />
+          <Stack.Screen name="nueva-cita" />
+          <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+        </Stack>
+      </CommerceProvider>
+    </SessionProvider>
   );
 }

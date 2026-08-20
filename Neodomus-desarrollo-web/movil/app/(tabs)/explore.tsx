@@ -1,112 +1,167 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { useCallback, useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { Collapsible } from '@/components/ui/collapsible';
-import { ExternalLink } from '@/components/external-link';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Fonts } from '@/constants/theme';
+import NeoButton from "@/components/auth/NeoButton";
+import NeoHeader from "@/components/NeoHeader";
+import ProductCard, { ProductoCardData } from "@/components/ProductCard";
+import { Neo } from "@/constants/theme";
+import { apiFetch } from "@/services/api";
 
-export default function TabTwoScreen() {
+type ProductoResponse = ProductoCardData & {
+  id_categoria?: number;
+  nombre_categoria?: string | null;
+  stock_producto?: number;
+  descripcion_producto?: string | null;
+  variantes?: { id: number; nombre: string; imagen_url?: string | null }[];
+};
+
+export default function CatalogoScreen() {
+  const [productos, setProductos] = useState<ProductoResponse[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [refrescando, setRefrescando] = useState(false);
+  const [error, setError] = useState("");
+  const [pagina, setPagina] = useState(1);
+  const [totalPaginas, setTotalPaginas] = useState(1);
+
+  const cargar = useCallback(async (pag: number, refresh = false) => {
+    if (refresh) setRefrescando(true);
+    else if (pag === 1) setCargando(true);
+    setError("");
+    try {
+      const res = await apiFetch(`/productos/?page=${pag}&limit=20`);
+      const lista = (res?.data ?? []) as ProductoResponse[];
+      setProductos((prev) => (pag === 1 ? lista : [...prev, ...lista]));
+      setTotalPaginas(res?.total_pages ?? 1);
+      setPagina(pag);
+    } catch (err: any) {
+      setError(err?.friendly ?? "No pudimos cargar los productos.");
+    } finally {
+      setCargando(false);
+      setRefrescando(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    cargar(1);
+  }, [cargar]);
+
+  const cargarMas = () => {
+    if (pagina < totalPaginas && !cargando) cargar(pagina + 1);
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
+    <SafeAreaView style={styles.seguro} edges={["bottom"]}>
+      <NeoHeader />
+      <View style={styles.header}>
+        <Text style={styles.titulo}>Catálogo de productos</Text>
+        <Text style={styles.subtitulo}>Tecnología para tu hogar</Text>
+      </View>
+
+      {cargando && productos.length === 0 ? (
+        <View style={styles.centro}>
+          <ActivityIndicator size="large" color={Neo.oro} />
+          <Text style={styles.centroTexto}>Cargando productos...</Text>
+        </View>
+      ) : error && productos.length === 0 ? (
+        <View style={styles.centro}>
+          <Text style={styles.error}>{error}</Text>
+          <NeoButton title="Reintentar" onPress={() => cargar(1)} style={styles.botonReintentar} />
+        </View>
+      ) : (
+        <FlatList
+          data={productos}
+          keyExtractor={(item) => String(item.id_producto)}
+          renderItem={({ item }) => <ProductCard producto={item} />}
+          numColumns={2}
+          contentContainerStyle={styles.lista}
+          columnWrapperStyle={styles.fila}
+          refreshControl={
+            <RefreshControl
+              refreshing={refrescando}
+              onRefresh={() => cargar(1, true)}
+              tintColor={Neo.oro}
+              colors={[Neo.oro]}
+            />
+          }
+          onEndReached={cargarMas}
+          onEndReachedThreshold={0.4}
+          ListFooterComponent={
+            pagina < totalPaginas ? (
+              <ActivityIndicator style={styles.pieCarga} color={Neo.oro} />
+            ) : null
+          }
+          ListEmptyComponent={
+            !cargando && !error ? (
+              <Text style={styles.sinResultados}>No hay productos disponibles.</Text>
+            ) : null
+          }
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText
-          type="title"
-          style={{
-            fontFamily: Fonts.rounded,
-          }}>
-          Explore
-        </ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image
-          source={require('@/assets/images/react-logo.png')}
-          style={{ width: 100, height: 100, alignSelf: 'center' }}
-        />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful{' '}
-          <ThemedText type="defaultSemiBold" style={{ fontFamily: Fonts.mono }}>
-            react-native-reanimated
-          </ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+      )}
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  seguro: {
+    flex: 1,
+    backgroundColor: Neo.fondo,
   },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
+  header: {
+    paddingHorizontal: 18,
+    paddingTop: 16,
+    paddingBottom: 12,
+  },
+  titulo: {
+    color: Neo.texto,
+    fontSize: 24,
+    fontWeight: "800",
+  },
+  subtitulo: {
+    color: Neo.textoSuave,
+    fontSize: 13,
+    marginTop: 2,
+  },
+  lista: {
+    paddingHorizontal: 12,
+    paddingBottom: 24,
+  },
+  fila: {
+    gap: 10,
+  },
+  centro: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+    gap: 12,
+  },
+  centroTexto: {
+    color: Neo.textoSuave,
+    fontSize: 14,
+  },
+  error: {
+    color: Neo.error,
+    fontSize: 14,
+    textAlign: "center",
+  },
+  sinResultados: {
+    color: Neo.textoSuave,
+    textAlign: "center",
+    marginTop: 40,
+  },
+  botonReintentar: {
+    marginTop: 8,
+    alignSelf: "center",
+  },
+  pieCarga: {
+    marginVertical: 16,
   },
 });

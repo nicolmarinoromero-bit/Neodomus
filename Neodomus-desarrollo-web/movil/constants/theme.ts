@@ -1,53 +1,59 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * Paleta e identidad visual NEODOMUS para la app móvil.
+ * Espejo de la identidad web: negro, blanco, rosa palo y dorado.
  */
 
-import { Platform } from 'react-native';
-
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+export const Neo = {
+  // Fondo general (negro profundo)
+  fondo: '#0b0b0d',
+  fondoSuave: '#121215',
+  // Tarjetas y contenedores
+  tarjeta: '#16161a',
+  tarjetaBorde: 'rgba(212, 165, 75, 0.28)',
+  tarjetaBordeSuave: 'rgba(255, 255, 255, 0.08)',
+  // Texto
+  texto: '#ffffff',
+  textoSuave: '#bdbdbd',
+  textoTenue: 'rgba(255, 255, 255, 0.45)',
+  // Dorado / amarillo (acento principal)
+  oro: '#d4a54b',
+  oroClaro: '#ffd98a',
+  // Rosa palo (acento secundario)
+  rosa: '#e7a3b8',
+  rosaSuave: 'rgba(231, 163, 184, 0.16)',
+  // Estados
+  error: '#ff6b6b',
+  errorFondo: 'rgba(255, 107, 107, 0.12)',
+  exito: '#7bd88f',
+  exitoFondo: 'rgba(123, 216, 143, 0.12)',
+  // Inputs
+  inputFondo: '#1b1b1f',
+  inputBorde: 'rgba(255, 255, 255, 0.1)',
+  inputPlaceholder: '#6b6b6b',
+};
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+    text: Neo.texto,
+    background: Neo.fondo,
+    tint: Neo.oro,
+    icon: Neo.textoSuave,
+    tabIconDefault: Neo.textoTenue,
+    tabIconSelected: Neo.oro,
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+    text: Neo.texto,
+    background: Neo.fondo,
+    tint: Neo.oro,
+    icon: Neo.textoSuave,
+    tabIconDefault: Neo.textoTenue,
+    tabIconSelected: Neo.oro,
   },
 };
 
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-    serif: "Georgia, 'Times New Roman', serif",
-    rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
-    mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-  },
-});
+export const Fonts = {
+  sans: 'normal',
+  serif: 'serif',
+  rounded: 'normal',
+  mono: 'monospace',
+};
